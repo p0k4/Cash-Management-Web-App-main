@@ -1,4 +1,3 @@
-// server.js para PostgreSQL
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -8,13 +7,13 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração da base de dados PostgreSQL
+// Configuração PostgreSQL
 const pool = new Pool({
   user: "Martins",
   host: "localhost",
   database: "POS_BD",
   password: "app.bdm",
-  port: 5432, // porta default do PostgreSQL
+  port: 5432,
 });
 
 // Middleware
@@ -22,7 +21,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Criar tabela se não existir
+// Criar tabela
 pool.query(
   `CREATE TABLE IF NOT EXISTS registos (
     id SERIAL PRIMARY KEY,
@@ -30,21 +29,18 @@ pool.query(
     data DATE,
     numDoc INTEGER,
     pagamento TEXT,
-    valor NUMERIC
+    valor NUMERIC,
+    op_tpa TEXT
   )`,
   (err) => {
-    if (err) {
-      console.error("Erro ao criar tabela:", err);
-    } else {
-      console.log("Tabela verificada/criada com sucesso.");
-    }
+    if (err) console.error("Erro ao criar tabela:", err);
+    else console.log("Tabela verificada/criada com sucesso.");
   }
 );
 
-// Rota para registar dados
+// POST - Criar novo registo
 app.post("/api/registar", async (req, res) => {
-  const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
-
+ const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
   if (!operacao || !data || !numDoc || !pagamento || !valor) {
     return res.status(400).json({ error: "Dados incompletos" });
   }
@@ -53,7 +49,7 @@ app.post("/api/registar", async (req, res) => {
     const result = await pool.query(
       `INSERT INTO registos (operacao, data, numDoc, pagamento, valor, op_tpa)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [operacao, data, numDoc, pagamento, valor, op_tpa || null]
+      [operacao, data, numDoc, pagamento, valor, op_tpa]
     );
     res.json({ success: true, id: result.rows[0].id });
   } catch (err) {
@@ -62,7 +58,7 @@ app.post("/api/registar", async (req, res) => {
   }
 });
 
-// Rota para listar todos os registos
+// GET - Listar todos os registos
 app.get("/api/registos", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM registos ORDER BY data DESC");
@@ -73,7 +69,7 @@ app.get("/api/registos", async (req, res) => {
   }
 });
 
-// Rota para filtrar registos por data
+// GET - Filtrar por data
 app.get("/api/registos/filtrar", async (req, res) => {
   const { inicio, fim } = req.query;
   try {
@@ -88,30 +84,54 @@ app.get("/api/registos/filtrar", async (req, res) => {
   }
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Servidor a correr na porta ${PORT}`);
-});
+// PUT - Atualizar registo
+app.put("/api/registos/:id", async (req, res) => {
+  const id = req.params.id;
+  const {
+    operacao,
+    data,
+    numDoc, // <-- recebido do frontend
+    pagamento,
+    valor,
+    op_tpa,
+  } = req.body;
 
-// Rota para apagar todos os registos
-app.delete("/api/registos", async (req, res) => {
+  console.log("Atualizar registo ID:", id, {
+    operacao,
+    data,
+    numDoc,
+    pagamento,
+    valor,
+    op_tpa
+  });
+
   try {
-    await pool.query("DELETE FROM registos");
+    await pool.query(
+      `UPDATE registos
+       SET operacao = $1, data = $2, numdoc = $3, pagamento = $4, valor = $5, op_tpa = $6
+       WHERE id = $7`,
+      [operacao, data, numDoc, pagamento, valor, op_tpa, id] // numDoc usado aqui
+    );
     res.json({ success: true });
   } catch (err) {
-    console.error("Erro ao apagar registos:", err);
-    res.status(500).json({ error: "Erro ao apagar registos" });
+    console.error("Erro ao atualizar registo:", err.message);
+    res.status(500).json({ error: "Erro ao atualizar registo" });
   }
 });
 
-// Rota para apagar um registo específico por ID
+// DELETE - Apagar registo
 app.delete("/api/registos/:id", async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
   try {
-    await pool.query("DELETE FROM registos WHERE id = $1", [id]);
+    await pool.query(`DELETE FROM registos WHERE id = $1`, [id]);
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao apagar registo:", err);
     res.status(500).json({ error: "Erro ao apagar registo" });
   }
+});
+
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`Servidor a correr na porta ${PORT}`);
 });
