@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cash App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    .tabela-registos.oculta {
+      display: none;
+    }
+  </style>
+
+</head>
+
+<body onload="setarDataAtual(); document.getElementById('operacao').value = 'Operação 1'">
+  <div class="container">
+    <header>
+      <div class="cabecalho-caixa">
+        <div class="texto-cabecalho">
+          <h1>POS<br>Cash Management</h1>
+        </div>
+        <div class="icone-cabecalho">
+          <img src="assets/images/562-5629201_cash-management-icon-clipart-png-download-cash-flow.png"
+            alt="Ícone de Cash Management">
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="form-section">
+        <div class="left-form">
+          <label for="operacao">OPERAÇÃO</label>
+          <input type="text" id="operacao" name="operacao" class="input-pequeno" readonly />
+
+          <label for="data">DATA</label>
+          <input type="date" id="data" name="data" class="input-pequeno" />
+
+          <label for="num-doc">Nº DOC</label>
+          <input type="number" id="num-doc" placeholder="Nº DOC" name="num-doc" class="input-pequeno" required />
+          <small id="proximo-doc" style="color: gray; font-style: italic"></small>
+
+          <div style="display: flex; align-items: flex-end; gap: 10px;">
+            <div>
+              <label for="pagamento">PAGAMENTO</label>
+              <select id="pagamento" name="pagamento" class="input-medio">
+                <option value="" disabled selected>-- Modo pagamento --</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Multibanco">Multibanco</option>
+                <option value="Transferência Bancária">Transf. Bancária</option>
+              </select>
+            </div>
+
+            <div id="campo-tpa" style="display: none;">
+              <label for="op-tpa">OP TPA</label>
+              <input type="text" id="op-tpa" name="op-tpa" class="input-pequeno" placeholder="Nº OP" />
+            </div>
+          </div>
+
+          <label for="valor">VALOR</label>
+          <input type="number" id="valor" placeholder="Valor em €" name="valor" step="0.01" class="input-pequeno" />
+        </div>
+        <div class="right-form">
+          <div class="caixa-total">
+            <span class="title-opcoes">SALDOS</span>
+            <div class="total" id="total">0.00 €</div>
+            <div id="totaisPagamento" class="totais-por-pagamento">
+              <!-- Os totais por método aparecerão aqui dinamicamente -->
+            </div>
+          </div>
+
+          <div class="opcoes">
+            <span class="title-opcoes">OPÇÕES</span>
+            </br></br>
+            <div class="acao-botoes">
+              <button id="btnRegistar" class="btn-registar" onclick="registar()">
+                <i class="fas fa-save"></i> REGISTAR
+              </button>
+              <button type="button" id="btnApagarTudo" class="btn-reiniciar-pos" title="Isto irá reiniciar todo o POS. Confirme antes de usar.">
+                <i class="fas fa-sync-alt"></i> REINICIAR
+              </button>
+            </div>
+            <div class="acao-botoes" style="justify-content: center; display: flex; margin-top: 10px;">
+              <a href="tabela.html">
+                <button class="btn-exportar">
+                  <i class="fas fa-table"></i> MOVIMENTOS
+                </button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="position: relative; height: 10vh;">
+
+        <button class="btn-fechar" onclick="fecharJanela()" style="position: absolute; bottom: 0; right: 20px;">
+          <i class="fas fa-times"></i> Fechar Janela
+        </button>
+
+      </div>
+
+
+
+      <section class="tabela-registos oculta">
+        <table id="tabelaRegistos">
+          <thead>
+            <tr>
+              <th>OPERAÇÃO</th>
+              <th>DATA</th>
+              <th>Nº DOC</th>
+              <th>MODO PAGAMENTO</th>
+              <th>VALOR</th>
+              <th>OPÇÕES</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div id="totalTabela">Total: 0.00 €</div>
+      </section>
+
+    </main>
+  </div>
+  <script>
+    window.onload = function () {
+      // Only open a new window if this is the top-level window and not already a popup
+      if (window.opener == null && window.name !== "cashAppPopup") {
+        const newWin = window.open("index.html", "_blank", "width=1920,height=1080");
+        if (newWin) {
+          newWin.name = "cashAppPopup";
+          window.close(); // Fecha a janela original
+        }
+      }
+    };
+
+  </script>
+  <script src="script.js"></script>
+</body>
+
+</html>

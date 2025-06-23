@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Tabela de Registos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Registos de Caixa</h1>
+    </header>
+
+    <div class="opcoes" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" class="btn-voltar" style="text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+      <div>
+        <button type="button" id="btnApagarTudo" class="btn-apagar-tudo" title="Esta ação APAGA TODOS OS DADOS DA TABELA.">
+          <i class="fas fa-trash-alt"></i> APAGAR TABELA
+        </button>
+        <button class="btn-exportar btn-pdf" id="btnExportarPDF">
+          <i class="fas fa-file-pdf"></i> Exportar PDF
+        </button>
+        <button class="btn-exportar btn-csv" onclick="exportarRelatorio()">
+          <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
+      </div>
+    </div>
+    <div class="linha-filtros">
+      <div class="filtro-data">
+    <div class="campo-pesquisa">
+      <i class="fas fa-search"></i>
+      <input type="text" id="filtroTabela" onkeyup="filtrarTabela()" placeholder="Pesquisar na tabela:" />
+    </div>
+      <!-- Filtro datas BD
+     <label>Data de inicio <input type="date" id="dataInicio"></label>
+    <label>Data de fim <input type="date" id="dataFim"></label>
+    <button onclick="buscarPorData()">Pesquisar</button> -->
+  </div>
+</div>
+    <section class="tabela-registos">
+      <table id="tabelaRegistos">
+        <thead>
+          <tr>
+            <th>OPERAÇÃO</th>
+            <th>DATA</th>
+            <th>Nº DOC</th>
+            <th>MODO PAGAMENTO</th>
+            <th>VALOR</th>
+            <th style="text-align: center;">OPÇÕES</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="totalTabela">Total: 0.00 €</div>
+  </div>
+
+  </div>
+
+
+
+  <script src="script-tabela.js"></script>
+</body>
+
+</html>
