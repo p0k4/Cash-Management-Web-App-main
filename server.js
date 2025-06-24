@@ -131,6 +131,17 @@ app.delete("/api/registos/:id", async (req, res) => {
   }
 });
 
+// DELETE - Apagar todos os registos
+app.delete("/api/registos", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM registos");
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Erro ao apagar todos os registos:", err);
+    res.status(500).json({ error: "Erro ao apagar registos" });
+  }
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor a correr na porta ${PORT}`);

@@ -427,28 +427,36 @@ function exportarPDF() {
 
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-document.getElementById("btnApagarTudo").addEventListener("click", function () {
+document.getElementById("btnApagarTudo").addEventListener("click", async function () {
   const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
   if (!confirmar) return;
 
-  const tabela = document
-    .getElementById("tabelaRegistos")
-    .querySelector("tbody");
-  tabela.innerHTML = ""; // remove todas as linhas
+  try {
+    const response = await fetch("http://localhost:3000/api/registos", {
+      method: "DELETE"
+    });
+    const resultado = await response.json();
 
-  localStorage.removeItem("caixaPiscinaDados");
-  localStorage.removeItem("contadorOperacao");
-  localStorage.removeItem("contadorDoc");
-  contadorDoc = null;
+    if (resultado.success) {
+      alert("Todos os registos foram apagados da base de dados.");
+      contadorOperacao = 1;
+      contadorDoc = null;
 
-  const inputDoc = document.getElementById("num-doc");
-  inputDoc.readOnly = false;
-  inputDoc.value = "";
-  atualizarHintProximoDoc();
+      const inputDoc = document.getElementById("num-doc");
+      inputDoc.readOnly = false;
+      inputDoc.value = "";
+      atualizarHintProximoDoc();
 
-  contadorOperacao = 1;
-  apagar(); // redefine os campos
-  atualizarTotalTabela();
+      apagar(); // limpa os campos do formulário
+      carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
+      atualizarTotalTabela();
+    } else {
+      alert("Erro ao apagar registos.");
+    }
+  } catch (err) {
+    console.error("Erro ao comunicar com o servidor:", err);
+    alert("Erro ao comunicar com o servidor.");
+  }
 });
 /* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
 

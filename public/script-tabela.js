@@ -110,6 +110,10 @@ function criarBotoesOpcoes(linha) {
 
   const id = linha.dataset.id;
 
+  
+
+
+
   // Botão APAGAR
   const btnApagar = document.createElement("button");
   btnApagar.innerHTML = '<i class="fas fa-trash"></i> Apagar';
@@ -378,3 +382,31 @@ const btnExportarPDF = document.getElementById("btnExportarPDF");
 if (btnExportarPDF) {
   btnExportarPDF.addEventListener("click", exportarPDF);
 }
+
+// Botão "Apagar Tudo"
+document.getElementById("btnApagarTudo").addEventListener("click", async function () {
+  // código existente aqui
+});
+
+// Botão "Reiniciar POS"
+document.getElementById("btn-reiniciar-pos").addEventListener("click", async function () {
+  const confirmar = confirm("Tem a certeza que quer apagar TODOS os dados do POS?");
+  if (!confirmar) return;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/registos", {
+      method: "DELETE",
+    });
+    const resultado = await response.json();
+
+    if (resultado.success) {
+      alert("Todos os registos foram apagados com sucesso!");
+      carregarDadosDoServidor(); // Recarrega a tabela atualizada (vazia)
+    } else {
+      alert("Erro ao apagar registos.");
+    }
+  } catch (err) {
+    console.error("Erro ao apagar registos:", err);
+    alert("Erro ao comunicar com o servidor.");
+  }
+});
