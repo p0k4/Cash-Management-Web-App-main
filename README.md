@@ -1,137 +1,111 @@
-# 💰 Aplicação de Gestão de Caixa
 
-Este projeto é uma aplicação web para registo e gestão de movimentos de caixa, com suporte a diferentes métodos de pagamento (incluindo OP TPA), exportação de dados e integração com base de dados PostgreSQL.
+# 💼 POS Cash Management
 
----
-
-## 📦 Tecnologias Utilizadas
-
-- **Frontend**: HTML, CSS, JavaScript (puro)
-- **Backend**: Node.js + Express
-- **Base de Dados**: PostgreSQL
-- **Exportação**: jsPDF, jsPDF AutoTable, CSV manual
+POS Cash Management is a simple and intuitive web application to manage and track daily cash transactions. The interface allows easy entry of payments, calculation of balances, and export of data for reports or archiving.
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🚀 Features
+
+- 💸 Register income by operation
+- 🧾 Multiple payment methods:
+  - Cash
+  - Multibanco (with OP TPA field)
+  - Bank transfer
+- 📅 Auto date insertion
+- 📄 Document number auto-increment
+- 🔎 Live filtering of records
+- ✏️ Edit and delete registered rows
+- 📤 Export to:
+  - PDF
+  - CSV
+- 🔄 Full reset (clears table and database)
+
+---
+
+## 🖥️ Interface
+
+### 🔹 Registration Panel
+
+![Front-end panel](./assets/front-app.png)
+
+- Input operation, date, document number, payment method, and value.
+- See total and per-method balances.
+- Register, reset, or access full records.
+
+---
+
+### 🔹 PDF Export Example
+
+![PDF Report](./assets/pdf.png)
+
+- Exported with date and time
+- Structured table
+- Includes total at the bottom
+
+---
+
+### 🔹 Transactions Table
+
+![Table View](./assets/table.png)
+
+- List all records
+- Edit or delete each entry
+- Export or clear table
+
+---
+
+## 🧩 Technologies Used
+
+- **Frontend:** HTML, CSS, JavaScript
+- **PDF Export:** jsPDF + AutoTable
+- **Backend:** Node.js + Express
+- **Database:** PostgreSQL
+- **Styling:** Font Awesome for icons
+
+---
+
+## 📦 How to Run
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/your-user/pos-cash-management.git
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   cd pos-cash-management
+   npm install
+   ```
+
+3. Start the server:
+   ```bash
+   node server.js
+   ```
+
+4. Access the app:
+   ```
+   http://localhost:3000
+   ```
+
+---
+
+## 🛠️ Future Improvements
+
+- Authentication system for restricted access
+- Daily closing feature with history
+- Mobile responsiveness
+- Graphical dashboards
+
+---
+
+## 📷 Screenshots Location
+
+All images are placed in the `/assets/` folder. Make sure to create that directory and move the provided images there:
 
 ```
-/public
-│  index.html          # Página principal com formulário de registo
-│  tabela.html         # Página com a tabela de registos
-│  style.css           # Estilo da aplicação
-│  script.js           # Lógica frontend (registo, exportação, carregamento)
-│
-server.js              # Servidor Express (API e ligação à BD)
+assets/
+├── front-app.png
+├── pdf.png
+└── table.png
 ```
-
----
-
-## 🧪 Funcionalidades
-
-### 📝 Registo de Operações
-
-- Inserção de:
-  - Operação automática (ex: `Operação 1`)
-  - Data (pré-preenchida com hoje)
-  - Nº Documento (único e sequencial)
-  - Método de Pagamento:
-    - Dinheiro
-    - Multibanco + campo extra OP TPA
-    - Transferência Bancária
-  - Valor (€)
-
----
-
-### 💾 Integração com PostgreSQL
-
-- Os dados são guardados diretamente na BD via API:
-  - **Rota POST**: `/api/registar`
-  - **Rota GET**: `/api/registos` (para tabela)
-- A tabela na BD:
-```sql
-CREATE TABLE IF NOT EXISTS registos (
-  id SERIAL PRIMARY KEY,
-  operacao TEXT,
-  data DATE,
-  numDoc INTEGER,
-  pagamento TEXT,
-  op_tpa TEXT,
-  valor NUMERIC
-);
-```
-
----
-
-### 📊 Visualização (tabela.html)
-
-- Mostra todos os registos do backend
-- Formata a data para `DD/MM/AAAA`
-- Exibe `OP TPA` se existir
-- Mostra o total geral e por método de pagamento
-- Permite editar (apenas visualmente) ou apagar registos (localmente)
-
----
-
-### 📤 Exportações
-
-- **PDF**: com cabeçalho, data, e totais, gerado com `jsPDF` + `AutoTable`
-- **CSV**: compatível com Excel, com total incluído
-
----
-
-## 🚀 Como Executar Localmente
-
-### 1. Clona o projeto
-```bash
-git clone https://github.com/teu-utilizador/gestao-caixa.git
-cd gestao-caixa
-```
-
-### 2. Instala as dependências
-```bash
-npm install express pg cors body-parser
-```
-
-### 3. Configura a base de dados PostgreSQL
-Cria uma BD chamada `POS_BD` e usa o seguinte utilizador:
-
-```
-user:     Martins
-password: app.bdm
-host:     localhost
-port:     5432
-```
-
-> ⚠️ **Certifica-te que o PostgreSQL está a correr!**
-
-### 4. Inicia o servidor
-```bash
-node server.js
-```
-
-### 5. Abre no browser
-Abre `index.html` para inserir registos, ou `tabela.html` para consultar os dados.
-
----
-
-## 📌 Notas Finais
-
-- O `localStorage` foi **desativado** — todos os dados vêm da base de dados.
-- Os dados inseridos no `formulário` são imediatamente visíveis na `tabela`.
-- As operações são numeradas automaticamente (`Operação 1`, `Operação 2`, ...).
-
----
-
-## 📬 Futuras Melhorias
-
-- Apagar ou editar registos diretamente na base de dados
-- Autenticação de utilizador
-- Filtros por data e exportações parciais
-- Hospedagem online (Vercel + Railway ou Render)
-
----
-
-## 👨‍💻 Desenvolvido por
-
-Martins — Projeto de uso interno e académico de gestão de caixa
