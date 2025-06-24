@@ -27,7 +27,7 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ### 🔹 Registration Panel
 
-![Front-end panel](./assets/front-app.png)
+![Front-end panel](./public/assets/images/readme/front-app.png)
 
 - Input operation, date, document number, payment method, and value.
 - See total and per-method balances.
@@ -37,7 +37,7 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ### 🔹 PDF Export Example
 
-![PDF Report](./assets/pdf.png)
+![PDF Report](./public/assets/images/readme/pdf.png)
 
 - Exported with date and time
 - Structured table
@@ -47,7 +47,7 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ### 🔹 Transactions Table
 
-![Table View](./assets/table.png)
+![Table View](./public/assets/images/readme/table.png)
 
 - List all records
 - Edit or delete each entry
