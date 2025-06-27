@@ -3,33 +3,63 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const { Pool } = require("pg");
 const path = require("path");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+
+const authRoutes = require("./routes/auth"); // Importa router de autenticação
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração PostgreSQL
+const SECRET = process.env.JWT_SECRET || "segredoSuperSeguro";
+
+// PostgreSQL Pool com DATABASE_URL e SSL para Render
 const pool = new Pool({
- 
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
 });
-  // user: "Martins",
-  // host: "localhost",
-  // database: "POS_BD",
-  // password: "app.bdm",
-  // port: 5432,
 
-
-// Middleware
-app.use(cors());
+// Middlewares
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true
+}));
 app.use(bodyParser.json());
+app.use(cookieParser());
+
+// Servir ficheiros públicos (login, scripts, etc)
 app.use(express.static(path.join(__dirname, "public")));
 
-// Criar tabela
-pool.query(
-  `CREATE TABLE IF NOT EXISTS registos (
+// Middleware para rotas protegidas
+const authMiddleware = (req, res, next) => {
+  const token = req.cookies.token;
+  try {
+    jwt.verify(token, SECRET);
+    next();
+  } catch (err) {
+    return res.redirect("/login.html");
+  }
+};
+
+// Servir a pasta /private só com token válido
+app.use("/private", authMiddleware, express.static(path.join(__dirname, "private")));
+
+// Rota de dashboard
+app.get("/dashboard", authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "index.html"));
+});
+
+// Rota para tabela.html também protegida
+app.get("/tabela.html", authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "tabela.html"));
+});
+
+// Rotas de autenticação
+app.use("/api", authRoutes);
+
+// Criar tabela se não existir
+pool.query(`
+  CREATE TABLE IF NOT EXISTS registos (
     id SERIAL PRIMARY KEY,
     operacao TEXT,
     data DATE,
@@ -44,9 +74,11 @@ pool.query(
   }
 );
 
-// POST - Criar novo registo
+// CRUD Registos
+
 app.post("/api/registar", async (req, res) => {
- const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
+  const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
+
   if (!operacao || !data || !numDoc || !pagamento || !valor) {
     return res.status(400).json({ error: "Dados incompletos" });
   }
@@ -64,7 +96,6 @@ app.post("/api/registar", async (req, res) => {
   }
 });
 
-// GET - Listar todos os registos
 app.get("/api/registos", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM registos ORDER BY data DESC");
@@ -75,7 +106,6 @@ app.get("/api/registos", async (req, res) => {
   }
 });
 
-// GET - Filtrar por data
 app.get("/api/registos/filtrar", async (req, res) => {
   const { inicio, fim } = req.query;
   try {
@@ -90,33 +120,16 @@ app.get("/api/registos/filtrar", async (req, res) => {
   }
 });
 
-// PUT - Atualizar registo
 app.put("/api/registos/:id", async (req, res) => {
-  const id = req.params.id;
-  const {
-    operacao,
-    data,
-    numDoc, // <-- recebido do frontend
-    pagamento,
-    valor,
-    op_tpa,
-  } = req.body;
-
-  console.log("Atualizar registo ID:", id, {
-    operacao,
-    data,
-    numDoc,
-    pagamento,
-    valor,
-    op_tpa
-  });
+  const { id } = req.params;
+  const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
 
   try {
     await pool.query(
       `UPDATE registos
        SET operacao = $1, data = $2, numdoc = $3, pagamento = $4, valor = $5, op_tpa = $6
        WHERE id = $7`,
-      [operacao, data, numDoc, pagamento, valor, op_tpa, id] // numDoc usado aqui
+      [operacao, data, numDoc, pagamento, valor, op_tpa, id]
     );
     res.json({ success: true });
   } catch (err) {
@@ -125,11 +138,10 @@ app.put("/api/registos/:id", async (req, res) => {
   }
 });
 
-// DELETE - Apagar registo
 app.delete("/api/registos/:id", async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   try {
-    await pool.query(`DELETE FROM registos WHERE id = $1`, [id]);
+    await pool.query("DELETE FROM registos WHERE id = $1", [id]);
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao apagar registo:", err);
@@ -137,7 +149,6 @@ app.delete("/api/registos/:id", async (req, res) => {
   }
 });
 
-// DELETE - Apagar todos os registos
 app.delete("/api/registos", async (req, res) => {
   try {
     await pool.query("DELETE FROM registos");
