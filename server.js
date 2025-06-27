@@ -9,12 +9,18 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração PostgreSQL
 const pool = new Pool({
-  user: "Martins",
-  host: "localhost",
-  database: "POS_BD",
-  password: "app.bdm",
-  port: 5432,
+ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
+  // user: "Martins",
+  // host: "localhost",
+  // database: "POS_BD",
+  // password: "app.bdm",
+  // port: 5432,
+
 
 // Middleware
 app.use(cors());
