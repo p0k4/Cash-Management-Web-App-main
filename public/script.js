@@ -61,7 +61,7 @@ const opTPA = pagamento === "Multibanco"
     atualizarHintProximoDoc();
 
     try {
-      const response = await fetch("http://localhost:3000/api/registar", {
+      const response = await fetch("api/registar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ operacao, data, numDoc, pagamento: pagamentoFinal, valor, op_tpa: opTPA })
@@ -94,7 +94,7 @@ const opTPA = pagamento === "Multibanco"
 
 async function carregarDadosDoServidor() {
   try {
-    const response = await fetch("http://localhost:3000/api/registos");
+    const response = await fetch("/api/registos");
     const dados = await response.json();
     const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
     tabela.innerHTML = "";
@@ -432,7 +432,7 @@ document.getElementById("btnApagarTudo").addEventListener("click", async functio
   if (!confirmar) return;
 
   try {
-    const response = await fetch("http://localhost:3000/api/registos", {
+    const response = await fetch("/api/registos", {
       method: "DELETE"
     });
     const resultado = await response.json();
