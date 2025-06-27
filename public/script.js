@@ -10,7 +10,7 @@ function setarDataAtual() {
 function atualizarHintProximoDoc() {
   const input = document.getElementById("num-doc");
   if (contadorDoc !== null) {
-    input.placeholder = `Próximo Nº DOC: ${contadorDoc}`;
+    input.placeholder = `${contadorDoc}`;
   } else {
     input.placeholder = "Insira o Nº DOC";
   }
