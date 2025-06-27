@@ -23,7 +23,9 @@ const pool = new Pool({
 
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
 
