@@ -103,7 +103,7 @@ async function registar() {
   } else {
     alert("Insira um valor válido!");
   }
-  contadorOperacao++;
+
   apagar();
   atualizarTotalTabela();
 
