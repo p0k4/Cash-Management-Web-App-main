@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt">
-
 <head>
   <meta charset="UTF-8" />
   <title>Tabela de Registos</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-
+</head>
 <body>
   <div class="container">
     <header>
@@ -31,18 +30,21 @@
         </button>
       </div>
     </div>
+
     <div class="linha-filtros">
       <div class="filtro-data">
-    <div class="campo-pesquisa">
-      <i class="fas fa-search"></i>
-      <input type="text" id="filtroTabela" onkeyup="filtrarTabela()" placeholder="Pesquisar na tabela:" />
+        <div class="campo-pesquisa">
+          <i class="fas fa-search"></i>
+          <input type="text" id="filtroTabela" onkeyup="filtrarTabela()" placeholder="Pesquisar na tabela:" />
+        </div>
+        <!--
+        <label>Data de inicio <input type="date" id="dataInicio"></label>
+        <label>Data de fim <input type="date" id="dataFim"></label>
+        <button onclick="buscarPorData()">Pesquisar</button>
+        -->
+      </div>
     </div>
-      <!-- Filtro datas BD
-     <label>Data de inicio <input type="date" id="dataInicio"></label>
-    <label>Data de fim <input type="date" id="dataFim"></label>
-    <button onclick="buscarPorData()">Pesquisar</button> -->
-  </div>
-</div>
+
     <section class="tabela-registos">
       <table id="tabelaRegistos">
         <thead>
@@ -58,13 +60,9 @@
         <tbody></tbody>
       </table>
       <div id="totalTabela">Total: 0.00 €</div>
+    </section>
   </div>
 
-  </div>
-
-
-
-  <script src="script-tabela.js"></script>
+  <script src="/script-tabela.js"></script>
 </body>
-
 </html>
