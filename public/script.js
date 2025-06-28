@@ -226,24 +226,6 @@ function validarFormulario() {
   }
 });
 
-// Inicialização ao carregar a página
-window.addEventListener("DOMContentLoaded", () => {
-  setarDataAtual();
-  validarFormulario();
-  // Set initial value for "operacao" if the input exists
-  const operacaoInput = document.getElementById("operacao");
-  if (operacaoInput) {
-    operacaoInput.value = "Operação " + contadorOperacao;
-  }
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault(); // Evita submissão ou recarregamento padrão
-      const btnRegistar = document.getElementById("btnRegistar");
-      if (btnRegistar) btnRegistar.click();
-    }
-  });
-});
-
 function criarBotoesOpcoes(linha) {
   const cellOpcoes = linha.insertCell(5);
   cellOpcoes.classList.add("col-opcoes");
