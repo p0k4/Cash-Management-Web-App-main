@@ -131,20 +131,26 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
-  contadorDoc = localStorage.getItem("contadorDoc") !== null
-    ? parseInt(localStorage.getItem("contadorDoc"))
-    : null;
+  // Recarrega contadores salvos no localStorage
+  const salvoOperacao = parseInt(localStorage.getItem("contadorOperacao"));
+  const salvoDoc = parseInt(localStorage.getItem("contadorDoc"));
+
+  if (!isNaN(salvoOperacao)) {
+    contadorOperacao = salvoOperacao;
+  } else {
+    contadorOperacao = 1;
+  }
+
+  if (!isNaN(salvoDoc)) {
+    contadorDoc = salvoDoc;
+  } else {
+    contadorDoc = null;
+  }
 
   setarDataAtual();
   atualizarHintProximoDoc();
   atualizarCampoOperacao();
   carregarDadosDoServidor();
-});
-
-window.addEventListener("beforeunload", () => {
-  localStorage.setItem("contadorOperacao", contadorOperacao);
-  localStorage.setItem("contadorDoc", contadorDoc);
 });
 
 async function carregarDadosDoServidor() {
