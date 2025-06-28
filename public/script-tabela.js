@@ -53,9 +53,11 @@ function atualizarTotalTabela() {
   let total = 0;
 
   linhas.forEach((linha) => {
+    if (linha.style.display !== "none"){
     const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
     const valor = parseFloat(valorTexto.replace(",", "."));
     if (!isNaN(valor)) total += valor;
+    }
   });
 
   document.getElementById("totalTabela").textContent =
