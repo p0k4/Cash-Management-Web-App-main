@@ -129,7 +129,7 @@ function atualizarTotalTabela() {
   };
 
   linhas.forEach((linha) => {
-    if (linha.offsetParent !== null) {
+    if (linha.style.display !== "none") {
       const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
       let pagamento = linha.cells[3].textContent.trim();
       const metodoBase = pagamento.split(" (OP TPA")[0].trim();
@@ -159,7 +159,6 @@ function atualizarTotalTabela() {
     `;
   }
 }
-
 function validarFormulario() {
   const campos = {
     data: document.getElementById("data"),

@@ -53,17 +53,14 @@ function atualizarTotalTabela() {
   let total = 0;
 
   linhas.forEach((linha) => {
-    if (linha.style.display !== "none") {
-      const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
-      const valor = parseFloat(valorTexto.replace(",", "."));
-      if (!isNaN(valor)) total += valor;
-    }
+    const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
+    const valor = parseFloat(valorTexto.replace(",", "."));
+    if (!isNaN(valor)) total += valor;
   });
 
   document.getElementById("totalTabela").textContent =
     "Total: " + total.toFixed(2) + " €";
 }
-
 function filtrarTabela() {
   const input = document.getElementById("filtroTabela").value.toLowerCase();
   const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
