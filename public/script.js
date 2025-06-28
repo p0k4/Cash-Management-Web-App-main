@@ -523,3 +523,8 @@ document.getElementById("pagamento").addEventListener("change", function () {
     document.getElementById("op-tpa").value = ""; // limpa o campo se mudar
   }
 });
+// Salva o contador antes de sair ou recarregar
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("contadorOperacao", contadorOperacao);
+  localStorage.setItem("contadorDoc", contadorDoc);
+});
