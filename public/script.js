@@ -1,8 +1,8 @@
+// Carregar contadores salvos ou iniciar
 let contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
-let contadorDoc =
-  localStorage.getItem("contadorDoc") !== null
-    ? parseInt(localStorage.getItem("contadorDoc"))
-    : null;
+let contadorDoc = localStorage.getItem("contadorDoc") !== null
+  ? parseInt(localStorage.getItem("contadorDoc"))
+  : null;
 
 function setarDataAtual() {
   const dataInput = document.getElementById("data");
@@ -19,15 +19,20 @@ function atualizarHintProximoDoc() {
   }
 }
 
-function apagar() {
+function atualizarCampoOperacao() {
   const operacaoInput = document.getElementById("operacao");
   if (operacaoInput) {
     operacaoInput.value = "Operação " + contadorOperacao;
   }
-  setarDataAtual();
+}
+
+function limparFormulario() {
   document.getElementById("num-doc").value = "";
   document.getElementById("pagamento").value = "";
   document.getElementById("valor").value = "";
+  setarDataAtual();
+  atualizarHintProximoDoc();
+  atualizarCampoOperacao();
 }
 
 async function registar() {
@@ -40,10 +45,9 @@ async function registar() {
   }
 
   let pagamentoFinal = pagamento;
-  const opTPA =
-    pagamento === "Multibanco"
-      ? document.getElementById("op-tpa").value.trim()
-      : null;
+  const opTPA = pagamento === "Multibanco"
+    ? document.getElementById("op-tpa").value.trim()
+    : null;
 
   if (!isNaN(valor)) {
     const operacao = "Operação " + contadorOperacao;
@@ -80,9 +84,7 @@ async function registar() {
       const result = await response.json();
 
       if (response.ok && !result.error) {
-        const tabela = document
-          .getElementById("tabelaRegistos")
-          .querySelector("tbody");
+        const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
         const novaLinha = tabela.insertRow();
         novaLinha.insertCell(0).textContent = operacao;
         novaLinha.insertCell(1).textContent = data;
@@ -91,7 +93,7 @@ async function registar() {
         novaLinha.insertCell(4).textContent = valor.toFixed(2) + " €";
         criarBotoesOpcoes(novaLinha);
         contadorOperacao++;
-        apagar();
+        limparFormulario();
         atualizarTotalTabela();
       } else {
         alert("Erro ao registar: " + (result.error || "desconhecido"));
@@ -100,23 +102,50 @@ async function registar() {
       console.error("Erro ao comunicar com o servidor:", error);
       alert("Erro ao comunicar com o servidor.");
     }
+
+    localStorage.setItem("contadorOperacao", contadorOperacao);
+    localStorage.setItem("contadorDoc", contadorDoc);
   } else {
     alert("Insira um valor válido!");
   }
-
-  apagar();
-  atualizarTotalTabela();
-
-  localStorage.setItem("contadorOperacao", contadorOperacao);
-  localStorage.setItem("contadorDoc", contadorDoc);
 }
 
-function atualizarCampoOperacao() {
-  const operacaoInput = document.getElementById("operacao");
-  if (operacaoInput) {
-    operacaoInput.value = "Operação " + contadorOperacao;
+async function carregarDadosDoServidor() {
+  try {
+    const response = await fetch("/api/registos");
+    const dados = await response.json();
+    const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
+    tabela.innerHTML = "";
+    dados.forEach((reg) => {
+      const novaLinha = tabela.insertRow();
+      novaLinha.insertCell(0).textContent = reg.operacao;
+      novaLinha.insertCell(1).textContent = reg.data;
+      novaLinha.insertCell(2).textContent = reg.numDoc !== undefined ? reg.numDoc : reg.numdoc;
+      novaLinha.insertCell(3).textContent = reg.pagamento;
+      novaLinha.insertCell(4).textContent = parseFloat(reg.valor).toFixed(2) + " €";
+    });
+    atualizarTotalTabela();
+  } catch (err) {
+    console.error("Erro ao carregar dados do servidor:", err);
   }
 }
+
+window.addEventListener("DOMContentLoaded", () => {
+  contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
+  contadorDoc = localStorage.getItem("contadorDoc") !== null
+    ? parseInt(localStorage.getItem("contadorDoc"))
+    : null;
+
+  setarDataAtual();
+  atualizarHintProximoDoc();
+  atualizarCampoOperacao();
+  carregarDadosDoServidor();
+});
+
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("contadorOperacao", contadorOperacao);
+  localStorage.setItem("contadorDoc", contadorDoc);
+});
 
 async function carregarDadosDoServidor() {
   try {
