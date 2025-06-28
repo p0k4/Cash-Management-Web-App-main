@@ -10,7 +10,7 @@ function setarDataAtual() {
 function atualizarHintProximoDoc() {
   const input = document.getElementById("num-doc");
   if (contadorDoc !== null) {
-    input.placeholder = `${contadorDoc}`;
+    input.placeholder = `Próximo Nº DOC: ${contadorDoc}`;
   } else {
     input.placeholder = "Insira o Nº DOC";
   }
@@ -61,7 +61,7 @@ const opTPA = pagamento === "Multibanco"
     atualizarHintProximoDoc();
 
     try {
-      const response = await fetch("api/registar", {
+      const response = await fetch("/api/registar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ operacao, data, numDoc, pagamento: pagamentoFinal, valor, op_tpa: opTPA })
@@ -193,25 +193,14 @@ function validarFormulario() {
 
 // Inicialização ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
+  
   setarDataAtual();
   validarFormulario();
-  carregarDadosDoServidor();
-
   // Set initial value for "operacao" if the input exists
   const operacaoInput = document.getElementById("operacao");
   if (operacaoInput) {
     operacaoInput.value = "Operação " + contadorOperacao;
   }
-
-  // Adiciona listeners de input aos campos do formulário
-  ["data", "num-doc", "pagamento", "valor"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("input", validarFormulario);
-    }
-  });
-
-  // Atalhos de teclado
   document.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
       event.preventDefault(); // Evita submissão ou recarregamento padrão
@@ -219,16 +208,6 @@ window.addEventListener("DOMContentLoaded", () => {
       if (btnRegistar) btnRegistar.click();
     }
   });
-
-  // Adiciona listeners para exportação se existirem os botões
-  const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
-  if (btnExportarRelatorio) {
-    btnExportarRelatorio.addEventListener("click", exportarRelatorio);
-  }
-  const btnExportarPDF = document.getElementById("btnExportarPDF");
-  if (btnExportarPDF) {
-    btnExportarPDF.addEventListener("click", exportarPDF);
-  }
 });
 
 function criarBotoesOpcoes(linha) {
@@ -460,8 +439,17 @@ document.getElementById("btnApagarTudo").addEventListener("click", async functio
 
     if (resultado.success) {
       alert("Todos os registos foram apagados da base de dados.");
-// Adiciona listeners para exportação se existirem os botões
-// (Consolidado no único DOMContentLoaded abaixo)
+      contadorOperacao = 1;
+      contadorDoc = null;
+
+      const inputDoc = document.getElementById("num-doc");
+      inputDoc.readOnly = false;
+      inputDoc.value = "";
+      atualizarHintProximoDoc();
+
+      apagar(); // limpa os campos do formulário
+      carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
+      atualizarTotalTabela();
     } else {
       alert("Erro ao apagar registos.");
     }
@@ -470,6 +458,9 @@ document.getElementById("btnApagarTudo").addEventListener("click", async functio
     alert("Erro ao comunicar com o servidor.");
   }
 });
+/* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
+
+// Adiciona listeners para exportação se existirem os botões
 const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
 if (btnExportarRelatorio) {
   btnExportarRelatorio.addEventListener("click", exportarRelatorio);
