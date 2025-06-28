@@ -1,5 +1,8 @@
-let contadorOperacao = 1;
-let contadorDoc = null;
+let contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
+let contadorDoc =
+  localStorage.getItem("contadorDoc") !== null
+    ? parseInt(localStorage.getItem("contadorDoc"))
+    : null;
 
 function setarDataAtual() {
   const dataInput = document.getElementById("data");
@@ -20,6 +23,8 @@ function apagar() {
   const operacaoInput = document.getElementById("operacao");
   if (operacaoInput) {
     operacaoInput.value = "Operação " + contadorOperacao;
+    localStorage.removeItem("contadorOperacao");
+    localStorage.removeItem("contadorDoc");
   }
   setarDataAtual();
   document.getElementById("num-doc").value = "";
@@ -36,10 +41,11 @@ async function registar() {
     return;
   }
 
-let pagamentoFinal = pagamento;
-const opTPA = pagamento === "Multibanco"
-  ? document.getElementById("op-tpa").value.trim()
-  : null;
+  let pagamentoFinal = pagamento;
+  const opTPA =
+    pagamento === "Multibanco"
+      ? document.getElementById("op-tpa").value.trim()
+      : null;
 
   if (!isNaN(valor)) {
     const operacao = "Operação " + contadorOperacao;
@@ -64,12 +70,21 @@ const opTPA = pagamento === "Multibanco"
       const response = await fetch("/api/registar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ operacao, data, numDoc, pagamento: pagamentoFinal, valor, op_tpa: opTPA })
+        body: JSON.stringify({
+          operacao,
+          data,
+          numDoc,
+          pagamento: pagamentoFinal,
+          valor,
+          op_tpa: opTPA,
+        }),
       });
       const result = await response.json();
 
       if (response.ok && !result.error) {
-        const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
+        const tabela = document
+          .getElementById("tabelaRegistos")
+          .querySelector("tbody");
         const novaLinha = tabela.insertRow();
         novaLinha.insertCell(0).textContent = operacao;
         novaLinha.insertCell(1).textContent = data;
@@ -90,21 +105,31 @@ const opTPA = pagamento === "Multibanco"
   } else {
     alert("Insira um valor válido!");
   }
+  contadorOperacao++;
+  apagar();
+  atualizarTotalTabela();
+
+  localStorage.setItem("contadorOperacao", contadorOperacao);
+  localStorage.setItem("contadorDoc", contadorDoc);
 }
 
 async function carregarDadosDoServidor() {
   try {
     const response = await fetch("/api/registos");
     const dados = await response.json();
-    const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
+    const tabela = document
+      .getElementById("tabelaRegistos")
+      .querySelector("tbody");
     tabela.innerHTML = "";
     dados.forEach((reg) => {
       const novaLinha = tabela.insertRow();
       novaLinha.insertCell(0).textContent = reg.operacao;
       novaLinha.insertCell(1).textContent = reg.data;
-      novaLinha.insertCell(2).textContent = reg.numDoc !== undefined ? reg.numDoc : reg.numdoc;
+      novaLinha.insertCell(2).textContent =
+        reg.numDoc !== undefined ? reg.numDoc : reg.numdoc;
       novaLinha.insertCell(3).textContent = reg.pagamento;
-      novaLinha.insertCell(4).textContent = parseFloat(reg.valor).toFixed(2) + " €";
+      novaLinha.insertCell(4).textContent =
+        parseFloat(reg.valor).toFixed(2) + " €";
     });
     atualizarTotalTabela();
   } catch (err) {
@@ -155,7 +180,9 @@ function atualizarTotalTabela() {
       <strong></strong>
       - Dinheiro: ${totaisPorPagamento["Dinheiro"].toFixed(2)} €<br/>
       - Multibanco: ${totaisPorPagamento["Multibanco"].toFixed(2)} €<br/>
-      - Transferência Bancária: ${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €
+      - Transferência Bancária: ${totaisPorPagamento[
+        "Transferência Bancária"
+      ].toFixed(2)} €
     `;
   }
 }
@@ -190,7 +217,6 @@ function validarFormulario() {
 
 // Inicialização ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
-  
   setarDataAtual();
   validarFormulario();
   // Set initial value for "operacao" if the input exists
@@ -218,7 +244,7 @@ function criarBotoesOpcoes(linha) {
     const confirmar = confirm("Tem certeza que deseja apagar esta linha?");
     if (confirmar) {
       linha.remove();
-  
+
       atualizarTotalTabela();
     }
   };
@@ -358,12 +384,18 @@ function exportarRelatorio() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `relatorio_caixa_${new Date().toISOString().split("T")[0]}.csv`;
+  link.download = `relatorio_caixa_${
+    new Date().toISOString().split("T")[0]
+  }.csv`;
   link.click();
 }
 
 function exportarPDF() {
-  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF ||
+    typeof window.jspdf.jsPDF !== "function"
+  ) {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
     return;
   }
@@ -424,37 +456,39 @@ function exportarPDF() {
 
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-document.getElementById("btnApagarTudo").addEventListener("click", async function () {
-  const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
-  if (!confirmar) return;
+document
+  .getElementById("btnApagarTudo")
+  .addEventListener("click", async function () {
+    const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
+    if (!confirmar) return;
 
-  try {
-    const response = await fetch("/api/registos", {
-      method: "DELETE"
-    });
-    const resultado = await response.json();
+    try {
+      const response = await fetch("/api/registos", {
+        method: "DELETE",
+      });
+      const resultado = await response.json();
 
-    if (resultado.success) {
-      alert("Todos os registos foram apagados da base de dados.");
-      contadorOperacao = 1;
-      contadorDoc = null;
+      if (resultado.success) {
+        alert("Todos os registos foram apagados da base de dados.");
+        contadorOperacao = 1;
+        contadorDoc = null;
 
-      const inputDoc = document.getElementById("num-doc");
-      inputDoc.readOnly = false;
-      inputDoc.value = "";
-      atualizarHintProximoDoc();
+        const inputDoc = document.getElementById("num-doc");
+        inputDoc.readOnly = false;
+        inputDoc.value = "";
+        atualizarHintProximoDoc();
 
-      apagar(); // limpa os campos do formulário
-      carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
-      atualizarTotalTabela();
-    } else {
-      alert("Erro ao apagar registos.");
+        apagar(); // limpa os campos do formulário
+        carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
+        atualizarTotalTabela();
+      } else {
+        alert("Erro ao apagar registos.");
+      }
+    } catch (err) {
+      console.error("Erro ao comunicar com o servidor:", err);
+      alert("Erro ao comunicar com o servidor.");
     }
-  } catch (err) {
-    console.error("Erro ao comunicar com o servidor:", err);
-    alert("Erro ao comunicar com o servidor.");
-  }
-});
+  });
 /* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
 
 // Adiciona listeners para exportação se existirem os botões
