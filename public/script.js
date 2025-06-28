@@ -53,6 +53,7 @@ async function registar() {
     : null;
 
   if (!isNaN(valor)) {
+    // Gera o rótulo da operação automaticamente
     const operacao = "Operação " + contadorOperacao;
     const data = document.getElementById("data").value;
     let numDocInput = document.getElementById("num-doc");
@@ -76,7 +77,7 @@ async function registar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          operacao,
+          operacao,   // Envia para o backend!
           data,
           numDoc,
           pagamento: pagamentoFinal,
@@ -95,6 +96,7 @@ async function registar() {
         novaLinha.insertCell(3).textContent = pagamentoFinal;
         novaLinha.insertCell(4).textContent = valor.toFixed(2) + " €";
         criarBotoesOpcoes(novaLinha);
+
         contadorOperacao++;
         limparFormulario();
         atualizarTotalTabela();
@@ -508,4 +510,11 @@ document.getElementById("pagamento").addEventListener("change", function () {
 window.addEventListener("beforeunload", () => {
   localStorage.setItem("contadorOperacao", contadorOperacao);
   localStorage.setItem("contadorDoc", contadorDoc);
+});
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const btnRegistar = document.getElementById("btnRegistar");
+    if (btnRegistar) btnRegistar.click();
+  }
 });
