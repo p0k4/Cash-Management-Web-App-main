@@ -131,18 +131,17 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Recarrega contadores salvos no localStorage
-  const salvoOperacao = parseInt(localStorage.getItem("contadorOperacao"));
-  const salvoDoc = parseInt(localStorage.getItem("contadorDoc"));
-
-  if (!isNaN(salvoOperacao)) {
-    contadorOperacao = salvoOperacao;
+  // Recarrega contadores salvos no localStorage de forma segura
+  const salvoOperacaoStr = localStorage.getItem("contadorOperacao");
+  if (salvoOperacaoStr !== null && !isNaN(parseInt(salvoOperacaoStr))) {
+    contadorOperacao = parseInt(salvoOperacaoStr);
   } else {
     contadorOperacao = 1;
   }
 
-  if (!isNaN(salvoDoc)) {
-    contadorDoc = salvoDoc;
+  const salvoDocStr = localStorage.getItem("contadorDoc");
+  if (salvoDocStr !== null && !isNaN(parseInt(salvoDocStr))) {
+    contadorDoc = parseInt(salvoDocStr);
   } else {
     contadorDoc = null;
   }
