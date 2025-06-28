@@ -111,6 +111,13 @@ async function registar() {
   localStorage.setItem("contadorDoc", contadorDoc);
 }
 
+function atualizarCampoOperacao() {
+  const operacaoInput = document.getElementById("operacao");
+  if (operacaoInput) {
+    operacaoInput.value = "Operação " + contadorOperacao;
+  }
+}
+
 async function carregarDadosDoServidor() {
   try {
     const response = await fetch("/api/registos");
@@ -136,19 +143,16 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  // <-- carrega novamente do localStorage
   contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
-  contadorDoc =
-    localStorage.getItem("contadorDoc") !== null
-      ? parseInt(localStorage.getItem("contadorDoc"))
-      : null;
+  contadorDoc = localStorage.getItem("contadorDoc") !== null
+    ? parseInt(localStorage.getItem("contadorDoc"))
+    : null;
 
   setarDataAtual();
   atualizarHintProximoDoc();
-  apagar();
+  atualizarCampoOperacao();
   carregarDadosDoServidor();
 });
-
 function atualizarTotalTabela() {
   const tabela = document.getElementById("tabelaRegistos");
   const linhas = tabela.querySelectorAll("tbody tr");
