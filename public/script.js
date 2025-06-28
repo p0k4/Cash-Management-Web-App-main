@@ -476,11 +476,24 @@ document.getElementById("btnApagarTudo").addEventListener("click", async functio
 window.addEventListener("DOMContentLoaded", () => {
   const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
   if (btnExportarRelatorio) {
-    btnExportarRelatorio.addEventListener("click", exportarRelatorio);
+    console.log("Botão Exportar CSV encontrado!");
+    btnExportarRelatorio.addEventListener("click", () => {
+      console.log("Botão Exportar CSV foi clicado!");
+      exportarRelatorio();
+    });
+  } else {
+    console.log("Botão Exportar CSV NÃO encontrado no DOM!");
   }
+
   const btnExportarPDF = document.getElementById("btnExportarPDF");
   if (btnExportarPDF) {
-    btnExportarPDF.addEventListener("click", exportarPDF);
+    console.log("Botão Exportar PDF encontrado!");
+    btnExportarPDF.addEventListener("click", () => {
+      console.log("Botão Exportar PDF foi clicado!");
+      exportarPDF();
+    });
+  } else {
+    console.log("Botão Exportar PDF NÃO encontrado no DOM!");
   }
 });
 
