@@ -23,8 +23,6 @@ function apagar() {
   const operacaoInput = document.getElementById("operacao");
   if (operacaoInput) {
     operacaoInput.value = "Operação " + contadorOperacao;
-    localStorage.removeItem("contadorOperacao");
-    localStorage.removeItem("contadorDoc");
   }
   setarDataAtual();
   document.getElementById("num-doc").value = "";
