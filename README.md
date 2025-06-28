@@ -109,3 +109,22 @@ assets/
 ├── pdf.png
 └── table.png
 ```
+
+🌐 How to Deploy on Render
+
+Step by step to deploy to Render:
+
+1️⃣ Push your code to GitHub
+
+Make sure your project is in a GitHub repository.
+
+2️⃣ Create a PostgreSQL Database on Render
+	•	Go to Render Dashboard → Databases → New PostgreSQL.
+	•	Choose a name and region.
+	•	Wait until it’s created.
+
+✅ Copy the External Connection String — it will look like:
+
+postgres://USER:PASSWORD@HOST:PORT/DBNAME
+
+
