@@ -500,6 +500,11 @@ function fecharJanela() {
     window.close();
   }
 }
+
+// Função dummy para evitar erro caso chamada, pode ser expandida para salvar no localStorage se necessário
+function salvarDadosLocal() {
+  // Implementação opcional: salvar dados da tabela no localStorage
+}
 document.getElementById("pagamento").addEventListener("change", function () {
   const campoTPA = document.getElementById("campo-tpa");
   if (this.value === "Multibanco") {
