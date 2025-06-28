@@ -470,32 +470,14 @@ document.getElementById("btnApagarTudo").addEventListener("click", async functio
     alert("Erro ao comunicar com o servidor.");
   }
 });
-/* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
-
-// Adiciona listeners para exportação se existirem os botões
-window.addEventListener("DOMContentLoaded", () => {
-  const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
-  if (btnExportarRelatorio) {
-    console.log("Botão Exportar CSV encontrado!");
-    btnExportarRelatorio.addEventListener("click", () => {
-      console.log("Botão Exportar CSV foi clicado!");
-      exportarRelatorio();
-    });
-  } else {
-    console.log("Botão Exportar CSV NÃO encontrado no DOM!");
-  }
-
-  const btnExportarPDF = document.getElementById("btnExportarPDF");
-  if (btnExportarPDF) {
-    console.log("Botão Exportar PDF encontrado!");
-    btnExportarPDF.addEventListener("click", () => {
-      console.log("Botão Exportar PDF foi clicado!");
-      exportarPDF();
-    });
-  } else {
-    console.log("Botão Exportar PDF NÃO encontrado no DOM!");
-  }
-});
+const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
+if (btnExportarRelatorio) {
+  btnExportarRelatorio.addEventListener("click", exportarRelatorio);
+}
+const btnExportarPDF = document.getElementById("btnExportarPDF");
+if (btnExportarPDF) {
+  btnExportarPDF.addEventListener("click", exportarPDF);
+}
 
 function fecharJanela() {
   const confirmar = confirm("Tem certeza que deseja fechar esta janela?");
