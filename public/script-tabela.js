@@ -1,6 +1,6 @@
 async function carregarDadosDoServidor() {
   try {
-    const response = await fetch("http://localhost:3000/api/registos");
+    const response = await fetch("/api/registos");
     const dados = await response.json();
     const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
     tabela.innerHTML = "";
@@ -87,7 +87,7 @@ document
     if (!confirmar) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/registos", {
+      const response = await fetch("/api/registos", {
         method: "DELETE",
       });
       const resultado = await response.json();
@@ -123,7 +123,7 @@ function criarBotoesOpcoes(linha) {
     if (!confirmar) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/registos/${id}`, {
+      const response = await fetch(`/api/registos/${id}`, {
         method: "DELETE",
       });
       const resultado = await response.json();
@@ -220,7 +220,7 @@ function criarBotoesOpcoes(linha) {
       const pagamentoFinal = op_tpa ? `${pagamento} (OP TPA: ${op_tpa})` : pagamento;
 
       try {
-        const response = await fetch(`http://localhost:3000/api/registos/${id}`, {
+        const response = await fetch(`/api/registos/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ operacao, data, numDoc, pagamento, valor, op_tpa }),
@@ -394,7 +394,7 @@ document.getElementById("btn-reiniciar-pos").addEventListener("click", async fun
   if (!confirmar) return;
 
   try {
-    const response = await fetch("http://localhost:3000/api/registos", {
+    const response = await fetch("/api/registos", {
       method: "DELETE",
     });
     const resultado = await response.json();
