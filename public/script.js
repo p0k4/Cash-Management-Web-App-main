@@ -1,6 +1,34 @@
-// Inicializa os contadores globais
 let contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
-let contadorDoc = localStorage.getItem("contadorDoc") !== null ? parseInt(localStorage.getItem("contadorDoc")) : null;
+let contadorDoc =
+  localStorage.getItem("contadorDoc") !== null
+    ? parseInt(localStorage.getItem("contadorDoc"))
+    : null;
+
+function setarDataAtual() {
+  const dataInput = document.getElementById("data");
+  const hoje = new Date().toISOString().split("T")[0];
+  dataInput.value = hoje;
+}
+
+function atualizarHintProximoDoc() {
+  const input = document.getElementById("num-doc");
+  if (contadorDoc !== null) {
+    input.placeholder = `${contadorDoc}`;
+  } else {
+    input.placeholder = "--> Nº DOC";
+  }
+}
+
+function apagar() {
+  const operacaoInput = document.getElementById("operacao");
+  if (operacaoInput) {
+    operacaoInput.value = "Operação " + contadorOperacao;
+  }
+  setarDataAtual();
+  document.getElementById("num-doc").value = "";
+  document.getElementById("pagamento").value = "";
+  document.getElementById("valor").value = "";
+}
 
 async function registar() {
   const valor = parseFloat(document.getElementById("valor").value);
@@ -62,13 +90,9 @@ async function registar() {
         novaLinha.insertCell(3).textContent = pagamentoFinal;
         novaLinha.insertCell(4).textContent = valor.toFixed(2) + " €";
         criarBotoesOpcoes(novaLinha);
-
         contadorOperacao++;
         apagar();
         atualizarTotalTabela();
-
-        localStorage.setItem("contadorOperacao", contadorOperacao);
-        localStorage.setItem("contadorDoc", contadorDoc);
       } else {
         alert("Erro ao registar: " + (result.error || "desconhecido"));
       }
@@ -79,6 +103,12 @@ async function registar() {
   } else {
     alert("Insira um valor válido!");
   }
+  contadorOperacao++;
+  apagar();
+  atualizarTotalTabela();
+
+  localStorage.setItem("contadorOperacao", contadorOperacao);
+  localStorage.setItem("contadorDoc", contadorDoc);
 }
 
 async function carregarDadosDoServidor() {
@@ -107,6 +137,8 @@ async function carregarDadosDoServidor() {
 
 window.addEventListener("DOMContentLoaded", () => {
   setarDataAtual();
+  atualizarHintProximoDoc();
+  apagar();
   carregarDadosDoServidor();
 });
 
