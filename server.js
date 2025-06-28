@@ -39,12 +39,14 @@ pool.query(
     pagamento TEXT,
     valor NUMERIC,
     op_tpa TEXT
-  )`,
-  (err) => {
-    if (err) console.error("Erro ao criar tabela:", err);
-    else console.log("Tabela verificada/criada com sucesso.");
-  }
-);
+  )`
+)
+  .then(() => {
+    console.log("Tabela verificada/criada com sucesso.");
+  })
+  .catch(err => {
+    console.error("❌ Erro ao criar tabela:", err);
+  });
 
 // POST - Criar novo registo
 app.post("/api/registar", async (req, res) => {
