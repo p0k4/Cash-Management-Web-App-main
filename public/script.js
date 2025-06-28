@@ -1,8 +1,11 @@
+// Função para parse seguro com fallback
+function parseIntSeguro(valor, fallback) {
+  return (valor !== null && !isNaN(parseInt(valor))) ? parseInt(valor) : fallback;
+}
+
 // Carregar contadores salvos ou iniciar
-let contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
-let contadorDoc = localStorage.getItem("contadorDoc") !== null
-  ? parseInt(localStorage.getItem("contadorDoc"))
-  : null;
+let contadorOperacao = parseIntSeguro(localStorage.getItem("contadorOperacao"), 1);
+let contadorDoc = parseIntSeguro(localStorage.getItem("contadorDoc"), null);
 
 function setarDataAtual() {
   const dataInput = document.getElementById("data");
@@ -131,20 +134,8 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Recarrega contadores salvos no localStorage de forma segura
-  const salvoOperacaoStr = localStorage.getItem("contadorOperacao");
-  if (salvoOperacaoStr !== null && !isNaN(parseInt(salvoOperacaoStr))) {
-    contadorOperacao = parseInt(salvoOperacaoStr);
-  } else {
-    contadorOperacao = 1;
-  }
-
-  const salvoDocStr = localStorage.getItem("contadorDoc");
-  if (salvoDocStr !== null && !isNaN(parseInt(salvoDocStr))) {
-    contadorDoc = parseInt(salvoDocStr);
-  } else {
-    contadorDoc = null;
-  }
+  contadorOperacao = parseIntSeguro(localStorage.getItem("contadorOperacao"), 1);
+  contadorDoc = parseIntSeguro(localStorage.getItem("contadorDoc"), null);
 
   setarDataAtual();
   atualizarHintProximoDoc();
@@ -152,40 +143,10 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarDadosDoServidor();
 });
 
-async function carregarDadosDoServidor() {
-  try {
-    const response = await fetch("/api/registos");
-    const dados = await response.json();
-    const tabela = document
-      .getElementById("tabelaRegistos")
-      .querySelector("tbody");
-    tabela.innerHTML = "";
-    dados.forEach((reg) => {
-      const novaLinha = tabela.insertRow();
-      novaLinha.insertCell(0).textContent = reg.operacao;
-      novaLinha.insertCell(1).textContent = reg.data;
-      novaLinha.insertCell(2).textContent =
-        reg.numDoc !== undefined ? reg.numDoc : reg.numdoc;
-      novaLinha.insertCell(3).textContent = reg.pagamento;
-      novaLinha.insertCell(4).textContent =
-        parseFloat(reg.valor).toFixed(2) + " €";
-    });
-    atualizarTotalTabela();
-  } catch (err) {
-    console.error("Erro ao carregar dados do servidor:", err);
-  }
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
-  contadorDoc = localStorage.getItem("contadorDoc") !== null
-    ? parseInt(localStorage.getItem("contadorDoc"))
-    : null;
-
-  setarDataAtual();
-  atualizarHintProximoDoc();
-  atualizarCampoOperacao();
-  carregarDadosDoServidor();
+// Salva os contadores antes de sair ou recarregar
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("contadorOperacao", contadorOperacao);
+  localStorage.setItem("contadorDoc", contadorDoc);
 });
 function atualizarTotalTabela() {
   const tabela = document.getElementById("tabelaRegistos");
