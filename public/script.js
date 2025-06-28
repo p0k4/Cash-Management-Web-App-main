@@ -1,3 +1,7 @@
+// Inicializa os contadores globais
+let contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
+let contadorDoc = localStorage.getItem("contadorDoc") !== null ? parseInt(localStorage.getItem("contadorDoc")) : null;
+
 async function registar() {
   const valor = parseFloat(document.getElementById("valor").value);
   const pagamento = document.getElementById("pagamento").value;
