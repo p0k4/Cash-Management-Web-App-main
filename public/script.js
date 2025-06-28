@@ -136,6 +136,13 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  // <-- carrega novamente do localStorage
+  contadorOperacao = parseInt(localStorage.getItem("contadorOperacao")) || 1;
+  contadorDoc =
+    localStorage.getItem("contadorDoc") !== null
+      ? parseInt(localStorage.getItem("contadorDoc"))
+      : null;
+
   setarDataAtual();
   atualizarHintProximoDoc();
   apagar();
