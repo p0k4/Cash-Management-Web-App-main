@@ -461,14 +461,16 @@ document.getElementById("btnApagarTudo").addEventListener("click", async functio
 /* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
 
 // Adiciona listeners para exportação se existirem os botões
-const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
-if (btnExportarRelatorio) {
-  btnExportarRelatorio.addEventListener("click", exportarRelatorio);
-}
-const btnExportarPDF = document.getElementById("btnExportarPDF");
-if (btnExportarPDF) {
-  btnExportarPDF.addEventListener("click", exportarPDF);
-}
+window.addEventListener("DOMContentLoaded", () => {
+  const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
+  if (btnExportarRelatorio) {
+    btnExportarRelatorio.addEventListener("click", exportarRelatorio);
+  }
+  const btnExportarPDF = document.getElementById("btnExportarPDF");
+  if (btnExportarPDF) {
+    btnExportarPDF.addEventListener("click", exportarPDF);
+  }
+});
 
 function fecharJanela() {
   const confirmar = confirm("Tem certeza que deseja fechar esta janela?");
