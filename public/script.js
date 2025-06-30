@@ -510,10 +510,11 @@ window.addEventListener("beforeunload", () => {
   localStorage.setItem("contadorOperacao", contadorOperacao);
   localStorage.setItem("contadorDoc", contadorDoc);
 });
+// Permitir ENTER para submeter o formulário
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
-    event.preventDefault();
-    const btnRegistar = document.getElementById("btnRegistar");
-    if (btnRegistar) btnRegistar.click();
+    event.preventDefault(); // Evita comportamento padrão
+    const btn = document.getElementById("btnRegistar");
+    if (btn) btn.click();
   }
 });
