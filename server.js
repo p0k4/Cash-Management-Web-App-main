@@ -20,7 +20,7 @@ const pool = new Pool(
     : {
         user: "martins",
         host: "localhost",
-        database: "POS_BD",
+        database: "pos_db_s11u",
         password: "app.bdm",
         port: 5432,
       }
