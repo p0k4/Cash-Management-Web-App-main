@@ -446,7 +446,8 @@ function exportarPDF() {
 
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-document.getElementById("btnApagarTudo")
+document
+.getElementById("btnApagarTudo")
   .addEventListener("click", async function () {
     const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
     if (!confirmar) return;
@@ -510,11 +511,10 @@ window.addEventListener("beforeunload", () => {
   localStorage.setItem("contadorOperacao", contadorOperacao);
   localStorage.setItem("contadorDoc", contadorDoc);
 });
-// Permitir ENTER para submeter o formulário
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
-    event.preventDefault(); // Evita comportamento padrão
-    const btn = document.getElementById("btnRegistar");
-    if (btn) btn.click();
+    event.preventDefault();
+    const btnRegistar = document.getElementById("btnRegistar");
+    if (btnRegistar) btnRegistar.click();
   }
 });
