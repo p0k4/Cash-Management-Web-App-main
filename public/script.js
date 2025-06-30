@@ -446,8 +446,7 @@ function exportarPDF() {
 
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-document
-  .getElementById("btnApagarTudo")
+document.getElementById("btnApagarTudo")
   .addEventListener("click", async function () {
     const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
     if (!confirmar) return;
@@ -468,7 +467,7 @@ document
         inputDoc.value = "";
         atualizarHintProximoDoc();
 
-        apagar(); // limpa os campos do formulário
+        limparFormulario(); // limpa os campos do formulário
         carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
         atualizarTotalTabela();
       } else {
