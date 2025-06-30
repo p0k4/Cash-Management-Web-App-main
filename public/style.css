@@ -438,49 +438,43 @@ th {
   background-color: #0b3a4e;
 }
 
-/* RESPONSIVO PARA MOBILE */
+/* AJUSTES MOBILE MAIS FINOS */
 @media (max-width: 768px) {
-  .form-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .left-form,
-  .right-form {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .caixa-total {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
+  .caixa-total,
   .opcoes {
+    width: 95%;
+    max-width: 95%;
+    margin: 10px auto;
+  }
+
+  .caixa-total .titulo-caixa,
+  .opcoes .titulo-opcoes {
     width: 100%;
     box-sizing: border-box;
-    margin-top: 20px;
+    text-align: center;
+    font-size: 1rem;
+    padding: 8px;
   }
 
   .acao-botoes {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   .btn-registar,
   .btn-reiniciar-pos,
-  .btn-exportar,
-  .btn-apagar-tudo,
-  .btn-voltar {
+  .btn-movimentos {
     width: 100%;
-  }
-
-  header .cabecalho-caixa {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  header .texto-cabecalho {
     text-align: center;
+    justify-content: center;
+  }
+
+  .btn-reiniciar-pos {
+    text-align: center;
+  }
+
+  .btn-reiniciar-pos i,
+  .btn-reiniciar-pos span {
+    vertical-align: middle;
   }
 }
