@@ -18,7 +18,7 @@ const pool = new Pool(
         ssl: { rejectUnauthorized: false },
       }
     : {
-        user: "Martins",
+        user: "martins",
         host: "localhost",
         database: "POS_BD",
         password: "app.bdm",
