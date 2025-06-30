@@ -517,3 +517,40 @@ th {
     width: 100%;
   }
 }
+@media (max-width: 768px) {
+  .title-opcoes {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px auto;
+    padding: 12px;
+    font-size: 1.1rem;
+  }
+
+  .caixa-total,
+  .opcoes {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px auto 25px auto;
+    padding: 15px 10px;
+  }
+
+  .caixa-total .titulo-caixa,
+  .opcoes .title-opcoes {
+    width: 100%;
+    border-radius: 12px;
+    font-size: 1.1rem;
+  }
+
+  .acao-botoes {
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .btn-registar,
+  .btn-reiniciar-pos,
+  .btn-movimentos {
+    width: 100%;
+    text-align: center;
+  }
+}
