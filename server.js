@@ -8,20 +8,23 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Configuração PostgreSQL
-const pool = new Pool({
- 
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
-  // user: "Martins",
-  // host: "localhost",
-  // database: "POS_BD",
-  // password: "app.bdm",
-  // port: 5432,
+// Configuração PostgreSQL adaptável
+const isProduction = process.env.NODE_ENV === "production";
 
-
+const pool = new Pool(
+  isProduction
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      }
+    : {
+        user: "Martins",
+        host: "localhost",
+        database: "POS_BD",
+        password: "app.bdm",
+        port: 5432,
+      }
+);
 // Middleware
 app.use(cors({
   origin: "*"
