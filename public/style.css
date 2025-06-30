@@ -438,22 +438,23 @@ th {
   background-color: #0b3a4e;
 }
 
-/* AJUSTES MOBILE MAIS FINOS */
 @media (max-width: 768px) {
+  .titulo-caixa,
+  .titulo-opcoes {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    margin: 0;
+    text-align: center;
+    padding: 8px;
+    font-size: 1rem;
+  }
+
   .caixa-total,
   .opcoes {
     width: 95%;
     max-width: 95%;
     margin: 10px auto;
-  }
-
-  .caixa-total .titulo-caixa,
-  .opcoes .titulo-opcoes {
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    font-size: 1rem;
-    padding: 8px;
   }
 
   .acao-botoes {
@@ -471,10 +472,5 @@ th {
 
   .btn-reiniciar-pos {
     text-align: center;
-  }
-
-  .btn-reiniciar-pos i,
-  .btn-reiniciar-pos span {
-    vertical-align: middle;
   }
 }
