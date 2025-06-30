@@ -474,3 +474,21 @@ th {
     text-align: center;
   }
 }
+/* Ajuste final para mobile - SALDOS e OPÇÕES */
+@media (max-width: 768px) {
+  .title-opcoes,
+  .total {
+    width: 95% !important;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 10px auto;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+
+  .btn-reiniciar-pos {
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
+}
