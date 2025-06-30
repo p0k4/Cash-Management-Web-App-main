@@ -467,7 +467,7 @@ document.getElementById("btnApagarTudo")
         inputDoc.value = "";
         atualizarHintProximoDoc();
 
-        limparFormulario(); // limpa os campos do formulário
+        apagar(); // limpa os campos do formulário
         carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
         atualizarTotalTabela();
       } else {
