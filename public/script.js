@@ -468,7 +468,7 @@ document
         inputDoc.value = "";
         atualizarHintProximoDoc();
 
-        apagar(); // limpa os campos do formulário
+        limparFormulario(); // limpa os campos do formulário
         carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
         atualizarTotalTabela();
       } else {
