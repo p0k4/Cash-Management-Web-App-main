@@ -437,3 +437,50 @@ th {
 .filtro-data button:hover {
   background-color: #0b3a4e;
 }
+
+/* RESPONSIVO PARA MOBILE */
+@media (max-width: 768px) {
+  .form-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .left-form,
+  .right-form {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .caixa-total {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .opcoes {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 20px;
+  }
+
+  .acao-botoes {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-registar,
+  .btn-reiniciar-pos,
+  .btn-exportar,
+  .btn-apagar-tudo,
+  .btn-voltar {
+    width: 100%;
+  }
+
+  header .cabecalho-caixa {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header .texto-cabecalho {
+    text-align: center;
+  }
+}
