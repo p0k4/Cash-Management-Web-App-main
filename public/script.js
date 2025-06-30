@@ -52,7 +52,7 @@ async function registar() {
     ? document.getElementById("op-tpa").value.trim()
     : null;
 
-  if (!isNaN(valor)) {
+ if (!isNaN(valor) && valor > 0 && valor <= 10000) {
     // Gera o rótulo da operação automaticamente
     const operacao = "Operação " + contadorOperacao;
     const data = document.getElementById("data").value;

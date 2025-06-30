@@ -54,6 +54,9 @@ pool.query(
 // POST - Criar novo registo
 app.post("/api/registar", async (req, res) => {
  const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
+   if (isNaN(valor) || valor <= 0 || valor > 10000) {
+    return res.status(400).json({ error: "Valor inválido. Limite permitido é entre 0.01 € e 10.000 €" });
+  }
   if (!operacao || !data || !numDoc || !pagamento || !valor) {
     return res.status(400).json({ error: "Dados incompletos" });
   }
