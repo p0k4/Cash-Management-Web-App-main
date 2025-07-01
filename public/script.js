@@ -449,7 +449,7 @@ function exportarPDF() {
 document
 .getElementById("btnApagarTudo")
   .addEventListener("click", async function () {
-      exportarPDF();
+      exportarResumoPDF();
     const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
     if (!confirmar) return;
 
@@ -519,3 +519,61 @@ document.addEventListener("keydown", function (event) {
     if (btnRegistar) btnRegistar.click();
   }
 });
+function exportarResumoPDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+    alert("jsPDF ou AutoTable não está carregado corretamente.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let total = 0;
+  const totaisPorPagamento = {
+    Dinheiro: 0,
+    Multibanco: 0,
+    "Transferência Bancária": 0
+  };
+
+  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
+
+  linhas.forEach((linha) => {
+    if (linha.style.display !== "none") {
+      const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
+      const pagamento = linha.cells[3].textContent.trim();
+      const metodoBase = pagamento.split(" (OP TPA")[0].trim();
+      const valor = parseFloat(valorTexto.replace(",", "."));
+      if (!isNaN(valor)) {
+        total += valor;
+        if (totaisPorPagamento[metodoBase] !== undefined) {
+          totaisPorPagamento[metodoBase] += valor;
+        }
+      }
+    }
+  });
+
+  // Cabeçalho
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Resumo de Caixa", 105, 20, { align: "center" });
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const dataHora = new Date().toLocaleString("pt-PT");
+  doc.text(`Exportado em: ${dataHora}`, 105, 28, { align: "center" });
+
+  // Corpo
+  let y = 50;
+  doc.setFontSize(12);
+  doc.text(`- Dinheiro: ${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 20, y);
+  y += 10;
+  doc.text(`- Multibanco: ${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 20, y);
+  y += 10;
+  doc.text(`- Transferência Bancária: ${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 20, y);
+  y += 15;
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL: ${total.toFixed(2)} €`, 20, y);
+
+  // Salva o ficheiro
+  doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
+}
