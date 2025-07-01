@@ -519,6 +519,7 @@ document.addEventListener("keydown", function (event) {
     if (btnRegistar) btnRegistar.click();
   }
 });
+
 function exportarResumoPDF() {
   if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
@@ -528,6 +529,7 @@ function exportarResumoPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
+  // Calcular os totais
   let total = 0;
   const totaisPorPagamento = {
     Dinheiro: 0,
@@ -552,28 +554,55 @@ function exportarResumoPDF() {
     }
   });
 
+  // Estilização do documento
+  const dataHora = new Date().toLocaleString("pt-PT");
+  let y = 20;
+
   // Cabeçalho
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Resumo de Caixa", 105, 20, { align: "center" });
+  doc.setFontSize(18);
+  doc.setTextColor(13, 74, 99);
+  doc.text("RESUMO DE CAIXA", 105, y, { align: "center" });
 
-  doc.setFontSize(10);
+  y += 8;
+  doc.setDrawColor(13, 74, 99);
+  doc.line(20, y, 190, y);
+
+  y += 10;
+  doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  const dataHora = new Date().toLocaleString("pt-PT");
-  doc.text(`Exportado em: ${dataHora}`, 105, 28, { align: "center" });
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Data de exportação: ${dataHora}`, 20, y);
 
-  // Corpo
-  let y = 50;
-  doc.setFontSize(12);
-  doc.text(`- Dinheiro: ${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 20, y);
-  y += 10;
-  doc.text(`- Multibanco: ${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 20, y);
-  y += 10;
-  doc.text(`- Transferência Bancária: ${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 20, y);
   y += 15;
   doc.setFont("helvetica", "bold");
-  doc.text(`TOTAL: ${total.toFixed(2)} €`, 20, y);
+  doc.setFontSize(13);
+  doc.text("Totais por pagamento:", 20, y);
 
-  // Salva o ficheiro
+  y += 10;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text(`- Dinheiro: ${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 20, y);
+
+  y += 8;
+  doc.text(`- Multibanco: ${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 20, y);
+
+  y += 8;
+  doc.text(`- Transferência Bancária: ${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 20, y);
+
+  y += 15;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(0, 102, 51);
+  doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 20, y);
+
+  // Rodapé opcional
+  y += 20;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "italic");
+  doc.setTextColor(120);
+  doc.text("Relatório gerado pelo Sistema POS CASH", 105, y, { align: "center" });
+
+  // Salvar
   doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
