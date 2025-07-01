@@ -520,6 +520,7 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+
 function exportarResumoPDF() {
   if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
@@ -554,47 +555,59 @@ function exportarResumoPDF() {
     }
   });
 
-  // Estilização do documento
-  const dataHora = new Date().toLocaleString("pt-PT");
-  let y = 20;
-
   // Cabeçalho
+  const dataHora = new Date().toLocaleString("pt-PT");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(13, 74, 99);
-  doc.text("RESUMO DE CAIXA", 105, y, { align: "center" });
+  doc.text("Resumo de Caixa", 105, 20, { align: "center" });
 
-  y += 8;
-  doc.setDrawColor(13, 74, 99);
-  doc.line(20, y, 190, y);
-
-  y += 10;
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(0, 0, 0);
-  doc.text(`Data de exportação: ${dataHora}`, 20, y);
+  doc.setTextColor(50);
+  doc.text(`Exportado em: ${dataHora}`, 105, 28, { align: "center" });
 
-  y += 15;
+  doc.setDrawColor(13, 74, 99);
+  doc.line(20, 32, 190, 32);
+
+  // Tabela de Totais
+  let y = 45;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text("Totais por pagamento:", 20, y);
+  doc.setTextColor(0);
+  doc.text("Forma de Pagamento", 30, y);
+  doc.text("Valor", 160, y, { align: "right" });
+
+  y += 7;
+  doc.setDrawColor(200);
+  doc.line(20, y, 190, y);
 
   y += 10;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
-  doc.text(`- Dinheiro: ${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 20, y);
+
+  doc.text(`Dinheiro`, 30, y);
+  doc.text(`${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 8;
-  doc.text(`- Multibanco: ${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 20, y);
+  doc.text(`Multibanco`, 30, y);
+  doc.text(`${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 8;
-  doc.text(`- Transferência Bancária: ${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 20, y);
+  doc.text(`Transferência Bancária`, 30, y);
+  doc.text(`${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 160, y, { align: "right" });
 
-  y += 15;
-  doc.setFont("helvetica", "bold");
+  // Separador
+  y += 12;
+  doc.setDrawColor(13, 74, 99);
+  doc.line(20, y, 190, y);
+
+  // Total Geral
+  y += 10;
   doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(0, 102, 51);
-  doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 20, y);
+  doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 105, y, { align: "center" });
 
   // Rodapé opcional
   y += 20;
