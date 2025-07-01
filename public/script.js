@@ -449,6 +449,7 @@ function exportarPDF() {
 document
 .getElementById("btnApagarTudo")
   .addEventListener("click", async function () {
+      exportarPDF();
     const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
     if (!confirmar) return;
 
