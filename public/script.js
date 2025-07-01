@@ -492,12 +492,6 @@ if (btnExportarPDF) {
   btnExportarPDF.addEventListener("click", exportarPDF);
 }
 
-function fecharJanela() {
-  const confirmar = confirm("Tem certeza que deseja fechar esta janela?");
-  if (confirmar) {
-    window.close();
-  }
-}
 document.getElementById("pagamento").addEventListener("change", function () {
   const campoTPA = document.getElementById("campo-tpa");
   if (this.value === "Multibanco") {
