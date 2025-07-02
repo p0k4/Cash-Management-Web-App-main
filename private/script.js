@@ -1,3 +1,22 @@
+
+// ======================================
+// Proteção inicial - redireciona para login se não houver token
+// ======================================
+const token = localStorage.getItem('token');
+if (!token) {
+  window.location.href = '/login.html';
+}
+
+// ======================================
+// fetchProtegido - todas as chamadas fetch usam Authorization
+// ======================================
+async function fetchProtegido(url, options = {}) {
+  const headers = options.headers || {};
+  headers['Authorization'] = `Bearer ${token}`;
+  options.headers = headers;
+  return fetch(url, options);
+}
+
 // Função para parse seguro com fallback
 function parseIntSeguro(valor, fallback) {
   return (valor !== null && !isNaN(parseInt(valor))) ? parseInt(valor) : fallback;
@@ -73,7 +92,7 @@ async function registar() {
     atualizarHintProximoDoc();
 
     try {
-      const response = await fetch("/api/registar", {
+      const response = await fetchProtegido("/api/registar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,7 +136,7 @@ async function registar() {
 
 async function carregarDadosDoServidor() {
   try {
-    const response = await fetch("/api/registos");
+    const response = await fetchProtegido("/api/registos");
     const dados = await response.json();
     const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
     tabela.innerHTML = "";
@@ -454,7 +473,7 @@ document
     if (!confirmar) return;
 
     try {
-      const response = await fetch("/api/registos", {
+      const response = await fetchProtegido("/api/registos", {
         method: "DELETE",
       });
       const resultado = await response.json();
@@ -469,8 +488,8 @@ document
         inputDoc.value = "";
         atualizarHintProximoDoc();
 
-        limparFormulario(); // limpa os campos do formulário
-        carregarDadosDoServidor(); // recarrega a tabela (agora vazia)
+        limparFormulario();
+        carregarDadosDoServidor();
         atualizarTotalTabela();
       } else {
         alert("Erro ao apagar registos.");
