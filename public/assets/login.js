@@ -16,8 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetch('/api/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
     })
     .then(res => {
       if (!res.ok) {
@@ -26,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return res.json();
     })
     .then(data => {
+      console.log('Resposta do login:', data)
       localStorage.setItem('token', data.token);
       window.location.href = '/private/index.html';
     })

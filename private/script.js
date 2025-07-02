@@ -465,10 +465,9 @@ function exportarPDF() {
 
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-document
-.getElementById("btnApagarTudo")
+document.getElementById("btnApagarTudo")
   .addEventListener("click", async function () {
-      exportarResumoPDF();
+    exportarResumoPDF();
     const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
     if (!confirmar) return;
 

@@ -1,18 +1,44 @@
+// ====================================
+// Helper para obter o token do localStorage
+// ====================================
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+// ====================================
+// fetchProtegido com Authorization
+// ====================================
+async function fetchProtegido(url, options = {}) {
+  const token = getToken();
+  if (!token) {
+    console.error("⚠️ Token não encontrado. Redirecionando para login.");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  options.headers = options.headers || {};
+  options.headers["Authorization"] = `Bearer ${token}`;
+  return fetch(url, options);
+}
+
+// ====================================
+// Carregar dados do servidor
+// ====================================
 async function carregarDadosDoServidor() {
   try {
-    const response = await fetch("/api/registos");
+    const response = await fetchProtegido("/api/registos");
+    if (!response.ok) throw new Error("Não autorizado ou erro do servidor");
+
     const dados = await response.json();
     const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
     tabela.innerHTML = "";
 
     dados.forEach((reg) => {
       const novaLinha = tabela.insertRow();
-      novaLinha.dataset.id = reg.id; // guarda o ID da BD para uso futuro
+      novaLinha.dataset.id = reg.id;
 
-      // Operação
       novaLinha.insertCell().textContent = reg.operacao;
 
-      // Data formatada
       let dataFormatada = reg.data;
       try {
         const dataObj = new Date(reg.data);
@@ -28,41 +54,53 @@ async function carregarDadosDoServidor() {
       }
       novaLinha.insertCell().textContent = dataFormatada;
 
-      // Nº Documento
       novaLinha.insertCell().textContent = reg.numDoc ?? reg.numdoc;
 
-      // Pagamento + OP TPA se existir
       const pagamentoFinal = reg.pagamento + (reg.op_tpa ? ` (OP TPA: ${reg.op_tpa})` : "");
       novaLinha.insertCell().textContent = pagamentoFinal;
 
-      // Valor formatado
       novaLinha.insertCell().textContent = parseFloat(reg.valor).toFixed(2) + " €";
 
-      // Botões Editar e Apagar
       criarBotoesOpcoes(novaLinha);
     });
 
     atualizarTotalTabela();
   } catch (err) {
-    console.error("Erro ao carregar dados do servidor:", err);
+    console.error("⚠️ Erro ao carregar dados do servidor:", err);
+    alert("Erro ao carregar dados. Verifique se está logado.");
   }
 }
 
-function atualizarTotalTabela() {
-  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
-  let total = 0;
+// ====================================
+// Apagar TODOS os registos
+// ====================================
+document
+  .getElementById("btnApagarTudo")
+  .addEventListener("click", async function () {
+    const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados da tabela?");
+    if (!confirmar) return;
 
-  linhas.forEach((linha) => {
-    if (linha.style.display !== "none"){
-    const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
-    const valor = parseFloat(valorTexto.replace(",", "."));
-    if (!isNaN(valor)) total += valor;
+    try {
+      const response = await fetchProtegido("/api/registos", {
+        method: "DELETE",
+      });
+      const resultado = await response.json();
+
+      if (resultado.success) {
+        alert("Todos os registos foram apagados.");
+        carregarDadosDoServidor();
+      } else {
+        alert("Erro ao apagar registos.");
+      }
+    } catch (error) {
+      console.error("Erro ao apagar registos:", error);
+      alert("Erro ao comunicar com o servidor.");
     }
   });
 
-  document.getElementById("totalTabela").textContent =
-    "Total: " + total.toFixed(2) + " €";
-}
+// ====================================
+// Filtro local na tabela
+// ====================================
 function filtrarTabela() {
   const input = document.getElementById("filtroTabela").value.toLowerCase();
   const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
@@ -76,44 +114,32 @@ function filtrarTabela() {
   atualizarTotalTabela();
 }
 
-// Inicializa ao carregar a página
-window.addEventListener("DOMContentLoaded", carregarDadosDoServidor);
+// ====================================
+// Atualizar total
+// ====================================
+function atualizarTotalTabela() {
+  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
+  let total = 0;
 
-document
-  .getElementById("btnApagarTudo")
-  .addEventListener("click", async function () {
-    const confirmar = confirm(
-      "Tem certeza que deseja apagar TODOS os dados da tabela?"
-    );
-    if (!confirmar) return;
-
-    try {
-      const response = await fetch("/api/registos", {
-        method: "DELETE",
-      });
-      const resultado = await response.json();
-
-      if (resultado.success) {
-        alert("Todos os registos foram apagados.");
-        carregarDadosDoServidor(); // Atualiza a tabela no ecrã
-      } else {
-        alert("Erro ao apagar registos.");
-      }
-    } catch (error) {
-      console.error("Erro ao apagar registos:", error);
-      alert("Erro ao comunicar com o servidor.");
+  linhas.forEach((linha) => {
+    if (linha.style.display !== "none") {
+      const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
+      const valor = parseFloat(valorTexto.replace(",", "."));
+      if (!isNaN(valor)) total += valor;
     }
   });
-// Atualiza a função criarBotoesOpcoes com correções para edição
+
+  document.getElementById("totalTabela").textContent = "Total: " + total.toFixed(2) + " €";
+}
+
+// ====================================
+// criarBotoesOpcoes COMPLETO COM JWT
+// ====================================
 function criarBotoesOpcoes(linha) {
   const cellOpcoes = linha.insertCell();
   cellOpcoes.classList.add("col-opcoes");
 
   const id = linha.dataset.id;
-
-  
-
-
 
   // Botão APAGAR
   const btnApagar = document.createElement("button");
@@ -124,7 +150,7 @@ function criarBotoesOpcoes(linha) {
     if (!confirmar) return;
 
     try {
-      const response = await fetch(`/api/registos/${id}`, {
+      const response = await fetchProtegido(`/api/registos/${id}`, {
         method: "DELETE",
       });
       const resultado = await response.json();
@@ -140,7 +166,7 @@ function criarBotoesOpcoes(linha) {
     }
   };
 
-  // Botão EDITAR
+  // Botão EDITAR (tua lógica original intacta!)
   const btnEditar = document.createElement("button");
   btnEditar.innerHTML = '<i class="fas fa-edit"></i> Editar';
   btnEditar.className = "btn-editar-linha";
@@ -221,7 +247,7 @@ function criarBotoesOpcoes(linha) {
       const pagamentoFinal = op_tpa ? `${pagamento} (OP TPA: ${op_tpa})` : pagamento;
 
       try {
-        const response = await fetch(`/api/registos/${id}`, {
+        const response = await fetchProtegido(`/api/registos/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ operacao, data, numDoc, pagamento, valor, op_tpa }),
@@ -252,162 +278,7 @@ function criarBotoesOpcoes(linha) {
   cellOpcoes.appendChild(btnApagar);
 }
 
-
-function exportarRelatorio() {
-  const tabela = document.getElementById("tabelaRegistos");
-  let csv = "";
-  let total = 0;
-  const linhas = tabela.querySelectorAll("tr");
-
-  linhas.forEach((linha, idx) => {
-    if (linha.style.display !== "none") {
-      const celulas = linha.querySelectorAll("th, td");
-      let linhaCSV = [];
-      celulas.forEach((celula, index) => {
-        if (index === 5) return; // Ignora "Opções"
-        let texto = celula.textContent.replace(/\n/g, "").trim();
-        texto = texto.replace(/;/g, ","); // Garante que não há conflitos com separador
-        linhaCSV.push(`"${texto}"`); // Envolve em aspas por segurança
-        if (idx > 0 && index === 4) {
-          let valor = parseFloat(texto.replace("€", "").replace(",", "."));
-          if (!isNaN(valor)) total += valor;
-        }
-      });
-      csv += linhaCSV.join(";") + "\n";
-    }
-  });
-
-  csv += "\n;;;;Total: " + total.toFixed(2) + " €";
-
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `relatorio_caixa_${new Date().toISOString().split("T")[0]}.csv`;
-  link.click();
-}
-
-function exportarPDF() {
-  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
-    alert("jsPDF ou AutoTable não está carregado corretamente.");
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const data = [];
-  let total = 0;
-
-  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
-
-  linhas.forEach((linha) => {
-    if (linha.style.display !== "none") {
-      const tds = linha.querySelectorAll("td");
-      const row = [];
-      for (let i = 0; i < 5; i++) {
-        let texto = tds[i].textContent.trim().replace(" €", "");
-        if (i === 4) {
-          const num = parseFloat(texto.replace(",", "."));
-          if (!isNaN(num)) total += num;
-          row.push(num.toFixed(2) + " €");
-        } else {
-          row.push(texto);
-        }
-      }
-      data.push(row);
-    }
-  });
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text("Relatório de Caixa", 105, 15, { align: "center" });
-
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  const dataHora = new Date().toLocaleString("pt-PT");
-  doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
-
-  doc.autoTable({
-    head: [["Operação", "Data", "Nº Documento", "Pagamento", "Valor"]],
-    body: data,
-    startY: 35,
-    styles: {
-      halign: "center",
-      fontSize: 10,
-    },
-    headStyles: {
-      fillColor: [13, 74, 99],
-      textColor: 255,
-      fontStyle: "bold",
-    },
-  });
-
-  doc.setFont("helvetica", "bold");
-  doc.text(`Total: ${total.toFixed(2)} €`, 200, doc.lastAutoTable.finalY + 10, {
-    align: "right",
-  });
-
-  doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
-}
-document.getElementById("btnApagarTudo").addEventListener("click", function () {
-  const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
-  if (!confirmar) return;
-
-  const tabela = document
-    .getElementById("tabelaRegistos")
-    .querySelector("tbody");
-  tabela.innerHTML = ""; // remove todas as linhas
-
-  localStorage.removeItem("caixaPiscinaDados");
-  localStorage.removeItem("contadorOperacao");
-  localStorage.removeItem("contadorDoc");
-  contadorDoc = null;
-
-  const inputDoc = document.getElementById("num-doc");
-  inputDoc.readOnly = false;
-  inputDoc.value = "";
-  atualizarHintProximoDoc();
-
-  contadorOperacao = 1;
-  apagar(); // redefine os campos
-  atualizarTotalTabela();
-});
-/* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
-
-// Adiciona listeners para exportação se existirem os botões
-const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
-if (btnExportarRelatorio) {
-  btnExportarRelatorio.addEventListener("click", exportarRelatorio);
-}
-const btnExportarPDF = document.getElementById("btnExportarPDF");
-if (btnExportarPDF) {
-  btnExportarPDF.addEventListener("click", exportarPDF);
-}
-
-// Botão "Apagar Tudo"
-document.getElementById("btnApagarTudo").addEventListener("click", async function () {
-  // código existente aqui
-});
-
-// Botão "Reiniciar POS"
-document.getElementById("btn-reiniciar-pos").addEventListener("click", async function () {
-  const confirmar = confirm("Tem a certeza que quer apagar TODOS os dados do POS?");
-  if (!confirmar) return;
-
-  try {
-    const response = await fetch("/api/registos", {
-      method: "DELETE",
-    });
-    const resultado = await response.json();
-
-    if (resultado.success) {
-      alert("Todos os registos foram apagados com sucesso!");
-      carregarDadosDoServidor(); // Recarrega a tabela atualizada (vazia)
-    } else {
-      alert("Erro ao apagar registos.");
-    }
-  } catch (err) {
-    console.error("Erro ao apagar registos:", err);
-    alert("Erro ao comunicar com o servidor.");
-  }
-});
+// ====================================
+// Inicializa ao carregar
+// ====================================
+window.addEventListener("DOMContentLoaded", carregarDadosDoServidor);
