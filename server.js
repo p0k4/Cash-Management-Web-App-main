@@ -1,3 +1,4 @@
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -159,14 +160,8 @@ app.delete("/api/registos", async (req, res) => {
 });
 
 // Catch-all para servir index.html em qualquer rota não-API
-app.get("*", (req, res) => {
-  console.log("➡️ Servindo index.html para path:", req.path);
-  res.sendFile(path.resolve(__dirname, "public", "index.html"), (err) => {
-    if (err) {
-      console.error("❌ Erro ao enviar index.html:", err);
-      res.status(500).send("Erro ao enviar index.html");
-    }
-  });
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {
