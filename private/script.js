@@ -5,6 +5,17 @@
 const token = localStorage.getItem('token');
 if (!token) {
   window.location.href = '/login.html';
+} else {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const username = payload.username || 'Desconhecido';
+    const spanUtilizador = document.getElementById('utilizadorAtivo');
+    if (spanUtilizador) {
+      spanUtilizador.textContent = `Utilizador ativo: ${username}`;
+    }
+  } catch (e) {
+    console.warn('Token inválido ou não parseável.');
+  }
 }
 
 // ======================================
@@ -642,3 +653,4 @@ document.getElementById("btnLogout").addEventListener("click", function () {
   // Redirecionar para login
   window.location.href = "/login.html";
 });
+

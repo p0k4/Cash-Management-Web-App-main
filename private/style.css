@@ -573,3 +573,14 @@ th {
 #btnLogout:hover {
   background-color: #a00000;
 }
+
+.caixa-utilizador-ativo {
+  border: 2px solid #0d4a63;
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin-top: 20px;
+  width: fit-content;
+  color: #0d4a63;
+  font-weight: bold;
+  background-color: #e6f4f8;
+}
