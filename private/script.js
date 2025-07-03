@@ -632,14 +632,33 @@ function exportarResumoPDF() {
   doc.setTextColor(0, 102, 51);
   doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 105, y, { align: "center" });
 
-  // Rodapé opcional
+  // Rodapé - Sistema
   y += 20;
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
   doc.text("Relatório gerado pelo Sistema POS CASH", 105, y, { align: "center" });
 
-  // Salvar
+  // ➜ Emitido por utilizador
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+      const username = payload.username || 'Desconhecido';
+
+      y += 8;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(80);
+      doc.text(`Emitido por: ${username}`, 105, y, { align: "center" });
+    }
+  } catch (e) {
+    console.warn('Erro ao ler token para colocar no PDF:', e);
+  }
+
+  // ➜ Só aqui guardamos o PDF
   doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
