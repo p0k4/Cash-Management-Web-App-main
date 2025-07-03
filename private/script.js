@@ -631,3 +631,14 @@ function exportarResumoPDF() {
   // Salvar
   doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
+
+document.getElementById("btnLogout").addEventListener("click", function () {
+  const confirmar = confirm("Tem a certeza que deseja terminar sessão?");
+  if (!confirmar) return;
+
+  // Limpar o token
+  localStorage.removeItem("token");
+
+  // Redirecionar para login
+  window.location.href = "/login.html";
+});

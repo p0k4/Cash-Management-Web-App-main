@@ -554,3 +554,22 @@ th {
     text-align: center;
   }
 }
+
+.logout-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+#btnLogout {
+  background-color: #cc0000;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#btnLogout:hover {
+  background-color: #a00000;
+}

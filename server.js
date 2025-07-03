@@ -85,7 +85,7 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
-  if (username === 'admin' && password === 'admin') {
+  if (username === 'admin' && password === '8000') {
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
     return res.json({ token });
   }

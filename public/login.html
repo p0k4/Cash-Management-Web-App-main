@@ -2,18 +2,21 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Login - POS Cash</title>
+  <title>Login - POS Cash Management</title>
   <link rel="stylesheet" href="/assets/login.css" />
 </head>
 <body>
   <div class="login-container">
-    <h2>POS Cash Management</h2>
-    <form id="loginForm" onsubmit="return false;">
-      <input type="text" id="username" placeholder="Utilizador" required />
-      <input type="password" id="password" placeholder="Senha" required />
-      <button type="submit" id="loginBtn">Entrar</button>
-    </form>
-    <p id="error" class="error"></p>
+    <div class="login-card">
+      <h1>POS <span>Cash Management</span></h1>
+
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Utilizador" required />
+        <input type="password" id="password" placeholder="Senha" required />
+        <button type="button" id="loginBtn">Entrar</button>
+        <div id="error" class="error-message"></div>
+      </form>
+    </div>
   </div>
   <script src="/assets/login.js"></script>
 </body>
