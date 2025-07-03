@@ -278,6 +278,238 @@ function criarBotoesOpcoes(linha) {
   cellOpcoes.appendChild(btnApagar);
 }
 
+function exportarRelatorio() {
+  const tabela = document.getElementById("tabelaRegistos");
+  let csv = "";
+  let total = 0;
+  const linhas = tabela.querySelectorAll("tr");
+
+  linhas.forEach((linha, idx) => {
+    if (linha.style.display !== "none") {
+      const celulas = linha.querySelectorAll("th, td");
+      let linhaCSV = [];
+      celulas.forEach((celula, index) => {
+        if (index === 5) return; // Ignora "Opções"
+        let texto = celula.textContent.replace(/\n/g, "").trim();
+        texto = texto.replace(/;/g, ","); // Garante que não há conflitos com separador
+        linhaCSV.push(`"${texto}"`); // Envolve em aspas por segurança
+        if (idx > 0 && index === 4) {
+          let valor = parseFloat(texto.replace("€", "").replace(",", "."));
+          if (!isNaN(valor)) total += valor;
+        }
+      });
+      csv += linhaCSV.join(";") + "\n";
+    }
+  });
+
+  csv += "\n;;;;Total: " + total.toFixed(2) + " €";
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `relatorio_caixa_${new Date().toISOString().split("T")[0]}.csv`;
+  link.click();
+}
+
+function exportarPDF() {
+    console.log('Cliquei no botão de Exportar PDF!');
+  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+    alert("jsPDF ou AutoTable não está carregado corretamente.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = [];
+  let total = 0;
+
+  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
+
+  linhas.forEach((linha) => {
+    if (linha.style.display !== "none") {
+      const tds = linha.querySelectorAll("td");
+      const row = [];
+      for (let i = 0; i < 5; i++) {
+        let texto = tds[i].textContent.trim().replace(" €", "");
+        if (i === 4) {
+          const num = parseFloat(texto.replace(",", "."));
+          if (!isNaN(num)) total += num;
+          row.push(num.toFixed(2) + " €");
+        } else {
+          row.push(texto);
+        }
+      }
+      data.push(row);
+    }
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Relatório de Caixa", 105, 15, { align: "center" });
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const dataHora = new Date().toLocaleString("pt-PT");
+  doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
+
+  doc.autoTable({
+    head: [["Operação", "Data", "Nº Documento", "Pagamento", "Valor"]],
+    body: data,
+    startY: 35,
+    styles: {
+      halign: "center",
+      fontSize: 10,
+    },
+    headStyles: {
+      fillColor: [13, 74, 99],
+      textColor: 255,
+      fontStyle: "bold",
+    },
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`Total: ${total.toFixed(2)} €`, 200, doc.lastAutoTable.finalY + 10, {
+    align: "right",
+  });
+
+  doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
+}
+
+
+function exportarResumoPDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+    alert("jsPDF ou AutoTable não está carregado corretamente.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  // Calcular os totais
+  let total = 0;
+  const totaisPorPagamento = {
+    Dinheiro: 0,
+    Multibanco: 0,
+    "Transferência Bancária": 0
+  };
+
+  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
+
+  linhas.forEach((linha) => {
+    if (linha.style.display !== "none") {
+      const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
+      const pagamento = linha.cells[3].textContent.trim();
+      const metodoBase = pagamento.split(" (OP TPA")[0].trim();
+      const valor = parseFloat(valorTexto.replace(",", "."));
+      if (!isNaN(valor)) {
+        total += valor;
+        if (totaisPorPagamento[metodoBase] !== undefined) {
+          totaisPorPagamento[metodoBase] += valor;
+        }
+      }
+    }
+  });
+
+  // Cabeçalho
+  const dataHora = new Date().toLocaleString("pt-PT");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(13, 74, 99);
+  doc.text("Resumo de Caixa", 105, 20, { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(50);
+  doc.text(`Exportado em: ${dataHora}`, 105, 28, { align: "center" });
+
+  doc.setDrawColor(13, 74, 99);
+  doc.line(20, 32, 190, 32);
+
+  // Tabela de Totais
+  let y = 45;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(0);
+  doc.text("Forma de Pagamento", 30, y);
+  doc.text("Valor", 160, y, { align: "right" });
+
+  y += 7;
+  doc.setDrawColor(200);
+  doc.line(20, y, 190, y);
+
+  y += 10;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+
+  doc.text(`Dinheiro`, 30, y);
+  doc.text(`${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 160, y, { align: "right" });
+
+  y += 8;
+  doc.text(`Multibanco`, 30, y);
+  doc.text(`${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 160, y, { align: "right" });
+
+  y += 8;
+  doc.text(`Transferência Bancária`, 30, y);
+  doc.text(`${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 160, y, { align: "right" });
+
+  // Separador
+  y += 12;
+  doc.setDrawColor(13, 74, 99);
+  doc.line(20, y, 190, y);
+
+  // Total Geral
+  y += 10;
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(0, 102, 51);
+  doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 105, y, { align: "center" });
+
+  // Rodapé opcional
+  y += 20;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "italic");
+  doc.setTextColor(120);
+  doc.text("Relatório gerado pelo Sistema POS CASH", 105, y, { align: "center" });
+
+  // Salvar
+  doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
+}
+
+
+const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
+if (btnExportarRelatorio) {
+  btnExportarRelatorio.addEventListener("click", exportarRelatorio);
+}
+const btnExportarPDF = document.getElementById("btnExportarPDF");
+if (btnExportarPDF) {
+  btnExportarPDF.addEventListener("click", exportarPDF);
+}
+
+document.getElementById("btnApagarTudo").addEventListener("click", function () {
+  const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
+  if (!confirmar) return;
+
+  const tabela = document
+    .getElementById("tabelaRegistos")
+    .querySelector("tbody");
+  tabela.innerHTML = ""; // remove todas as linhas
+
+  localStorage.removeItem("caixaPiscinaDados");
+  localStorage.removeItem("contadorOperacao");
+  localStorage.removeItem("contadorDoc");
+  contadorDoc = null;
+
+  const inputDoc = document.getElementById("num-doc");
+  inputDoc.readOnly = false;
+  inputDoc.value = "";
+  atualizarHintProximoDoc();
+
+  contadorOperacao = 1;
+  apagar(); // redefine os campos
+  atualizarTotalTabela();
+});
+
 // ====================================
 // Inicializa ao carregar
 // ====================================
