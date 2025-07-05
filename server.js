@@ -176,7 +176,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Serve /tabela.html
-app.get('/tabela.html', (req, res) => {
+app.get('/dashboard/tabela', (req, res) => {
   res.sendFile(path.join(__dirname, 'private', 'tabela.html'));
 });
 
