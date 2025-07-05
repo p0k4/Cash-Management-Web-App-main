@@ -41,9 +41,12 @@
           <input type="date" id="data" name="data" class="input-pequeno" />
 
           <label for="num-doc">Nº DOC</label>
-          <input type="number" id="num-doc" placeholder="Nº DOC" name="num-doc" class="input-medio" required />
-          <small id="proximo-doc" style="color: gray; font-style: italic"></small>
-
+<div class="num-doc-wrapper">
+  <input type="number" id="num-doc" placeholder="Nº DOC" name="num-doc" class="input-medio" required readonly />
+  <button type="button" id="btnEditarDoc" class="btn-editar-doc">Editar</button>
+</div>
+<small id="proximo-doc" style="color: gray; font-style: italic"></small>
+          
           <div style="display: flex; align-items: flex-end; gap: 10px;">
             <div>
               <label for="pagamento">PAGAMENTO</label>

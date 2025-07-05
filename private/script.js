@@ -673,3 +673,29 @@ document.getElementById("btnLogout").addEventListener("click", function () {
   window.location.href = "/login.html";
 });
 
+const btnEditarDoc = document.getElementById("btnEditarDoc");
+const numDocInput = document.getElementById("num-doc");
+
+if (btnEditarDoc && numDocInput) {
+  btnEditarDoc.addEventListener("click", () => {
+    if (numDocInput.readOnly) {
+      // Torna o input editável
+      numDocInput.readOnly = false;
+      numDocInput.focus();
+      btnEditarDoc.textContent = "Guardar";
+    } else {
+      // Valida e salva
+      const novoValor = parseInt(numDocInput.value);
+      if (isNaN(novoValor) || novoValor < 1) {
+        alert("Insira um número de documento válido!");
+        return;
+      }
+      contadorDoc = novoValor;
+      localStorage.setItem("contadorDoc", contadorDoc);
+      numDocInput.readOnly = true;
+      atualizarHintProximoDoc();
+      btnEditarDoc.textContent = "Editar";
+      alert(`Sequência de Nº DOC atualizada para começar em ${contadorDoc}`);
+    }
+  });
+}

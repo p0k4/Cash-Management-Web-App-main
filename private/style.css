@@ -584,3 +584,22 @@ th {
   font-weight: bold;
   background-color: #e6f4f8;
 }
+.num-doc-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-editar-doc {
+  background-color: #0d4a63;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-editar-doc:hover {
+  background-color: #0b3d52;
+}
