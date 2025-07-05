@@ -170,18 +170,19 @@ app.put('/api/registos/:id', async (req, res) => {
   }
 });
 
-// =============================
-// SERVE /dashboard -> /private/index.html
-// =============================
+// Serve /dashboard
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'private', 'index.html'));
 });
 
-// =============================
-// Catch-All para SPA (serve sempre o index.html)
-// =============================
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'private', 'index.html'));
+// Serve /tabela.html
+app.get('/tabela.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'private', 'tabela.html'));
+});
+
+// Serve outras rotas (404)
+app.use((req, res) => {
+  res.status(404).send('404 - Rota não encontrada.');
 });
 
 // =============================
