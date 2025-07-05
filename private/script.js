@@ -48,7 +48,7 @@ function atualizarHintProximoDoc() {
   if (contadorDoc !== null) {
     input.placeholder = `${contadorDoc}`;
   } else {
-    input.placeholder = "--> Nº DOC";
+    input.placeholder = "Nº DOC";
   }
 }
 
@@ -699,3 +699,47 @@ if (btnEditarDoc && numDocInput) {
     }
   });
 }
+
+const TEMPO_LIMITE_INATIVIDADE = 5 * 60 * 1000; // 5 minutos
+let inatividadeTimer;
+
+function fazerLogout() {
+  localStorage.removeItem('token');
+  window.location.href = '/login.html';
+}
+
+function isTokenExpired() {
+  const token = window.APP_TOKEN;
+  try {
+    const payloadBase64 = token.split('.')[1];
+    const payloadJson = atob(payloadBase64);
+    const payload = JSON.parse(payloadJson);
+    const exp = payload.exp;
+    if (!exp) return true;
+    const now = Math.floor(Date.now() / 1000);
+    return now >= exp;
+  } catch (e) {
+    return true;
+  }
+}
+
+function resetarTimerInatividade() {
+  clearTimeout(inatividadeTimer);
+  inatividadeTimer = setTimeout(() => {
+    fazerLogout();
+  }, TEMPO_LIMITE_INATIVIDADE);
+}
+
+// Validação Inicial
+window.APP_TOKEN = localStorage.getItem('token');
+if (!window.APP_TOKEN || isTokenExpired()) {
+  fazerLogout();
+} else {
+  resetarTimerInatividade();
+}
+
+// Atividade do utilizador reseta o timer
+['mousemove', 'keydown', 'click', 'scroll'].forEach(event =>
+  document.addEventListener(event, resetarTimerInatividade)
+);
+

@@ -43,3 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
     handleLogin();
   });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnLogin = document.getElementById('loginBtn');
+
+  // Permitir Enter para submeter login
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      btnLogin.click();
+    }
+  });
+});
+
