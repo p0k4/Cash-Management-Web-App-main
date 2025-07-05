@@ -383,7 +383,7 @@ th {
 }
 
 .btn-reiniciar-pos {
-  background-color: #f64b0d; /* azul tipo "info" */
+  background-color: #f64b0d; 
   color: white;
   border: none;
   padding: 10px 16px;
@@ -595,7 +595,7 @@ th {
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 10px 12px;
   font-weight: bold;
   cursor: pointer;
 }
