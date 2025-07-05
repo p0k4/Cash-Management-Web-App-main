@@ -705,7 +705,7 @@ let inatividadeTimer;
 
 function fazerLogout() {
   localStorage.removeItem('token');
-  window.location.href = '/login.html';
+  window.location.href = '/dashboard/login.html';
 }
 
 function isTokenExpired() {
