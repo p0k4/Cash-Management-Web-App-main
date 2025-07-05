@@ -178,10 +178,10 @@ app.get('/dashboard', (req, res) => {
 });
 
 // =============================
-// 404
+// Catch-All para SPA (serve sempre o index.html)
 // =============================
-app.use((req, res) => {
-  res.status(404).send('404 - Rota não encontrada.');
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'private', 'index.html'));
 });
 
 // =============================
