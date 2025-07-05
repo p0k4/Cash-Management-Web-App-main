@@ -171,6 +171,13 @@ app.put('/api/registos/:id', async (req, res) => {
 });
 
 // =============================
+// SERVE /dashboard -> /private/index.html
+// =============================
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'private', 'index.html'));
+});
+
+// =============================
 // 404
 // =============================
 app.use((req, res) => {
