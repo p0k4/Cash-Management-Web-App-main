@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       console.log('Resposta do login:', data)
       localStorage.setItem('token', data.token);
-      window.location.href = '/private/index.html';
+      window.location.href = '/dashboard';
     })
     .catch(err => {
       console.error(err);
