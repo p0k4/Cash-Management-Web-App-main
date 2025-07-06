@@ -565,7 +565,7 @@ th {
   background-color: #cc0000;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 16px 24px;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -605,5 +605,5 @@ th {
 }
 
 .btn-editar-doc:hover {
-  background-color: #0b3d52;
+  background-color: #366d85;
 }
