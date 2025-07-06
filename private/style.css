@@ -386,7 +386,7 @@ th {
   background-color: #f64b0d; 
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 10px 16px;   
   border-radius: 6px;
   font-weight: bold;
   font-size: 14px;
@@ -575,10 +575,10 @@ th {
 }
 
 .caixa-utilizador-ativo {
-  border: 2px solid #0d4a63;
+  border: 3px solid #0d4a63;
   border-radius: 10px;
-  padding: 10px 20px;
-  margin-top: 20px;
+  padding: 0px 5px;
+  margin-top: 0px;
   width: fit-content;
   color: #0d4a63;
   font-weight: bold;
@@ -602,6 +602,11 @@ th {
   padding: 10px 12px;
   font-weight: bold;
   cursor: pointer;
+}
+
+#num-doc::placeholder {
+  color: #ff0000;
+  opacity: 1; /* para garantir que não fica translúcido */
 }
 
 .btn-editar-doc:hover {

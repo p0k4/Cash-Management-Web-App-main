@@ -738,7 +738,7 @@ if (!window.APP_TOKEN || isTokenExpired()) {
 }
 
 // Atividade do utilizador reseta o timer
-['mousemove', 'keydown', 'click', 'scroll'].forEach(event =>
+['mousemove', 'keydown', 'click', 'scroll', 'input', 'change'].forEach(event =>
   document.addEventListener(event, resetarTimerInatividade)
 );
 
