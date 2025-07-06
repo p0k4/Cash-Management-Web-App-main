@@ -705,7 +705,7 @@ let inatividadeTimer;
 
 function fazerLogout() {
   localStorage.removeItem('token');
-  window.location.href = '/dashboard/login.html';
+  window.location.href = '/login.html';
 }
 
 function isTokenExpired() {
@@ -730,7 +730,6 @@ function resetarTimerInatividade() {
   }, TEMPO_LIMITE_INATIVIDADE);
 }
 
-// Validação Inicial
 window.APP_TOKEN = localStorage.getItem('token');
 if (!window.APP_TOKEN || isTokenExpired()) {
   fazerLogout();
@@ -743,3 +742,13 @@ if (!window.APP_TOKEN || isTokenExpired()) {
   document.addEventListener(event, resetarTimerInatividade)
 );
 
+// ✅ Verificação periódica se token ainda existe
+function verificarSessaoAtiva() {
+  window.APP_TOKEN = localStorage.getItem('token');
+  if (!window.APP_TOKEN || isTokenExpired()) {
+    fazerLogout();
+  }
+}
+
+// Verifica a cada 10 segundos
+setInterval(verificarSessaoAtiva, 10 * 1000);
