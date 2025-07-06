@@ -11,7 +11,7 @@ if (!token) {
     const username = payload.username || 'Desconhecido';
     const spanUtilizador = document.getElementById('utilizadorAtivo');
     if (spanUtilizador) {
-      spanUtilizador.textContent = `Utilizador ativo: ${username}`;
+      spanUtilizador.querySelector("#nomeUtilizador").textContent = username;
     }
   } catch (e) {
     console.warn('Token inválido ou não parseável.');

@@ -584,6 +584,10 @@ th {
   font-weight: bold;
   background-color: #e6f4f8;
 }
+.nome-utilizador {
+  color: red;
+  font-weight: bold;
+}
 .num-doc-wrapper {
   display: flex;
   align-items: center;
