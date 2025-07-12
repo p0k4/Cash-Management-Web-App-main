@@ -175,6 +175,8 @@ button:disabled {
 /* Botão apagar tudo */
 .btn-apagar-tudo {
   background-color: #d9534f;
+    border-radius: 15px;
+  border: 2px solid #0d4a63
 }
 
 .btn-apagar-tudo:hover {
@@ -186,9 +188,10 @@ button:disabled {
   color: white;
   padding: 8px 16px;
   border: 2px solid white;
-  border-radius: 6px;
   cursor: pointer;
   margin-top: 20px;
+    border-radius: 15px;
+  border: 2px solid #0d4a63
   
 }
 
@@ -201,11 +204,11 @@ button:disabled {
   margin-top: 20px;
   padding: 15px;
   padding-top: 21px;
-  background-color: #0d4a63;
+  background-color: transparent;
   color: white;
   text-align: center;
   border-radius: 15px;
-  border: 2px solid white;
+  border: 2px solid #0d4a63;
 }
 
 
@@ -304,7 +307,6 @@ th {
 
 .btn-registar {
   background-color: #28a745; /* verde sucesso */
-  border-radius: 10px;
   padding: 10px 18px;
   color: white;
   font-weight: bold;
@@ -313,11 +315,14 @@ th {
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+  border: 2px solid #0d4a63
 }
 
 .btn-registar:hover {
   background-color: #218838;
   box-shadow: 0 6px 14px rgba(40, 167, 69, 0.5);
+
 }
 
 .btn-registar:disabled {
@@ -333,9 +338,10 @@ th {
   font-weight: bold;
   padding: 10px 18px;
   border: none;
-  border-radius: 10px;
   box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 15px;
+  border: 2px solid #0d4a63
 }
 
 .btn-exportar:hover {
@@ -348,10 +354,11 @@ th {
   color: white;
   padding: 10px 20px;
   font-weight: bold;
-  border-radius: 8px;
+  border-radius: 15px;
   min-width: 140px;
   text-align: center;
   margin-right: 10px;
+  border: 2px solid #0d4a63
 }
 
 .cabecalho-caixa {
@@ -396,6 +403,8 @@ th {
   align-items: center;
   gap: 6px; /* espaço entre ícone e texto */
   transition: background-color 0.3s ease;
+    border-radius: 15px;
+  border: 2px solid #0d4a63
 }
 
 .btn-reiniciar-pos:hover {
@@ -567,8 +576,9 @@ th {
   color: white;
   border: none;
   padding: 16px 24px;
-  border-radius: 4px;
+  border-radius: 15px;
   cursor: pointer;
+   border: 2px solid white
 }
 
 #btnLogout:hover {
@@ -603,11 +613,12 @@ th {
   padding: 10px 12px;
   font-weight: bold;
   cursor: pointer;
+  border: 2px solid white
 }
 
 #num-doc::placeholder {
   color: #ff0000;
-  opacity: 1; /* para garantir que não fica translúcido */
+  opacity: 1; 
 }
 
 .btn-editar-doc:hover {
