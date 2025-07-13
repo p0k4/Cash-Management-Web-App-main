@@ -85,7 +85,6 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // USERS hardcoded (podes mudar aqui ou até pôr na BD depois!)
 const users = {
   admin: '8000',
-  caixa: '1234'
 };
 
 app.post('/api/login', (req, res) => {
