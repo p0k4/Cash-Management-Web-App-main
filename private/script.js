@@ -175,6 +175,22 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Mostrar utilizador ativo no dashboard
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const username = payload.username || "Desconhecido";
+      const spanNome = document.querySelector(".nome-utilizador");
+      if (spanNome) {
+        spanNome.textContent = username;
+      }
+    } catch (e) {
+      console.error("Token inválido:", e);
+    }
+  }
+
+  // O resto
   contadorOperacao = parseIntSeguro(
     localStorage.getItem("contadorOperacao"),
     1

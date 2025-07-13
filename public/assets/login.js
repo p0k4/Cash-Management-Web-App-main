@@ -25,10 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return res.json();
     })
     .then(data => {
-      console.log('Resposta do login:', data)
-      localStorage.setItem('token', data.token);
-      window.location.href = '/dashboard';
-    })
+  console.log('Resposta do login:', data);
+  localStorage.removeItem('token');    // 💥 Remove o anterior
+  localStorage.setItem('token', data.token); // Salva o novo
+  window.location.href = '/dashboard';
+})
     .catch(err => {
       console.error(err);
       errorDiv.textContent = err.message || 'Erro ao conectar com o servidor.';

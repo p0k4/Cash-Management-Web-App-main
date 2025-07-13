@@ -82,11 +82,18 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // =============================
 // LOGIN (público)
 // =============================
+// USERS hardcoded (podes mudar aqui ou até pôr na BD depois!)
+const users = {
+  admin: '8000',
+  caixa: '1234'
+};
+
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
-  if (username === 'admin' && password === '8000') {
-    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '5m' });
+  // Verifica se o utilizador existe e a password bate certo
+  if (users[username] && users[username] === password) {
+    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '30m' });
     return res.json({ token });
   }
 
