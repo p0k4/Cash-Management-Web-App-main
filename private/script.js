@@ -1,20 +1,19 @@
-
 // ======================================
 // Proteção inicial - redireciona para login se não houver token
 // ======================================
-const token = localStorage.getItem('token');
+const token = localStorage.getItem("token");
 if (!token) {
-  window.location.href = '/login.html';
+  window.location.href = "/login.html";
 } else {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const username = payload.username || 'Desconhecido';
-    const spanUtilizador = document.getElementById('utilizadorAtivo');
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const username = payload.username || "Desconhecido";
+    const spanUtilizador = document.getElementById("utilizadorAtivo");
     if (spanUtilizador) {
       spanUtilizador.querySelector("#nomeUtilizador").textContent = username;
     }
   } catch (e) {
-    console.warn('Token inválido ou não parseável.');
+    console.warn("Token inválido ou não parseável.");
   }
 }
 
@@ -23,18 +22,21 @@ if (!token) {
 // ======================================
 async function fetchProtegido(url, options = {}) {
   const headers = options.headers || {};
-  headers['Authorization'] = `Bearer ${token}`;
+  headers["Authorization"] = `Bearer ${token}`;
   options.headers = headers;
   return fetch(url, options);
 }
 
 // Função para parse seguro com fallback
 function parseIntSeguro(valor, fallback) {
-  return (valor !== null && !isNaN(parseInt(valor))) ? parseInt(valor) : fallback;
+  return valor !== null && !isNaN(parseInt(valor)) ? parseInt(valor) : fallback;
 }
 
 // Carregar contadores salvos ou iniciar
-let contadorOperacao = parseIntSeguro(localStorage.getItem("contadorOperacao"), 1);
+let contadorOperacao = parseIntSeguro(
+  localStorage.getItem("contadorOperacao"),
+  1
+);
 let contadorDoc = parseIntSeguro(localStorage.getItem("contadorDoc"), null);
 
 function setarDataAtual() {
@@ -78,11 +80,12 @@ async function registar() {
   }
 
   let pagamentoFinal = pagamento;
-  const opTPA = pagamento === "Multibanco"
-    ? document.getElementById("op-tpa").value.trim()
-    : null;
+  const opTPA =
+    pagamento === "Multibanco"
+      ? document.getElementById("op-tpa").value.trim()
+      : null;
 
- if (!isNaN(valor) && valor > 0 && valor <= 10000) {
+  if (!isNaN(valor) && valor > 0 && valor <= 10000) {
     // Gera o rótulo da operação automaticamente
     const operacao = "Operação " + contadorOperacao;
     const data = document.getElementById("data").value;
@@ -107,7 +110,7 @@ async function registar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          operacao,   // Envia para o backend!
+          operacao, // Envia para o backend!
           data,
           numDoc,
           pagamento: pagamentoFinal,
@@ -118,7 +121,9 @@ async function registar() {
       const result = await response.json();
 
       if (response.ok && !result.error) {
-        const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
+        const tabela = document
+          .getElementById("tabelaRegistos")
+          .querySelector("tbody");
         const novaLinha = tabela.insertRow();
         novaLinha.insertCell(0).textContent = operacao;
         novaLinha.insertCell(1).textContent = data;
@@ -149,15 +154,19 @@ async function carregarDadosDoServidor() {
   try {
     const response = await fetchProtegido("/api/registos");
     const dados = await response.json();
-    const tabela = document.getElementById("tabelaRegistos").querySelector("tbody");
+    const tabela = document
+      .getElementById("tabelaRegistos")
+      .querySelector("tbody");
     tabela.innerHTML = "";
     dados.forEach((reg) => {
       const novaLinha = tabela.insertRow();
       novaLinha.insertCell(0).textContent = reg.operacao;
       novaLinha.insertCell(1).textContent = reg.data;
-      novaLinha.insertCell(2).textContent = reg.numDoc !== undefined ? reg.numDoc : reg.numdoc;
+      novaLinha.insertCell(2).textContent =
+        reg.numDoc !== undefined ? reg.numDoc : reg.numdoc;
       novaLinha.insertCell(3).textContent = reg.pagamento;
-      novaLinha.insertCell(4).textContent = parseFloat(reg.valor).toFixed(2) + " €";
+      novaLinha.insertCell(4).textContent =
+        parseFloat(reg.valor).toFixed(2) + " €";
     });
     atualizarTotalTabela();
   } catch (err) {
@@ -166,7 +175,10 @@ async function carregarDadosDoServidor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  contadorOperacao = parseIntSeguro(localStorage.getItem("contadorOperacao"), 1);
+  contadorOperacao = parseIntSeguro(
+    localStorage.getItem("contadorOperacao"),
+    1
+  );
   contadorDoc = parseIntSeguro(localStorage.getItem("contadorDoc"), null);
 
   setarDataAtual();
@@ -215,13 +227,26 @@ function atualizarTotalTabela() {
   const divTotaisPorPagamento = document.getElementById("totaisPagamento");
   if (divTotaisPorPagamento) {
     divTotaisPorPagamento.innerHTML = `
-      <strong></strong>
-      - Dinheiro: ${totaisPorPagamento["Dinheiro"].toFixed(2)} €<br/>
-      - Multibanco: ${totaisPorPagamento["Multibanco"].toFixed(2)} €<br/>
-      - Transferência Bancária: ${totaisPorPagamento[
-        "Transferência Bancária"
-      ].toFixed(2)} €
-    `;
+     <strong></strong>
+<div class="linha-pagamento">
+    <span class="label-pagamento">Dinheiro</span>
+    <span class="valor-pagamento">${totaisPorPagamento["Dinheiro"].toFixed(
+      2
+    )} €</span>
+  </div>
+  <div class="linha-pagamento">
+    <span class="label-pagamento">Multibanco</span>
+    <span class="valor-pagamento">${totaisPorPagamento["Multibanco"].toFixed(
+      2
+    )} €</span>
+  </div>
+  <div class="linha-pagamento">
+    <span class="label-pagamento">Transferência Bancária</span>
+    <span class="valor-pagamento">${totaisPorPagamento[
+      "Transferência Bancária"
+    ].toFixed(2)} €</span>
+  </div>
+`;
   }
 }
 function validarFormulario() {
@@ -476,7 +501,8 @@ function exportarPDF() {
 
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-document.getElementById("btnApagarTudo")
+document
+  .getElementById("btnApagarTudo")
   .addEventListener("click", async function () {
     exportarResumoPDF();
     const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
@@ -543,9 +569,12 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-
 function exportarResumoPDF() {
-  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF ||
+    typeof window.jspdf.jsPDF !== "function"
+  ) {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
     return;
   }
@@ -558,7 +587,7 @@ function exportarResumoPDF() {
   const totaisPorPagamento = {
     Dinheiro: 0,
     Multibanco: 0,
-    "Transferência Bancária": 0
+    "Transferência Bancária": 0,
   };
 
   const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
@@ -610,15 +639,24 @@ function exportarResumoPDF() {
   doc.setFontSize(12);
 
   doc.text(`Dinheiro`, 30, y);
-  doc.text(`${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 160, y, { align: "right" });
+  doc.text(`${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 160, y, {
+    align: "right",
+  });
 
   y += 8;
   doc.text(`Multibanco`, 30, y);
-  doc.text(`${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 160, y, { align: "right" });
+  doc.text(`${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 160, y, {
+    align: "right",
+  });
 
   y += 8;
   doc.text(`Transferência Bancária`, 30, y);
-  doc.text(`${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`, 160, y, { align: "right" });
+  doc.text(
+    `${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`,
+    160,
+    y,
+    { align: "right" }
+  );
 
   // Separador
   y += 12;
@@ -637,16 +675,18 @@ function exportarResumoPDF() {
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
-  doc.text("Relatório gerado pelo Sistema POS CASH", 105, y, { align: "center" });
+  doc.text("Relatório gerado pelo Sistema POS CASH", 105, y, {
+    align: "center",
+  });
 
   // ➜ Emitido por utilizador
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      const payloadBase64 = token.split('.')[1];
+      const payloadBase64 = token.split(".")[1];
       const payloadJson = atob(payloadBase64);
       const payload = JSON.parse(payloadJson);
-      const username = payload.username || 'Desconhecido';
+      const username = payload.username || "Desconhecido";
 
       y += 8;
       doc.setFontSize(9);
@@ -655,7 +695,7 @@ function exportarResumoPDF() {
       doc.text(`Emitido por: ${username}`, 105, y, { align: "center" });
     }
   } catch (e) {
-    console.warn('Erro ao ler token para colocar no PDF:', e);
+    console.warn("Erro ao ler token para colocar no PDF:", e);
   }
 
   // ➜ Só aqui guardamos o PDF
@@ -700,18 +740,18 @@ if (btnEditarDoc && numDocInput) {
   });
 }
 
-const TEMPO_LIMITE_INATIVIDADE = 30 * 60 * 1000; 
+const TEMPO_LIMITE_INATIVIDADE = 30 * 60 * 1000;
 let inatividadeTimer;
 
 function fazerLogout() {
-  localStorage.removeItem('token');
-  window.location.href = '/login.html';
+  localStorage.removeItem("token");
+  window.location.href = "/login.html";
 }
 
 function isTokenExpired() {
   const token = window.APP_TOKEN;
   try {
-    const payloadBase64 = token.split('.')[1];
+    const payloadBase64 = token.split(".")[1];
     const payloadJson = atob(payloadBase64);
     const payload = JSON.parse(payloadJson);
     const exp = payload.exp;
@@ -730,7 +770,7 @@ function resetarTimerInatividade() {
   }, TEMPO_LIMITE_INATIVIDADE);
 }
 
-window.APP_TOKEN = localStorage.getItem('token');
+window.APP_TOKEN = localStorage.getItem("token");
 if (!window.APP_TOKEN || isTokenExpired()) {
   fazerLogout();
 } else {
@@ -738,13 +778,13 @@ if (!window.APP_TOKEN || isTokenExpired()) {
 }
 
 // Atividade do utilizador reseta o timer
-['mousemove', 'keydown', 'click', 'scroll', 'input', 'change'].forEach(event =>
-  document.addEventListener(event, resetarTimerInatividade)
+["mousemove", "keydown", "click", "scroll", "input", "change"].forEach(
+  (event) => document.addEventListener(event, resetarTimerInatividade)
 );
 
 // ✅ Verificação periódica se token ainda existe
 function verificarSessaoAtiva() {
-  window.APP_TOKEN = localStorage.getItem('token');
+  window.APP_TOKEN = localStorage.getItem("token");
   if (!window.APP_TOKEN || isTokenExpired()) {
     fazerLogout();
   }
