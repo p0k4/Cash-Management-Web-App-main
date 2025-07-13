@@ -352,6 +352,19 @@ function exportarPDF() {
   doc.setFont("helvetica", "normal");
   const dataHora = new Date().toLocaleString("pt-PT");
   doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
+  const token = localStorage.getItem('token');
+let username = 'Desconhecido';
+
+if (token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    username = payload.username || 'Desconhecido';
+  } catch (e) {
+    console.warn('Erro ao ler token para PDF:', e);
+  }
+}
+
+doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
 
   doc.autoTable({
     head: [["Operação", "Data", "Nº Documento", "Pagamento", "Valor"]],
