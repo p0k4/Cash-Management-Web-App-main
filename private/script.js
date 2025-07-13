@@ -700,7 +700,7 @@ if (btnEditarDoc && numDocInput) {
   });
 }
 
-const TEMPO_LIMITE_INATIVIDADE = 30 * 60 * 1000; // 5 minutos
+const TEMPO_LIMITE_INATIVIDADE = 30 * 60 * 1000; 
 let inatividadeTimer;
 
 function fazerLogout() {
