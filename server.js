@@ -82,7 +82,7 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // =============================
 // LOGIN (público)
 // =============================
-// USERS hardcoded (podes mudar aqui ou até pôr na BD depois!)
+// USERS hardcoded (Addicionar novos utilizadores)
 const users = {
   admin: '8000',
 };

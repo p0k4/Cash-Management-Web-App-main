@@ -344,7 +344,7 @@ function criarBotoesOpcoes(linha) {
           opTPAInput.type = "text";
           opTPAInput.placeholder = "OP TPA";
           opTPAInput.style.marginLeft = "0px";
-          opTPAInput.style.width = "180px"; // 👈 ajusta aqui o tamanho como quiseres
+          opTPAInput.style.width = "180px"; // compriemnto da celula
           opTPAInput.style.display = valorOriginal.startsWith("Multibanco")
             ? "inline-block"
             : "none";

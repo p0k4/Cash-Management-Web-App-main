@@ -166,7 +166,7 @@ function criarBotoesOpcoes(linha) {
     }
   };
 
-  // Botão EDITAR (tua lógica original intacta!)
+  // Botão EDITAR 
   const btnEditar = document.createElement("button");
   btnEditar.innerHTML = '<i class="fas fa-edit"></i> Editar';
   btnEditar.className = "btn-editar-linha";
