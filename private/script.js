@@ -564,7 +564,7 @@ document
       alert("Erro ao comunicar com o servidor.");
     }
   });
-/* função duplicada de atualizarHintProximoDoc removida para evitar conflitos */
+
 
 // Adiciona listeners para exportação se existirem os botões
 const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
@@ -704,7 +704,7 @@ function exportarResumoPDF() {
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
-  doc.text("Relatório gerado pelo Sistema POS CASH", 105, y, {
+  doc.text("Documento gerado pelo Sistema POS", 105, y, {
     align: "center",
   });
 
