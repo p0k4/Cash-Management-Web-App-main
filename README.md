@@ -40,7 +40,7 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ![PDF Report](./public/assets/images/readme/pdf.png)
 
-- Exported with date and time
+- Exports include date, time, and user information
 - Structured table
 - Includes total at the bottom
 
