@@ -7,6 +7,7 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ## 🚀 Features
 
+- User authentication (JWT protected)
 - 💸 Register income by operation
 - 🧾 Multiple payment methods:
   - Cash
@@ -29,7 +30,7 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ![Front-end panel](./public/assets/images/readme/front-app.png)
 
-- Input operation, date, document number, payment method, and value.
+-  Date, document number, payment method, and value.
 - See total and per-method balances.
 - Register, reset, or access full records.
 
@@ -45,86 +46,37 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 
 ---
 
-### 🔹 Transactions Table
+### 🔹 Transactions Table and Daily closure
+
+- List all records
 
 ![Table View](./public/assets/images/readme/table.png)
 
-- List all records
 - Edit or delete each entry
-- Export or clear table
 
+![Table View](./public/assets/images/readme/edit-table.png)
+
+- Daily closure with reports
+
+![Table View](./public/assets/images/readme/close_cash.png)
 ---
 
 ## 🧩 Technologies Used
 
 - **Frontend:** HTML, CSS, JavaScript
+- **Authentication:** JWT (JSON Web Token)
 - **PDF Export:** jsPDF + AutoTable
 - **Backend:** Node.js + Express
 - **Database:** PostgreSQL
 - **Styling:** Font Awesome for icons
 
----
-
-## 📦 How to Run
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/your-user/pos-cash-management.git
-   ```
-
-2. Install backend dependencies:
-   ```bash
-   cd pos-cash-management
-   npm install
-   ```
-
-3. Start the server:
-   ```bash
-   node server.js
-   ```
-
-4. Access the app:
-   ```
-   http://localhost:3000
-   ```
-
----
 
 ## 🛠️ Future Improvements
 
-- Authentication system for restricted access
-- Daily closing feature with history
-- Mobile responsiveness
+- Individual user histories (each user sees only their own records)
 - Graphical dashboards
 
 ---
 
-## 📷 Screenshots Location
-
-All images are placed in the `/assets/` folder. Make sure to create that directory and move the provided images there:
-
-```
-assets/
-├── front-app.png
-├── pdf.png
-└── table.png
-```
-
-🌐 How to Deploy on Render
-
-Step by step to deploy to Render:
-
-1️⃣ Push your code to GitHub
-
-Make sure your project is in a GitHub repository.
-
-2️⃣ Create a PostgreSQL Database on Render
-	•	Go to Render Dashboard → Databases → New PostgreSQL.
-	•	Choose a name and region.
-	•	Wait until it’s created.
-
-✅ Copy the External Connection String — it will look like:
-
-postgres://USER:PASSWORD@HOST:PORT/DBNAME
 
 
