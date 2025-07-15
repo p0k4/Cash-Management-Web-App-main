@@ -61,6 +61,10 @@ POS Cash Management is a simple and intuitive web application to manage and trac
 ![Table View](./public/assets/images/readme/close_cash.png)
 ---
 
+- Database - PostgresSQL 
+
+![Table View](./public/assets/images/readme/bd.png)
+
 ## 🧩 Technologies Used
 
 - **Frontend:** HTML, CSS, JavaScript
