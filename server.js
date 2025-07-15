@@ -85,6 +85,7 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // USERS hardcoded (Addicionar novos utilizadores)
 const users = {
   admin: '8000',
+  dev: '0000'
 };
 
 app.post('/api/login', (req, res) => {
@@ -111,7 +112,21 @@ app.use('/api', verificarToken);
 // Obter todos os registos
 app.get('/api/registos', async (req, res) => {
   try {
-    const resultado = await pool.query('SELECT * FROM registos ORDER BY id ASC');
+    const username = req.user.username;
+
+    let resultado;
+
+    if (username === 'admin') {
+      // admin vê tudo
+      resultado = await pool.query('SELECT * FROM registos ORDER BY id ASC');
+    } else {
+      // outros só veem os seus
+      resultado = await pool.query(
+        'SELECT * FROM registos WHERE utilizador = $1 ORDER BY id ASC',
+        [username]
+      );
+    }
+
     res.json(resultado.rows);
   } catch (err) {
     console.error('Erro ao obter registos:', err);
@@ -122,15 +137,29 @@ app.get('/api/registos', async (req, res) => {
 // Inserir novo registo
 app.post('/api/registar', async (req, res) => {
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
+  const username = req.user.username;
+
+  // 👉 Log para ver no terminal o que está a chegar
+  console.log("➡️ Novo registo recebido:", {
+    username,
+    operacao,
+    data,
+    numDoc,
+    pagamento,
+    valor,
+    op_tpa
+  });
+
   try {
     await pool.query(
-      `INSERT INTO registos (operacao, data, numDoc, pagamento, valor, op_tpa)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [operacao, data, numDoc, pagamento, valor, op_tpa]
+      `INSERT INTO registos (operacao, data, numDoc, pagamento, valor, op_tpa, utilizador)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [operacao, data, numDoc, pagamento, valor, op_tpa, username]
     );
+
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao inserir registo:', err);
+    console.error('❌ Erro ao inserir registo:', err);
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
