@@ -100,10 +100,14 @@ async function registar() {
       numDocInput.readOnly = true;
     }
 
-    const numDoc = contadorDoc;
-    contadorDoc++;
-    numDocInput.value = contadorDoc;
-    atualizarHintProximoDoc();
+const numDoc = parseInt(numDocInput.value);
+if (isNaN(numDoc) || numDoc < 1) {
+  alert("Insira um número de documento válido!");
+  return;
+}
+contadorDoc = numDoc + 1;
+numDocInput.value = contadorDoc;
+atualizarHintProximoDoc();
 
     try {
       const response = await fetchProtegido("/api/registar", {
@@ -174,7 +178,8 @@ async function carregarDadosDoServidor() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  
   // Mostrar utilizador ativo no dashboard
   const token = localStorage.getItem("token");
   if (token) {
@@ -201,7 +206,11 @@ window.addEventListener("DOMContentLoaded", () => {
   atualizarHintProximoDoc();
   atualizarCampoOperacao();
   carregarDadosDoServidor();
+  await carregarNumDocDoServidor();
+
 });
+ 
+
 
 // Salva os contadores antes de sair ou recarregar
 window.addEventListener("beforeunload", () => {
@@ -767,6 +776,29 @@ if (btnEditarDoc && numDocInput) {
       alert(`Sequência de Nº DOC atualizada para começar em ${contadorDoc}`);
     }
   });
+}
+
+async function carregarNumDocDoServidor() {
+  try {
+    const response = await fetchProtegido('/api/next-numdoc');
+    const data = await response.json();
+    contadorDoc = data.nextNumDoc;
+    atualizarHintProximoDoc();
+  } catch (err) {
+    console.error('Erro ao obter numDoc do servidor:', err);
+  }
+}
+
+async function guardarNumDocNoServidor() {
+  try {
+    await fetchProtegido('/api/save-numdoc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ultimoNumDoc: contadorDoc - 1 })
+    });
+  } catch (err) {
+    console.error('Erro ao salvar numDoc no servidor:', err);
+  }
 }
 
 const TEMPO_LIMITE_INATIVIDADE = 30 * 60 * 1000;

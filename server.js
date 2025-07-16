@@ -85,7 +85,8 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // USERS hardcoded (Addicionar novos utilizadores)
 const users = {
   admin: '8000',
-  dev: '0000'
+  dev: '0000',
+  caixa: '1111'
 };
 
 app.post('/api/login', (req, res) => {
@@ -139,22 +140,30 @@ app.post('/api/registar', async (req, res) => {
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
   const username = req.user.username;
 
-  // 👉 Log para ver no terminal o que está a chegar
-  console.log("➡️ Novo registo recebido:", {
-    username,
-    operacao,
-    data,
-    numDoc,
-    pagamento,
-    valor,
-    op_tpa
-  });
+  // console.log("➡️ Novo registo recebido:", {
+  //   username,
+  //   operacao,
+  //   data,
+  //   numDoc,
+  //   pagamento,
+  //   valor,
+  //   op_tpa
+  // });
 
   try {
+    // 1️⃣ Inserir na tabela de registos
     await pool.query(
       `INSERT INTO registos (operacao, data, numDoc, pagamento, valor, op_tpa, utilizador)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [operacao, data, numDoc, pagamento, valor, op_tpa, username]
+    );
+
+    // 2️⃣ Atualizar sequência
+    await pool.query(
+      `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc)
+       VALUES ($1, $2)
+       ON CONFLICT (utilizador) DO UPDATE SET ultimo_numdoc = $2`,
+      [username, numDoc]
     );
 
     res.json({ success: true });
@@ -163,14 +172,61 @@ app.post('/api/registar', async (req, res) => {
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
-
-// Apagar todos os registos
-app.delete('/api/registos', async (req, res) => {
+app.get('/api/next-numdoc', async (req, res) => {
   try {
-    await pool.query('DELETE FROM registos');
+    const username = req.user.username;
+
+    const result = await pool.query(
+      'SELECT ultimo_numdoc FROM sequencias_doc WHERE utilizador = $1',
+      [username]
+    );
+
+    let nextNumDoc = 1;
+    if (result.rows.length) {
+      nextNumDoc = result.rows[0].ultimo_numdoc + 1;
+    }
+
+    res.json({ nextNumDoc });
+  } catch (err) {
+    console.error('Erro ao obter próximo numDoc:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// Apagar registos
+app.delete('/api/registos', async (req, res) => {
+  const username = req.user.username;
+
+  try {
+    if (username === 'admin') {
+      // Admin apaga tudo
+      await pool.query('DELETE FROM registos');
+    } else {
+      // Outros só apagam os seus
+      await pool.query('DELETE FROM registos WHERE utilizador = $1', [username]);
+    }
+
     res.json({ success: true });
   } catch (err) {
     console.error('Erro ao apagar registos:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+app.post('/api/save-numdoc', async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { ultimoNumDoc } = req.body;
+
+    await pool.query(
+      `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc)
+       VALUES ($1, $2)
+       ON CONFLICT (utilizador) DO UPDATE SET ultimo_numdoc = $2`,
+      [username, ultimoNumDoc]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao salvar numDoc:', err);
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
