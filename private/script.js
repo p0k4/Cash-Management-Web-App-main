@@ -69,7 +69,6 @@ function limparFormulario() {
   atualizarHintProximoDoc();
   atualizarCampoOperacao();
 }
-
 async function registar() {
   const valor = parseFloat(document.getElementById("valor").value);
   const pagamento = document.getElementById("pagamento").value;
@@ -100,14 +99,11 @@ async function registar() {
       numDocInput.readOnly = true;
     }
 
-const numDoc = parseInt(numDocInput.value);
-if (isNaN(numDoc) || numDoc < 1) {
-  alert("Insira um número de documento válido!");
-  return;
-}
-contadorDoc = numDoc + 1;
-numDocInput.value = contadorDoc;
-atualizarHintProximoDoc();
+    const numDoc = contadorDoc;
+    contadorDoc++;
+    numDocInput.value = contadorDoc;
+    atualizarHintProximoDoc();
+
 
     try {
       const response = await fetchProtegido("/api/registar", {
@@ -177,15 +173,17 @@ async function carregarDadosDoServidor() {
     console.error("Erro ao carregar dados do servidor:", err);
   }
 }
-
 window.addEventListener("DOMContentLoaded", async () => {
-  
+  // ================================
   // Mostrar utilizador ativo no dashboard
+  // ================================
   const token = localStorage.getItem("token");
+  let username = "Desconhecido";
+
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const username = payload.username || "Desconhecido";
+      username = payload.username || "Desconhecido";
       const spanNome = document.querySelector(".nome-utilizador");
       if (spanNome) {
         spanNome.textContent = username;
@@ -195,27 +193,66 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // O resto
+  const userKey = username;
+
+  // ================================
+  // 1️⃣ Primeiro -> Buscar do servidor o próximo número
+  // ================================
+  await carregarNumDocDoServidor();
+
+  // ⚠️ Se for nulo, define como 1
+  if (contadorDoc === null || isNaN(contadorDoc)) {
+    contadorDoc = 1;
+  }
+
+  // ================================
+  // 2️⃣ Carregar contadores salvos no localStorage
+  // ================================
   contadorOperacao = parseIntSeguro(
-    localStorage.getItem("contadorOperacao"),
+    localStorage.getItem(`${userKey}_contadorOperacao`),
     1
   );
-  contadorDoc = parseIntSeguro(localStorage.getItem("contadorDoc"), null);
 
+  const storedDoc = parseIntSeguro(
+    localStorage.getItem(`${userKey}_contadorDoc`),
+    null
+  );
+
+  if (storedDoc !== null && storedDoc > contadorDoc) {
+    contadorDoc = storedDoc;
+  }
+
+  // ⚡️ Agora coloca mesmo no input
+  const numDocInput = document.getElementById("num-doc");
+  if (numDocInput && contadorDoc !== null && !isNaN(contadorDoc)) {
+    numDocInput.value = contadorDoc;
+  }
+
+  // ================================
+  // 3️⃣ Atualiza os campos do formulário
+  // ================================
   setarDataAtual();
   atualizarHintProximoDoc();
   atualizarCampoOperacao();
-  carregarDadosDoServidor();
-  await carregarNumDocDoServidor();
 
+  // ================================
+  // 4️⃣ Carrega os registos do servidor e atualiza totais
+  // ================================
+  await carregarDadosDoServidor();
 });
- 
-
-
 // Salva os contadores antes de sair ou recarregar
 window.addEventListener("beforeunload", () => {
-  localStorage.setItem("contadorOperacao", contadorOperacao);
-  localStorage.setItem("contadorDoc", contadorDoc);
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userKey = payload.username || "Desconhecido";
+      localStorage.setItem(`${userKey}_contadorOperacao`, contadorOperacao);
+      localStorage.setItem(`${userKey}_contadorDoc`, contadorDoc);
+    } catch (e) {
+      console.error("Token inválido ao salvar contadores:", e);
+    }
+  }
 });
 function atualizarTotalTabela() {
   const tabela = document.getElementById("tabelaRegistos");
@@ -503,19 +540,19 @@ function exportarPDF() {
   doc.setFont("helvetica", "normal");
   const dataHora = new Date().toLocaleString("pt-PT");
   doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
-  const token = localStorage.getItem('token');
-let username = 'Desconhecido';
+  const token = localStorage.getItem("token");
+  let username = "Desconhecido";
 
-if (token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    username = payload.username || 'Desconhecido';
-  } catch (e) {
-    console.warn('Erro ao ler token para PDF:', e);
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      username = payload.username || "Desconhecido";
+    } catch (e) {
+      console.warn("Erro ao ler token para PDF:", e);
+    }
   }
-}
 
-doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
+  doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
 
   doc.autoTable({
     head: [["Operação", "Data", "Nº Documento", "Pagamento", "Valor"]],
@@ -573,7 +610,6 @@ document
       alert("Erro ao comunicar com o servidor.");
     }
   });
-
 
 // Adiciona listeners para exportação se existirem os botões
 const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
@@ -770,6 +806,7 @@ if (btnEditarDoc && numDocInput) {
       }
       contadorDoc = novoValor;
       localStorage.setItem("contadorDoc", contadorDoc);
+      localStorage.setItem("contadorDocManual", "true");
       numDocInput.readOnly = true;
       atualizarHintProximoDoc();
       btnEditarDoc.textContent = "Editar";
@@ -780,24 +817,31 @@ if (btnEditarDoc && numDocInput) {
 
 async function carregarNumDocDoServidor() {
   try {
-    const response = await fetchProtegido('/api/next-numdoc');
+    const response = await fetchProtegido("/api/next-numdoc");
     const data = await response.json();
     contadorDoc = data.nextNumDoc;
+
+    const numDocInput = document.getElementById("num-doc");
+    if (numDocInput) {
+      numDocInput.value = contadorDoc;
+      numDocInput.readOnly = true;
+    }
+
     atualizarHintProximoDoc();
   } catch (err) {
-    console.error('Erro ao obter numDoc do servidor:', err);
+    console.error("Erro ao obter numDoc do servidor:", err);
   }
 }
 
 async function guardarNumDocNoServidor() {
   try {
-    await fetchProtegido('/api/save-numdoc', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ultimoNumDoc: contadorDoc - 1 })
+    await fetchProtegido("/api/save-numdoc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ultimoNumDoc: contadorDoc - 1 }),
     });
   } catch (err) {
-    console.error('Erro ao salvar numDoc no servidor:', err);
+    console.error("Erro ao salvar numDoc no servidor:", err);
   }
 }
 

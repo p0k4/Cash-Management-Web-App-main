@@ -199,11 +199,11 @@ app.delete('/api/registos', async (req, res) => {
 
   try {
     if (username === 'admin') {
-      // Admin apaga tudo
       await pool.query('DELETE FROM registos');
+      await pool.query('DELETE FROM sequencias_doc');
     } else {
-      // Outros só apagam os seus
       await pool.query('DELETE FROM registos WHERE utilizador = $1', [username]);
+      await pool.query('DELETE FROM sequencias_doc WHERE utilizador = $1', [username]);
     }
 
     res.json({ success: true });
@@ -212,6 +212,7 @@ app.delete('/api/registos', async (req, res) => {
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
+
 app.post('/api/save-numdoc', async (req, res) => {
   try {
     const username = req.user.username;
