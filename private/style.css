@@ -648,3 +648,8 @@ th {
 .btn-editar-doc:hover {
   background-color: #366d85;
 }
+
+#tabelaRegistos th:nth-child(1),
+#tabelaRegistos td:nth-child(1) {
+  display: none;
+}

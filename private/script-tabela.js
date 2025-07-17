@@ -313,8 +313,11 @@ function exportarRelatorio() {
 }
 
 function exportarPDF() {
-    console.log('Cliquei no botão de Exportar PDF!');
-  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF ||
+    typeof window.jspdf.jsPDF !== "function"
+  ) {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
     return;
   }
@@ -329,18 +332,24 @@ function exportarPDF() {
   linhas.forEach((linha) => {
     if (linha.style.display !== "none") {
       const tds = linha.querySelectorAll("td");
-      const row = [];
-      for (let i = 0; i < 5; i++) {
-        let texto = tds[i].textContent.trim().replace(" €", "");
-        if (i === 4) {
-          const num = parseFloat(texto.replace(",", "."));
-          if (!isNaN(num)) total += num;
-          row.push(num.toFixed(2) + " €");
-        } else {
-          row.push(texto);
-        }
-      }
-      data.push(row);
+
+      // Detecta se a primeira coluna ainda é "Operação"
+      const temOperacao = tds.length === 6;
+
+      const dataCell = tds[temOperacao ? 1 : 0].textContent.trim();
+      const numDocCell = tds[temOperacao ? 2 : 1].textContent.trim();
+      const pagamentoCell = tds[temOperacao ? 3 : 2].textContent.trim();
+      let valorTexto = tds[temOperacao ? 4 : 3].textContent.trim().replace(" €", "");
+
+      const valorNum = parseFloat(valorTexto.replace(",", "."));
+      if (!isNaN(valorNum)) total += valorNum;
+
+      data.push([
+        dataCell,
+        numDocCell,
+        pagamentoCell,
+        valorNum.toFixed(2) + " €",
+      ]);
     }
   });
 
@@ -352,22 +361,22 @@ function exportarPDF() {
   doc.setFont("helvetica", "normal");
   const dataHora = new Date().toLocaleString("pt-PT");
   doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
-  const token = localStorage.getItem('token');
-let username = 'Desconhecido';
 
-if (token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    username = payload.username || 'Desconhecido';
-  } catch (e) {
-    console.warn('Erro ao ler token para PDF:', e);
+  const token = localStorage.getItem("token");
+  let username = "Desconhecido";
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      username = payload.username || "Desconhecido";
+    } catch (e) {
+      console.warn("Erro ao ler token para PDF:", e);
+    }
   }
-}
 
-doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
+  doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
 
   doc.autoTable({
-    head: [["Operação", "Data", "Nº Documento", "Pagamento", "Valor"]],
+    head: [["Data", "Nº Documento", "Pagamento", "Valor"]],
     body: data,
     startY: 35,
     styles: {
