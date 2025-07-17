@@ -2,18 +2,25 @@
 // Proteção inicial - redireciona para login se não houver token
 // ======================================
 const token = localStorage.getItem("token");
+
 if (!token) {
   window.location.href = "/login.html";
 } else {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
     const username = payload.username || "Desconhecido";
+
     const spanUtilizador = document.getElementById("utilizadorAtivo");
+
     if (spanUtilizador) {
-      spanUtilizador.querySelector("#nomeUtilizador").textContent = username;
+      const spanNome = spanUtilizador.querySelector("#nomeUtilizador");
+      if (spanNome) {
+        spanNome.textContent = username;
+      }
     }
   } catch (e) {
-    console.warn("Token inválido ou não parseável.");
+    console.warn("Token inválido ou não parseável.", e);
+    window.location.href = "/login.html";
   }
 }
 
