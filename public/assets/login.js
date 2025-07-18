@@ -2,10 +2,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginBtn = document.getElementById('loginBtn');
   const loginForm = document.getElementById('loginForm');
   const errorDiv = document.getElementById('error');
+  const userList = document.getElementById("user-list");
+  const usernameInput = document.getElementById("username");
 
-  // Handler para o clique ou submit
+  const cadastroForm = document.getElementById("cadastroForm");
+  const mostrarCadastro = document.getElementById("mostrarCadastro");
+
+  async function carregarUtilizadores() {
+    const errorDivLoad = document.getElementById("load-error");
+    try {
+      const response = await fetch('/api/utilizadores');
+      if (!response.ok) throw new Error("Erro ao carregar utilizadores");
+
+      const utilizadores = await response.json();
+      userList.innerHTML = ''; // 🧼 limpa antes de adicionar
+
+      utilizadores.forEach((user) => {
+        const btn = document.createElement("button");
+        btn.textContent = user;
+        btn.type = "button";
+        btn.className = "user-button";
+        btn.onclick = () => {
+          usernameInput.value = user;
+          document.getElementById("user-selection").style.display = "none";
+          loginForm.style.display = "block";
+        };
+        userList.appendChild(btn);
+      });
+
+      if (utilizadores.length === 0) {
+        errorDivLoad.textContent = "Nenhum utilizador encontrado.";
+        errorDivLoad.style.display = "block";
+        const criarContaLink = document.getElementById("criarContaLink");
+
+
+      }
+
+      
+    } catch (err) {
+      console.error("Erro ao carregar utilizadores:", err);
+      errorDivLoad.style.display = "block";
+    }
+  }
+
+  carregarUtilizadores();
+
   function handleLogin() {
-    const username = document.getElementById('username').value.trim();
+    const username = usernameInput.value.trim();
     const password = document.getElementById('password').value.trim();
     errorDiv.textContent = '';
 
@@ -16,44 +59,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetch('/api/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
     })
     .then(res => {
-      if (!res.ok) {
-        throw new Error('Credenciais inválidas!');
-      }
+      if (!res.ok) throw new Error('Credenciais inválidas!');
       return res.json();
     })
     .then(data => {
-  console.log('Resposta do login:', data);
-  localStorage.removeItem('token');    // 💥 Remove o anterior
-  localStorage.setItem('token', data.token); // Salva o novo
-  window.location.href = '/dashboard';
-})
+      localStorage.removeItem('token');
+      localStorage.setItem('token', data.token);
+      window.location.href = '/dashboard';
+    })
     .catch(err => {
       console.error(err);
       errorDiv.textContent = err.message || 'Erro ao conectar com o servidor.';
     });
   }
 
-  // Click no botão
   loginBtn.addEventListener('click', handleLogin);
-  // Ou Enter no formulário
   loginForm.addEventListener('submit', e => {
     e.preventDefault();
     handleLogin();
   });
-});
 
-document.addEventListener('DOMContentLoaded', () => {
-  const btnLogin = document.getElementById('loginBtn');
-
-  // Permitir Enter para submeter login
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      btnLogin.click();
+      loginBtn.click();
     }
   });
-});
 
+  mostrarCadastro.onclick = () => {
+    loginForm.style.display = "none";
+    cadastroForm.style.display = "block";
+  };
+
+  document.getElementById("cadastrarBtn").onclick = async () => {
+    const username = document.getElementById("novoUsername").value.trim();
+    const senha = document.getElementById("novaSenha").value;
+    const confirmar = document.getElementById("confirmarSenha").value;
+    const erro = document.getElementById("cadastroErro");
+
+    if (!username || !senha || senha !== confirmar) {
+      erro.textContent = "Verifique os dados!";
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/registar-utilizador", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, senha }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Conta criada com sucesso!");
+        location.reload();
+      } else {
+        erro.textContent = data.error || "Erro ao cadastrar.";
+      }
+    } catch (e) {
+      erro.textContent = "Erro no servidor.";
+      console.error(e);
+    }
+  };
+});

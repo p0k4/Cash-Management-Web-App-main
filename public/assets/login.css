@@ -94,3 +94,14 @@ button#loginBtn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
+
+#criarContaLink {
+  text-align: center;
+  margin-top: 10px;
+}
+
+#criarContaLink a {
+  color: #fff;
+  font-size: 14px;
+  text-decoration: underline;
+}

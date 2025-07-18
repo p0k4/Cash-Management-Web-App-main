@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
   <meta charset="UTF-8" />
   <title>POS-Login</title>
   <link rel="stylesheet" href="/assets/login.css" />
 </head>
+
 <body>
   <div class="login-container">
     <div class="login-card">
+      
       <h1>POS <span>Cash Management</span></h1>
 
       <!-- Seleção de utilizador -->
@@ -17,57 +20,38 @@
           <!-- Botões serão carregados via JS -->
         </div>
         <div id="load-error" class="error-message" style="display: none;">Erro ao carregar utilizadores</div>
+        
+        
       </div>
-
-      <!-- Formulário de login -->
+      
+      <!-- FORMULÁRIO DE LOGIN -->
+      
       <form id="loginForm" style="display: none;">
         <input type="hidden" id="username" />
         <input type="password" id="password" placeholder="Senha" required />
         <button type="button" id="loginBtn">Entrar</button>
         <div id="error" class="error-message"></div>
       </form>
-    </div>
-  </div>
 
-  <script>
-    const userList = document.getElementById("user-list");
-    const loginForm = document.getElementById("loginForm");
-    const usernameInput = document.getElementById("username");
-    const errorDiv = document.getElementById("load-error");
+<p id="criarContaLink">
+    <a href="#" id="mostrarCadastro">Criar nova conta</a>
+  </p>
 
-    async function carregarUtilizadores() {
-      try {
-        const response = await fetch('/api/utilizadores'); // <- Esta rota deve existir no backend
-        if (!response.ok) throw new Error("Erro ao carregar utilizadores");
+      <!-- FORMULÁRIO DE CADASTRO -->
+      <form id="cadastroForm" style="display: none;">
+        <input type="text" id="novoUsername" placeholder="Novo utilizador" required />
+        <input type="password" id="novaSenha" placeholder="Senha" required />
+        <input type="password" id="confirmarSenha" placeholder="Confirmar senha" required />
+        <button type="button" id="cadastrarBtn">Cadastrar</button>
+        <div id="cadastroErro" class="error-message"></div>
+      </form>
 
-        const utilizadores = await response.json();
-        utilizadores.forEach((user) => {
-          const btn = document.createElement("button");
-          btn.textContent = user;
-          btn.type = "button";
-          btn.className = "user-button";
-          btn.onclick = () => {
-            usernameInput.value = user;
-            document.getElementById("user-selection").style.display = "none";
-            loginForm.style.display = "block";
-          };
-          userList.appendChild(btn);
-        });
+  
 
-        if (utilizadores.length === 0) {
-          errorDiv.textContent = "Nenhum utilizador encontrado.";
-          errorDiv.style.display = "block";
-        }
 
-      } catch (err) {
-        console.error("Erro ao carregar utilizadores:", err);
-        errorDiv.style.display = "block";
-      }
-    }
+      
 
-    carregarUtilizadores();
-  </script>
-
-  <script src="/assets/login.js"></script>
+      <script src="/assets/login.js"></script>
 </body>
+
 </html>

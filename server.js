@@ -39,6 +39,20 @@ pool.query(`
   }
 });
 
+pool.query(`
+  CREATE TABLE IF NOT EXISTS utilizadores (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    senha TEXT NOT NULL
+  )
+`, (err) => {
+  if (err) {
+    console.error('Erro ao criar tabela utilizadores:', err);
+  } else {
+    console.log('✅ Tabela "utilizadores" pronta!');
+  }
+});
+
 // =============================
 // MIDDLEWARES GLOBAIS
 // =============================
@@ -83,35 +97,72 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // =============================
 // LOGIN (público)
 // =============================
-// USERS hardcoded (Addicionar novos utilizadores)
-const users = {
-  admin: '8000',
-  Antonio: '2000',
-  caixa: '1111'
-};
 
-// ✅ Esta rota devolve a lista de utilizadores visíveis no login
-app.get('/api/utilizadores', (req, res) => {
-  const utilizadores = Object.keys(users);
-  res.json(utilizadores);
-});
 
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
+// Cadastro de novo utilizador
+app.post('/api/registar-utilizador', async (req, res) => {
+  const { username, senha } = req.body;
 
-  // Verifica se o utilizador existe e a password bate certo
-  if (users[username] && users[username] === password) {
-    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '30m' });
-    return res.json({ token });
+  if (!username || !senha) {
+    return res.status(400).json({ error: 'Username e senha obrigatórios.' });
   }
 
-  return res.status(401).json({ error: 'Credenciais inválidas' });
+  try {
+    // Verificar se já existe
+    const existe = await pool.query('SELECT * FROM utilizadores WHERE username = $1', [username]);
+    if (existe.rows.length > 0) {
+      return res.status(409).json({ error: 'Utilizador já existe.' });
+    }
+
+    // Inserir novo utilizador
+    await pool.query('INSERT INTO utilizadores (username, senha) VALUES ($1, $2)', [username, senha]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao registar utilizador:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
 });
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM utilizadores WHERE username = $1 AND senha = $2',
+      [username, password]
+    );
+
+    if (result.rows.length === 1) {
+      const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '30m' });
+      return res.json({ token });
+    } else {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+  } catch (err) {
+    console.error('Erro no login:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// ✅ NOVA ROTA: listar utilizadores para o login
+app.get('/api/utilizadores', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT username FROM utilizadores ORDER BY username ASC');
+    const nomes = result.rows.map(u => u.username);
+    res.json(nomes);
+  } catch (err) {
+    console.error('Erro ao listar utilizadores:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// Protege todas as outras rotas
+app.use('/api', verificarToken);
 
 // =============================
 // TODAS AS ROTAS /api PROTEGIDAS
 // =============================
-app.use('/api', verificarToken);
+
 
 // =============================
 // ROTAS DA API
