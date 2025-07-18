@@ -86,8 +86,8 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // USERS hardcoded (Addicionar novos utilizadores)
 const users = {
   admin: '8000',
-  caixa: '1111',
-  Antonio: '2000'
+  Antonio: '2000',
+  caixa: '1111'
 };
 
 // ✅ Esta rota devolve a lista de utilizadores visíveis no login
