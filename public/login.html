@@ -10,14 +10,64 @@
     <div class="login-card">
       <h1>POS <span>Cash Management</span></h1>
 
-      <form id="loginForm">
-        <input type="text" id="username" placeholder="Utilizador" required />
+      <!-- Seleção de utilizador -->
+      <div id="user-selection">
+        <p>Escolha o utilizador:</p>
+        <div id="user-list">
+          <!-- Botões serão carregados via JS -->
+        </div>
+        <div id="load-error" class="error-message" style="display: none;">Erro ao carregar utilizadores</div>
+      </div>
+
+      <!-- Formulário de login -->
+      <form id="loginForm" style="display: none;">
+        <input type="hidden" id="username" />
         <input type="password" id="password" placeholder="Senha" required />
         <button type="button" id="loginBtn">Entrar</button>
         <div id="error" class="error-message"></div>
       </form>
     </div>
   </div>
+
+  <script>
+    const userList = document.getElementById("user-list");
+    const loginForm = document.getElementById("loginForm");
+    const usernameInput = document.getElementById("username");
+    const errorDiv = document.getElementById("load-error");
+
+    async function carregarUtilizadores() {
+      try {
+        const response = await fetch('/api/utilizadores'); // <- Esta rota deve existir no backend
+        if (!response.ok) throw new Error("Erro ao carregar utilizadores");
+
+        const utilizadores = await response.json();
+        utilizadores.forEach((user) => {
+          const btn = document.createElement("button");
+          btn.textContent = user;
+          btn.type = "button";
+          btn.className = "user-button";
+          btn.onclick = () => {
+            usernameInput.value = user;
+            document.getElementById("user-selection").style.display = "none";
+            loginForm.style.display = "block";
+          };
+          userList.appendChild(btn);
+        });
+
+        if (utilizadores.length === 0) {
+          errorDiv.textContent = "Nenhum utilizador encontrado.";
+          errorDiv.style.display = "block";
+        }
+
+      } catch (err) {
+        console.error("Erro ao carregar utilizadores:", err);
+        errorDiv.style.display = "block";
+      }
+    }
+
+    carregarUtilizadores();
+  </script>
+
   <script src="/assets/login.js"></script>
 </body>
 </html>

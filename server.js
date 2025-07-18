@@ -28,7 +28,8 @@ pool.query(`
     numDoc INTEGER,
     pagamento TEXT,
     valor NUMERIC,
-    op_tpa TEXT
+    op_tpa TEXT,
+    utilizador TEXT
   )
 `, (err) => {
   if (err) {
@@ -85,9 +86,15 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // USERS hardcoded (Addicionar novos utilizadores)
 const users = {
   admin: '8000',
-  dev: '0000',
-  caixa: '1111'
+  caixa: '1111',
+  Antonio: '2000'
 };
+
+// ✅ Esta rota devolve a lista de utilizadores visíveis no login
+app.get('/api/utilizadores', (req, res) => {
+  const utilizadores = Object.keys(users);
+  res.json(utilizadores);
+});
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
@@ -271,6 +278,7 @@ app.get('/dashboard', (req, res) => {
 app.get('/dashboard/tabela', (req, res) => {
   res.sendFile(path.join(__dirname, 'private', 'tabela.html'));
 });
+
 
 // Serve outras rotas (404)
 app.use((req, res) => {
