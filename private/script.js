@@ -591,40 +591,9 @@ function exportarPDF() {
 }
 
 
-document
-  .getElementById("btnApagarTudo")
-  .addEventListener("click", async function () {
-    exportarResumoPDF();
-    const confirmar = confirm("Tem certeza que deseja apagar TODOS os dados?");
-    if (!confirmar) return;
-
-    try {
-      const response = await fetchProtegido("/api/registos", {
-        method: "DELETE",
-      });
-      const resultado = await response.json();
-
-      if (resultado.success) {
-        alert("Todos os registos foram apagados da base de dados.");
-        contadorOperacao = 1;
-        contadorDoc = null;
-
-        const inputDoc = document.getElementById("num-doc");
-        inputDoc.readOnly = false;
-        inputDoc.value = "";
-        atualizarHintProximoDoc();
-
-        limparFormulario();
-        carregarDadosDoServidor();
-        atualizarTotalTabela();
-      } else {
-        alert("Erro ao apagar registos.");
-      }
-    } catch (err) {
-      console.error("Erro ao comunicar com o servidor:", err);
-      alert("Erro ao comunicar com o servidor.");
-    }
-  });
+document.getElementById("btnFecharCaixa").addEventListener("click", function () {
+  exportarResumoPDF();
+});
 
 // Adiciona listeners para exportação se existirem os botões
 const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
