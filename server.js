@@ -256,13 +256,12 @@ app.delete('/api/registos', async (req, res) => {
   const username = req.user.username;
 
   try {
-    if (username === 'admin') {
-      await pool.query('DELETE FROM registos');
-      await pool.query('DELETE FROM sequencias_doc');
-    } else {
-      await pool.query('DELETE FROM registos WHERE utilizador = $1', [username]);
-      await pool.query('DELETE FROM sequencias_doc WHERE utilizador = $1', [username]);
+    if (username !== 'admin') {
+      return res.status(403).json({ error: 'Apenas o admin pode apagar todos os dados.' });
     }
+
+    await pool.query('DELETE FROM registos');
+    await pool.query('DELETE FROM sequencias_doc');
 
     res.json({ success: true });
   } catch (err) {

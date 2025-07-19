@@ -200,6 +200,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+    // ✅ Ocultar botão "Apagar Tudo" se não for admin
+  if (username !== "admin") {
+    const btnApagar = document.getElementById("btnApagarTudo");
+    if (btnApagar) btnApagar.style.display = "none";
+  }
+
   const userKey = username;
 
   // ================================

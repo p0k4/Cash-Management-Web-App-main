@@ -522,11 +522,12 @@ document.getElementById("btnApagarTudo").addEventListener("click", function () {
   localStorage.removeItem("contadorDoc");
   contadorDoc = null;
 
-  const inputDoc = document.getElementById("num-doc");
+ const inputDoc = document.getElementById("num-doc");
+if (inputDoc) {
   inputDoc.readOnly = false;
   inputDoc.value = "";
   atualizarHintProximoDoc();
-
+}
   contadorOperacao = 1;
   apagar(); // redefine os campos
   atualizarTotalTabela();
