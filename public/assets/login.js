@@ -108,6 +108,7 @@ voltarCadastroBtn.addEventListener('click', () => {
   loginForm.style.display = "none";
   cadastroForm.style.display = "block";
   document.getElementById("criarContaLink").style.display = "none"; 
+  document.getElementById("user-selection").style.display = "none"; 
 };
 
   document.getElementById("cadastrarBtn").onclick = async () => {
