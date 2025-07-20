@@ -99,22 +99,25 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 // =============================
 
 
-// Cadastro de novo utilizador
 app.post('/api/registar-utilizador', async (req, res) => {
-  const { username, senha } = req.body;
+  const { username, senha, adminPassword } = req.body;
 
-  if (!username || !senha) {
-    return res.status(400).json({ error: 'Username e senha obrigatórios.' });
+  if (!username || !senha || !adminPassword) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+  }
+
+  // Verifica se a senha do admin está correta
+  const senhaAdminCorreta = process.env.ADMIN_PASSWORD || '10000';
+  if (adminPassword !== senhaAdminCorreta) {
+    return res.status(403).json({ error: 'Senha de admin incorreta.' });
   }
 
   try {
-    // Verificar se já existe
     const existe = await pool.query('SELECT * FROM utilizadores WHERE username = $1', [username]);
     if (existe.rows.length > 0) {
       return res.status(409).json({ error: 'Utilizador já existe.' });
     }
 
-    // Inserir novo utilizador
     await pool.query('INSERT INTO utilizadores (username, senha) VALUES ($1, $2)', [username, senha]);
     res.json({ success: true });
   } catch (err) {

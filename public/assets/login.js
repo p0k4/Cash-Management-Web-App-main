@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorDiv = document.getElementById("error");
   const userList = document.getElementById("user-list");
   const usernameInput = document.getElementById("username");
-
   const cadastroForm = document.getElementById("cadastroForm");
   const mostrarCadastro = document.getElementById("mostrarCadastro");
 
@@ -15,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok) throw new Error("Erro ao carregar utilizadores");
 
       const utilizadores = await response.json();
-      userList.innerHTML = ""; // 🧼 limpa antes de adicionar
+      userList.innerHTML = "";
 
       utilizadores.forEach((user) => {
         const btn = document.createElement("button");
@@ -26,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
           usernameInput.value = user;
           document.getElementById("user-selection").style.display = "none";
           loginForm.style.display = "block";
-          document.getElementById("criarContaLink").style.display = "none"; // 👈 esconder o link
+          document.getElementById("criarContaLink").style.display = "none";
         };
         userList.appendChild(btn);
       });
@@ -34,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (utilizadores.length === 0) {
         errorDivLoad.textContent = "Nenhum utilizador encontrado.";
         errorDivLoad.style.display = "block";
-        const criarContaLink = document.getElementById("criarContaLink");
       }
     } catch (err) {
       console.error("Erro ao carregar utilizadores:", err);
@@ -44,22 +42,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarUtilizadores();
 
-// Voltar do formulário de login
-const voltarLoginBtn = document.getElementById('voltarLoginBtn');
-voltarLoginBtn.addEventListener('click', () => {
-  loginForm.style.display = "none";
-  document.getElementById("user-selection").style.display = "block";
-  document.getElementById("criarContaLink").style.display = "block";
-});
+  // Voltar do login
+  const voltarLoginBtn = document.getElementById("voltarLoginBtn");
+  voltarLoginBtn?.addEventListener("click", () => {
+    loginForm.style.display = "none";
+    document.getElementById("user-selection").style.display = "block";
+    document.getElementById("criarContaLink").style.display = "block";
+  });
 
-// Voltar do formulário de cadastro
-const voltarCadastroBtn = document.getElementById('voltarCadastroBtn');
-voltarCadastroBtn.addEventListener('click', () => {
-  cadastroForm.style.display = "none";
-  document.getElementById("user-selection").style.display = "block";
-  document.getElementById("criarContaLink").style.display = "block";
-});
+  // Voltar do cadastro
+  const voltarCadastroBtn = document.getElementById("voltarCadastroBtn");
+  voltarCadastroBtn?.addEventListener("click", () => {
+    cadastroForm.style.display = "none";
+    document.getElementById("user-selection").style.display = "block";
+    document.getElementById("criarContaLink").style.display = "block";
+  });
 
+  // Clique no botão de login
   function handleLogin() {
     const username = usernameInput.value.trim();
     const password = document.getElementById("password").value.trim();
@@ -80,14 +79,12 @@ voltarCadastroBtn.addEventListener('click', () => {
         return res.json();
       })
       .then((data) => {
-        localStorage.removeItem("token");
         localStorage.setItem("token", data.token);
         window.location.href = "/dashboard";
       })
       .catch((err) => {
         console.error(err);
-        errorDiv.textContent =
-          err.message || "Erro ao conectar com o servidor.";
+        errorDiv.textContent = err.message || "Erro ao conectar com o servidor.";
       });
   }
 
@@ -104,20 +101,23 @@ voltarCadastroBtn.addEventListener('click', () => {
     }
   });
 
- mostrarCadastro.onclick = () => {
-  loginForm.style.display = "none";
-  cadastroForm.style.display = "block";
-  document.getElementById("criarContaLink").style.display = "none"; 
-  document.getElementById("user-selection").style.display = "none"; 
-};
+  // Mostrar formulário de cadastro
+  mostrarCadastro.onclick = () => {
+    loginForm.style.display = "none";
+    cadastroForm.style.display = "block";
+    document.getElementById("criarContaLink").style.display = "none";
+    document.getElementById("user-selection").style.display = "none";
+  };
 
+  // Botão de cadastro com verificação da senha de admin
   document.getElementById("cadastrarBtn").onclick = async () => {
     const username = document.getElementById("novoUsername").value.trim();
     const senha = document.getElementById("novaSenha").value;
     const confirmar = document.getElementById("confirmarSenha").value;
+    const adminPassword = document.getElementById("adminPassword").value;
     const erro = document.getElementById("cadastroErro");
 
-    if (!username || !senha || senha !== confirmar) {
+    if (!username || !senha || senha !== confirmar || !adminPassword) {
       erro.textContent = "Verifique os dados!";
       return;
     }
@@ -126,7 +126,7 @@ voltarCadastroBtn.addEventListener('click', () => {
       const res = await fetch("/api/registar-utilizador", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, senha }),
+        body: JSON.stringify({ username, senha, adminPassword }),
       });
 
       const data = await res.json();
