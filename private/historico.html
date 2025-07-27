@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>Histórico de Movimentos</title>
+  <link rel="stylesheet" href="/private/historico.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Histórico de Movimentos</h1>
+
+    <div class="filtros">
+      <label>Data de início: <input type="date" id="dataInicio" /></label>
+      <label>Data de fim: <input type="date" id="dataFim" /></label>
+      <button onclick="buscarPorIntervalo()">Pesquisar</button>
+    </div>
+
+    <div class="saldos">
+      <p>Dinheiro: <span id="saldoDinheiro">0.00 €</span></p>
+      <p>Multibanco: <span id="saldoMultibanco">0.00 €</span></p>
+      <p>Transferência Bancária: <span id="saldoTransferencia">0.00 €</span></p>
+      <p><strong>Total: <span id="saldoTotal">0.00 €</span></strong></p>
+    </div>
+
+    <table id="tabelaHistorico">
+      <thead>
+        <tr>
+          <th>Data</th>
+           <th>Nº Doc</th>
+          <th>Pagamento</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="/private/script-historico.js"></script>
+</body>
+</html>

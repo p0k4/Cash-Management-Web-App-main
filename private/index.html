@@ -17,7 +17,14 @@
   </style>
 
 </head>
-
+    <div class="menu-lateral">
+  <h3>Menu</h3>
+  <ul>
+    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/dashboard/tabela">Movimentos</a></li>
+    <li><a href="/dashboard/historico">Histórico</a></li>
+  </ul>
+</div>
 <body onload="setarDataAtual(); var op = document.getElementById('operacao'); if(op) op.value = 'Operação 1';">
   <div class="container">
     <header>
@@ -31,7 +38,9 @@
       </div>
     </header>
 
+
     <main>
+      
       <div class="form-section">
         <div class="left-form">
           <!-- <label for="operacao">OPERAÇÃO</label>

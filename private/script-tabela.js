@@ -536,4 +536,4 @@ if (inputDoc) {
 // ====================================
 // Inicializa ao carregar
 // ====================================
-window.addEventListener("DOMContentLoaded", carregarDadosDoServidor);
+window.addEventListener("DOMContentLoaded", carregarDadosDoServidor); 

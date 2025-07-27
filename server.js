@@ -196,6 +196,39 @@ app.get('/api/registos', async (req, res) => {
   }
 });
 
+// API GET /api/registos/intervalo
+app.get('/api/registos/intervalo', async (req, res) => {
+  const { inicio, fim } = req.query;
+  const username = req.user.username;
+
+  if (!inicio || !fim) {
+    return res.status(400).json({ error: "Datas inválidas." });
+  }
+
+  try {
+    let resultado;
+if (username === 'admin') {
+  resultado = await pool.query(
+    `SELECT data, numdoc, pagamento, valor, op_tpa FROM registos
+     WHERE data BETWEEN $1 AND $2
+     ORDER BY data ASC`,
+    [inicio, fim]
+  );
+} else {
+  resultado = await pool.query(
+    `SELECT data, numdoc, pagamento, valor, op_tpa FROM registos
+     WHERE data BETWEEN $1 AND $2 AND utilizador = $3
+     ORDER BY data ASC`,
+    [inicio, fim, username]
+  );
+}
+
+    res.json(resultado.rows);
+  } catch (err) {
+    console.error("Erro ao buscar registos por intervalo:", err);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+});
 // Inserir novo registo
 app.post('/api/registar', async (req, res) => {
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
@@ -331,7 +364,10 @@ app.get('/dashboard', (req, res) => {
 app.get('/dashboard/tabela', (req, res) => {
   res.sendFile(path.join(__dirname, 'private', 'tabela.html'));
 });
-
+// Serve /dashboard/historico
+app.get('/dashboard/historico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'private', 'historico.html'));
+});
 
 // Serve outras rotas (404)
 app.use((req, res) => {
