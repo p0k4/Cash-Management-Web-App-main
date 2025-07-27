@@ -83,3 +83,144 @@ function atualizarSaldos(registos) {
 window.addEventListener("DOMContentLoaded", () => {
   // Opcionalmente carregar dados de hoje por defeito
 });
+
+function exportarPDFHistorico() {
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF ||
+    typeof window.jspdf.jsPDF !== "function"
+  ) {
+    alert("jsPDF ou AutoTable não está carregado corretamente.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = [];
+  let total = 0;
+
+  const linhas = document.querySelectorAll("#tabelaHistorico tbody tr");
+
+  linhas.forEach((linha) => {
+    const tds = linha.querySelectorAll("td");
+    const dataCell = tds[0].textContent.trim();
+    const numDocCell = tds[1].textContent.trim();
+    const pagamentoCell = tds[2].textContent.trim();
+    let valorTexto = tds[3].textContent.trim().replace(" €", "");
+
+    const valorNum = parseFloat(valorTexto.replace(",", "."));
+    if (!isNaN(valorNum)) total += valorNum;
+
+    data.push([
+      dataCell,
+      numDocCell,
+      pagamentoCell,
+      valorNum.toFixed(2) + " €",
+    ]);
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Histórico de Movimentos", 105, 15, { align: "center" });
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const dataHora = new Date().toLocaleString("pt-PT");
+  doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
+
+  const token = localStorage.getItem("token");
+  let username = "Desconhecido";
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      username = payload.username || "Desconhecido";
+    } catch (e) {
+      console.warn("Erro ao ler token para PDF:", e);
+    }
+  }
+
+  doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
+
+  doc.autoTable({
+    head: [["Data", "Nº Documento", "Pagamento", "Valor"]],
+    body: data,
+    startY: 35,
+    styles: {
+      halign: "center",
+      fontSize: 10,
+    },
+    headStyles: {
+      fillColor: [13, 74, 99],
+      textColor: 255,
+      fontStyle: "bold",
+    },
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`Total: ${total.toFixed(2)} €`, 200, doc.lastAutoTable.finalY + 10, {
+    align: "right",
+  });
+
+  doc.save(`historico_movimentos_${new Date().toISOString().split("T")[0]}.pdf`);
+}
+function exportarCSVHistorico() {
+  let csvContent = "Data,Nº Doc,Pagamento,Valor\n";
+
+  document.querySelectorAll("#tabelaHistorico tbody tr").forEach((tr) => {
+    const linha = Array.from(tr.children)
+      .map(td => `"${td.textContent.trim()}"`)
+      .join(",");
+    csvContent += linha + "\n";
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+
+  const dataInicio = document.getElementById("dataInicio").value;
+  const dataFim = document.getElementById("dataFim").value;
+
+  const nomeFicheiro = `historico_${dataInicio}_a_${dataFim}.csv`;
+
+  link.setAttribute("href", URL.createObjectURL(blob));
+  link.setAttribute("download", nomeFicheiro);
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function exportarCSVHistorico() {
+  const tabela = document.getElementById("tabelaHistorico");
+  let csv = "";
+  let total = 0;
+  const linhas = tabela.querySelectorAll("tr");
+
+  linhas.forEach((linha, idx) => {
+    const celulas = linha.querySelectorAll("th, td");
+    let linhaCSV = [];
+
+    celulas.forEach((celula, index) => {
+      let texto = celula.textContent.replace(/\n/g, "").trim();
+      texto = texto.replace(/;/g, ","); // evita problemas com separador
+      linhaCSV.push(`"${texto}"`);
+
+      // Soma valor da coluna Valor (última)
+      if (idx > 0 && index === 3) {
+        let valor = parseFloat(texto.replace("€", "").replace(",", "."));
+        if (!isNaN(valor)) total += valor;
+      }
+    });
+
+    csv += linhaCSV.join(";") + "\n";
+  });
+
+  csv += `\n;;;"Total: ${total.toFixed(2)} €"`;
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `historico_movimentos_${new Date().toISOString().split("T")[0]}.csv`;
+  link.click();
+}
