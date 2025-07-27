@@ -79,22 +79,7 @@ body {
   height: 100%;
 }
 
-/* Link Criar Conta */
-#criarContaLink {
-  text-align: center;
-  margin-top: 10px;
-}
 
-#criarContaLink a {
-   background-color: #d3a818;
-  color: white;
-  cursor: pointer;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px 6px 6px 6px; /* arredondado do lado direito */
-  padding: 14px 16px;
-  height: 100%;
-}
 
 /* Linha: input + botão */
 .login-row {

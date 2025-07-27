@@ -10,7 +10,7 @@
 <body>
   <div class="login-container">
     <div class="login-card">
-      
+
       <h1>POS <span>Cash Management</span></h1>
 
       <!-- Seleção de utilizador -->
@@ -20,55 +20,31 @@
           <!-- Botões serão carregados via JS -->
         </div>
         <div id="load-error" class="error-message" style="display: none;">Erro ao carregar utilizadores</div>
-        
-        
+
+
       </div>
-<div id="user-selection">
-  <div id="user-list">
-    <!-- botões dos utilizadores -->
-  </div>
-  <div id="load-error" class="error-message"></div>
-</div>
+      <div id="user-selection">
+        <div id="user-list">
+          <!-- botões dos utilizadores -->
+        </div>
+        <div id="load-error" class="error-message"></div>
+      </div>
 
-<!-- Formulário de login -->
-<form id="loginForm" style="display: none;">
-  <input type="hidden" id="username" />
+      <!-- Formulário de login -->
+      <form id="loginForm" style="display: none;">
+        <input type="hidden" id="username" />
 
-  <div class="login-row">
-    <input type="password" id="password" placeholder="Senha" required />
-    <button type="button" id="loginBtn">Entrar</button>
-  </div>
+        <div class="login-row">
+          <input type="password" id="password" placeholder="Senha" required />
+          <button type="button" id="loginBtn">Entrar</button>
+        </div>
 
-  <div class="voltar-container">
-    <button type="button" id="voltarLoginBtn">Voltar</button>
-  </div>
+        <div class="voltar-container">
+          <button type="button" id="voltarLoginBtn">Voltar</button>
+        </div>
 
-  <div id="error" class="error-message"></div>
-</form>
-
-<!-- ⚠️ Link POSICIONADO FORA do user-selection -->
-<p id="criarContaLink">
-  <a href="#" id="mostrarCadastro">Criar nova conta</a>
-</p>
-      <!-- FORMULÁRIO DE CADASTRO -->
-<form id="cadastroForm" style="display: none;">
-  <input type="text" id="novoUsername" placeholder="Novo utilizador" required /><br>
-  <input type="password" id="novaSenha" placeholder="Senha" required /><br>
-  <input type="password" id="confirmarSenha" placeholder="Confirmar senha" required /><br>
-  <input type="password" id="adminPassword" placeholder="Senha de admin" required /><br>
-
-  <div class="cadastro-buttons">
-    <button type="button" id="cadastrarBtn">Adicionar Utilizador</button>
-    <button type="button" id="voltarCadastroBtn">Voltar</button>
-  </div>
-
-  <div id="cadastroErro" class="error-message"></div>
-</form>
-
-  
-
-
-      
+        <div id="error" class="error-message"></div>
+      </form>
 
       <script src="/assets/login.js"></script>
 </body>

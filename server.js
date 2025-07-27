@@ -78,6 +78,8 @@ function verificarToken(req, res, next) {
 // ROTAS PÚBLICAS
 // =============================
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Assets públicos
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
 
@@ -147,6 +149,8 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
+
 // ✅ NOVA ROTA: listar utilizadores para o login
 app.get('/api/utilizadores', async (req, res) => {
   try {
@@ -161,6 +165,87 @@ app.get('/api/utilizadores', async (req, res) => {
 
 // Protege todas as outras rotas
 app.use('/api', verificarToken);
+
+
+// Listar todos os utilizadores
+app.get('/api/todos-utilizadores', async (req, res) => {
+  if (req.user.username !== 'admin') {
+    return res.status(403).json({ error: 'Apenas o admin pode ver todos os utilizadores.' });
+  }
+
+  try {
+    const resultado = await pool.query('SELECT username FROM utilizadores ORDER BY username ASC');
+    res.json(resultado.rows);
+  } catch (err) {
+    console.error("Erro ao buscar utilizadores:", err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// Criar novo utilizador
+app.post('/api/novo-utilizador', async (req, res) => {
+  const { username, senha } = req.body;
+
+  if (req.user.username !== 'admin') {
+    return res.status(403).json({ error: 'Apenas o admin pode criar utilizadores.' });
+  }
+
+  if (!username || !senha) {
+    return res.status(400).json({ error: 'Campos obrigatórios em falta.' });
+  }
+
+  try {
+    const existe = await pool.query('SELECT * FROM utilizadores WHERE username = $1', [username]);
+    if (existe.rows.length > 0) {
+      return res.status(409).json({ error: 'Utilizador já existe.' });
+    }
+
+    await pool.query('INSERT INTO utilizadores (username, senha) VALUES ($1, $2)', [username, senha]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao criar utilizador:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// Apagar utilizador
+app.delete('/api/utilizadores/:username', async (req, res) => {
+  const { username } = req.params;
+
+  if (req.user.username !== 'admin') {
+    return res.status(403).json({ error: 'Apenas o admin pode apagar utilizadores.' });
+  }
+
+  if (username === 'admin') {
+    return res.status(403).json({ error: 'Não é possível apagar o utilizador admin.' });
+  }
+
+  try {
+    await pool.query('DELETE FROM utilizadores WHERE username = $1', [username]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao apagar utilizador:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// Editar utilizador (exemplo: alterar senha no futuro)
+app.put('/api/utilizadores/:username', async (req, res) => {
+  const { username } = req.params;
+  const { novaSenha } = req.body;
+
+  if (req.user.username !== 'admin') {
+    return res.status(403).json({ error: 'Apenas o admin pode editar utilizadores.' });
+  }
+
+  try {
+    await pool.query('UPDATE utilizadores SET senha = $1 WHERE username = $2', [novaSenha, username]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao editar utilizador:', err);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
 
 app.get('/api/utilizador', (req, res) => {
   res.json({ username: req.user.username });

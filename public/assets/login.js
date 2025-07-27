@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorDiv = document.getElementById("error");
   const userList = document.getElementById("user-list");
   const usernameInput = document.getElementById("username");
-  const cadastroForm = document.getElementById("cadastroForm");
-  const mostrarCadastro = document.getElementById("mostrarCadastro");
 
   async function carregarUtilizadores() {
     const errorDivLoad = document.getElementById("load-error");
@@ -25,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
           usernameInput.value = user;
           document.getElementById("user-selection").style.display = "none";
           loginForm.style.display = "block";
-          document.getElementById("criarContaLink").style.display = "none";
         };
         userList.appendChild(btn);
       });
@@ -42,23 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   carregarUtilizadores();
 
-  // Voltar do login
   const voltarLoginBtn = document.getElementById("voltarLoginBtn");
   voltarLoginBtn?.addEventListener("click", () => {
     loginForm.style.display = "none";
     document.getElementById("user-selection").style.display = "block";
-    document.getElementById("criarContaLink").style.display = "block";
   });
 
-  // Voltar do cadastro
-  const voltarCadastroBtn = document.getElementById("voltarCadastroBtn");
-  voltarCadastroBtn?.addEventListener("click", () => {
-    cadastroForm.style.display = "none";
-    document.getElementById("user-selection").style.display = "block";
-    document.getElementById("criarContaLink").style.display = "block";
-  });
-
-  // Clique no botão de login
   function handleLogin() {
     const username = usernameInput.value.trim();
     const password = document.getElementById("password").value.trim();
@@ -100,46 +86,4 @@ document.addEventListener("DOMContentLoaded", () => {
       loginBtn.click();
     }
   });
-
-  // Mostrar formulário de cadastro
-  mostrarCadastro.onclick = () => {
-    loginForm.style.display = "none";
-    cadastroForm.style.display = "block";
-    document.getElementById("criarContaLink").style.display = "none";
-    document.getElementById("user-selection").style.display = "none";
-  };
-
-  // Botão de cadastro com verificação da senha de admin
-  document.getElementById("cadastrarBtn").onclick = async () => {
-    const username = document.getElementById("novoUsername").value.trim();
-    const senha = document.getElementById("novaSenha").value;
-    const confirmar = document.getElementById("confirmarSenha").value;
-    const adminPassword = document.getElementById("adminPassword").value;
-    const erro = document.getElementById("cadastroErro");
-
-    if (!username || !senha || senha !== confirmar || !adminPassword) {
-      erro.textContent = "Verifique os dados!";
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/registar-utilizador", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, senha, adminPassword }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Conta criada com sucesso!");
-        location.reload();
-      } else {
-        erro.textContent = data.error || "Erro ao cadastrar.";
-      }
-    } catch (e) {
-      erro.textContent = "Erro no servidor.";
-      console.error(e);
-    }
-  };
 });
