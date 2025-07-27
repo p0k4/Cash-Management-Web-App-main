@@ -236,3 +236,21 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLogout.addEventListener("click", fazerLogout);
   }
 });
+
+
+
+async function mostrarNomeUtilizador() {
+  try {
+    const response = await fetchProtegido("/api/utilizador");
+    const dados = await response.json();
+
+    const span = document.querySelector(".nome-utilizador");
+    if (span) {
+      span.textContent = dados.username;
+    }
+  } catch (err) {
+    console.error("Erro ao obter utilizador:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", mostrarNomeUtilizador);

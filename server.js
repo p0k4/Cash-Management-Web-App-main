@@ -162,15 +162,9 @@ app.get('/api/utilizadores', async (req, res) => {
 // Protege todas as outras rotas
 app.use('/api', verificarToken);
 
-// =============================
-// TODAS AS ROTAS /api PROTEGIDAS
-// =============================
-
-
-// =============================
-// ROTAS DA API
-// =============================
-
+app.get('/api/utilizador', (req, res) => {
+  res.json({ username: req.user.username });
+});
 // Obter todos os registos
 app.get('/api/registos', async (req, res) => {
   try {
