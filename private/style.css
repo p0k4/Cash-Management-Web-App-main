@@ -608,7 +608,6 @@ th {
 #btnLogout:hover {
   background-color: #a00000;
 }
-
 .caixa-utilizador-ativo {
   border: 3px solid #0d4a63;
   border-radius: 10px;
@@ -618,6 +617,10 @@ th {
   color: #0d4a63;
   font-weight: bold;
   background-color: #e6f4f8;
+  
+  /* Alinhamento central */
+  margin-left: auto;
+  margin-right: auto;
 }
 .nome-utilizador {
   color: green;

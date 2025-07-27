@@ -142,6 +142,10 @@ tbody tr:hover {
   color: #0d4a63;
   font-weight: bold;
   background-color: #e6f4f8;
+  
+  /* Alinhamento central */
+  margin-left: auto;
+  margin-right: auto;
 }
 .nome-utilizador {
   color: green;
