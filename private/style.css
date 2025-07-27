@@ -658,7 +658,7 @@ th {
   position: absolute;
   top: 20px;
   left: 20px;
-  background-color: #e0e0e0;
+  background-color: #e9f0f5;
   padding: 15px 20px;
   border-radius: 10px;
   width: 180px;
@@ -680,7 +680,7 @@ th {
 }
 
 .menu-lateral a {
-  color: #003d5c;
+  color: #073848;
   text-decoration: none;
   font-weight: bold;
 }

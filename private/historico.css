@@ -133,3 +133,38 @@ tbody tr:hover {
   background-color: #0086e0;
   box-shadow: 0 6px 14px rgba(7, 230, 255, 0.5);
 }
+
+.menu-lateral {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #e9f0f5;
+  padding: 15px 20px;
+  border-radius: 10px;
+  width: 180px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.menu-lateral h3 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.menu-lateral ul {
+  list-style: none;
+  padding: 0;
+}
+
+.menu-lateral li {
+  margin: 10px 0;
+}
+
+.menu-lateral a {
+  color: #073848;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.menu-lateral a:hover {
+  text-decoration: underline;
+}

@@ -8,6 +8,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 </head>
+    <div class="menu-lateral">
+  <h3>Menu</h3>
+  <ul>
+    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/dashboard/tabela">Movimentos</a></li>
+    <li><a href="/dashboard/historico">Histórico</a></li>
+  </ul>
+</div>
 <body>
   <div class="container">
     <header>
@@ -15,9 +23,9 @@
     </header>
 
     <div class="opcoes" style="display: flex; justify-content: space-between; align-items: center;">
-      <a href="/dashboard" class="btn-voltar" style="text-decoration: none;">
+      <!-- <a href="/dashboard" class="btn-voltar" style="text-decoration: none;">
         <i class="fas fa-arrow-left"></i> Voltar
-      </a>
+      </a> -->
       <div>
         <button type="button" id="btnApagarTudo" class="btn-apagar-tudo" title="Esta ação APAGA TODOS OS DADOS DA TABELA.">
           <i class="fas fa-trash-alt"></i> APAGAR DADOS
