@@ -8,15 +8,22 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 </head>
-    <div class="menu-lateral">
-  <h3>Menu</h3>
+<body>
+<div class="menu-lateral">
+   <div class="caixa-utilizador-ativo">
+        <p id="utilizadorAtivo">
+          Utilizador:<span class="nome-utilizador">admin</span>
+        </p>
+      </div>
+      <br>
+  <h3 >Menu</h3>
   <ul>
-    <li><a href="/dashboard">Dashboard</a></li>
-    <li><a href="/dashboard/tabela">Movimentos</a></li>
-    <li><a href="/dashboard/historico">Histórico</a></li>
+    <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+    <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
+    <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Movimentos (pesquisa)</a></li>
+    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
   </ul>
 </div>
-<body>
   <div class="container">
     <header>
       <h1>Movimentos de Caixa</h1>
@@ -72,5 +79,6 @@
   </div>
 
   <script src="/private/script-tabela.js"></script>
+
 </body>
 </html>

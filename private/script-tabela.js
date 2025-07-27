@@ -533,7 +533,21 @@ if (inputDoc) {
   atualizarTotalTabela();
 });
 
+
+
 // ====================================
 // Inicializa ao carregar
 // ====================================
 window.addEventListener("DOMContentLoaded", carregarDadosDoServidor); 
+
+function fazerLogout() {
+  localStorage.removeItem("token");
+  window.location.href = "/login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", fazerLogout);
+  }
+});

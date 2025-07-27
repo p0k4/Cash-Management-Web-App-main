@@ -133,7 +133,20 @@ tbody tr:hover {
   background-color: #0086e0;
   box-shadow: 0 6px 14px rgba(7, 230, 255, 0.5);
 }
-
+.caixa-utilizador-ativo {
+  border: 3px solid #0d4a63;
+  border-radius: 10px;
+  padding: 0px 5px;
+  margin-top: 0px;
+  width: fit-content;
+  color: #0d4a63;
+  font-weight: bold;
+  background-color: #e6f4f8;
+}
+.nome-utilizador {
+  color: green;
+  font-weight: bold;
+}
 .menu-lateral {
   position: absolute;
   top: 20px;
@@ -167,4 +180,38 @@ tbody tr:hover {
 
 .menu-lateral a:hover {
   text-decoration: underline;
+}
+.menu-lateral ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-lateral .btn-menu {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 12px;
+  border: 2px solid #0d4a63;
+  background-color: #e2edf4;
+  color: #0d4a63;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.menu-lateral .btn-menu:hover {
+  background-color: #c9dbe5;
+}
+
+.menu-lateral .btn-logout {
+  background-color: #cc0000;
+  color: white;
+  border-color: #0d4a63;
+}
+
+.menu-lateral .btn-logout:hover {
+  background-color: #a00000;
 }

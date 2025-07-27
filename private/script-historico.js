@@ -224,3 +224,15 @@ function exportarCSVHistorico() {
   link.download = `historico_movimentos_${new Date().toISOString().split("T")[0]}.csv`;
   link.click();
 }
+
+function fazerLogout() {
+  localStorage.removeItem("token");
+  window.location.href = "/login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", fazerLogout);
+  }
+});

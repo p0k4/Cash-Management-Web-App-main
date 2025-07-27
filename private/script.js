@@ -887,3 +887,4 @@ function verificarSessaoAtiva() {
 
 // Verifica a cada 10 segundos
 setInterval(verificarSessaoAtiva, 10 * 1000);
+

@@ -17,14 +17,22 @@
   </style>
 
 </head>
-    <div class="menu-lateral">
+<div class="menu-lateral">
+  <div class="caixa-utilizador-ativo">
+    <p id="utilizadorAtivo">
+      Utilizador:<span class="nome-utilizador">admin</span>
+    </p>
+  </div>
+  <br>
   <h3>Menu</h3>
   <ul>
-    <li><a href="/dashboard">Dashboard</a></li>
-    <li><a href="/dashboard/tabela">Movimentos</a></li>
-    <li><a href="/dashboard/historico">Histórico</a></li>
+    <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+    <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
+    <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Movimentos (pesquisa)</a></li>
+    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
   </ul>
 </div>
+
 <body onload="setarDataAtual(); var op = document.getElementById('operacao'); if(op) op.value = 'Operação 1';">
   <div class="container">
     <header>
@@ -40,7 +48,7 @@
 
 
     <main>
-      
+
       <div class="form-section">
         <div class="left-form">
           <!-- <label for="operacao">OPERAÇÃO</label>
@@ -75,7 +83,8 @@
           </div>
 
           <label for="valor">VALOR</label>
-          <input type="number" id="valor" placeholder="                      €" name="valor" step="0.01" class="input-pequeno" />
+          <input type="number" id="valor" placeholder="                      €" name="valor" step="0.01"
+            class="input-pequeno" />
         </div>
         <div class="right-form">
           <div class="caixa-total">
@@ -109,17 +118,6 @@
           </div>
         </div>
       </div>
-      <div class="caixa-utilizador-ativo">
-        <p id="utilizadorAtivo">
-          Utilizador ativo: <span class="nome-utilizador">admin</span>
-        </p>
-      </div>
-      <div class="logout-container">
-        <button id="btnLogout">Logout</button>
-      </div>
-
-
-
       <section class="tabela-registos oculta">
         <table id="tabelaRegistos">
           <thead>
