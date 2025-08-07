@@ -206,12 +206,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   // 1️⃣ Carrega saldos do dia (grava se já está fechado)
   await carregarSaldosDoDia();
 
-  // 2️⃣ Carrega dados do servidor para mostrar a tabela (mas não interfere com saldos)
-  await carregarDadosDoServidor(); // ❗️mantém para renderizar DOM (totaisPagamento)
+  // 2️⃣ Só carrega registos se saldos ainda não foram fechados
+  if (!saldosFechadosHoje) {
+    await carregarDadosDoServidor();
+  }
 
   // 3️⃣ Setup de documentos
   await carregarNumDocDoServidor();
 
+  // 4️⃣ Carrega e atualiza contadores
   if (contadorDoc === null || isNaN(contadorDoc)) {
     contadorDoc = 1;
   }
@@ -235,29 +238,34 @@ window.addEventListener("DOMContentLoaded", async () => {
     numDocInput.value = contadorDoc;
   }
 
+  // 5️⃣ Atualiza campos do formulário
   setarDataAtual();
   atualizarHintProximoDoc();
   atualizarCampoOperacao();
 
-  // ================================
-  // 4️⃣ Carrega os registos do servidor e atualiza totais
-  // ================================
-  await carregarDadosDoServidor();
+  // 6️⃣ Mostra o painel de saldos (estrutura inicial, mesmo a 0)
+  prepararPainelSaldosVazio();
 });
-// Salva os contadores antes de sair ou recarregar
-window.addEventListener("beforeunload", () => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const userKey = payload.username || "Desconhecido";
-      localStorage.setItem(`${userKey}_contadorOperacao`, contadorOperacao);
-      localStorage.setItem(`${userKey}_contadorDoc`, contadorDoc);
-    } catch (e) {
-      console.error("Token inválido ao salvar contadores:", e);
-    }
+
+function prepararPainelSaldosVazio() {
+  const divTotaisPorPagamento = document.getElementById("totaisPagamento");
+  if (divTotaisPorPagamento) {
+    divTotaisPorPagamento.innerHTML = `
+      <div class="linha-pagamento">
+        <span class="label-pagamento">Dinheiro</span>
+        <span class="valor-pagamento">0.00 €</span>
+      </div>
+      <div class="linha-pagamento">
+        <span class="label-pagamento">Multibanco</span>
+        <span class="valor-pagamento">0.00 €</span>
+      </div>
+      <div class="linha-pagamento">
+        <span class="label-pagamento">Transferência Bancária</span>
+        <span class="valor-pagamento">0.00 €</span>
+      </div>
+    `;
   }
-});
+}
 function atualizarTotalTabela() {
   const tabela = document.getElementById("tabelaRegistos");
   const linhas = tabela.querySelectorAll("tbody tr");
@@ -830,43 +838,47 @@ async function guardarNumDocNoServidor() {
 }
 let saldosFechadosHoje = false;
 
+document
+  .getElementById("btnFecharSaldos")
+  .addEventListener("click", async () => {
+    const confirmar = confirm(
+      "Deseja realmente fechar os saldos do dia?\nEsta ação não pode ser desfeita."
+    );
+    if (!confirmar) return;
 
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/fechar-saldos", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-document.getElementById("btnFecharSaldos").addEventListener("click", async () => {
-  const confirmar = confirm("Deseja realmente fechar os saldos do dia?\nEsta ação não pode ser desfeita.");
-  if (!confirmar) return;
+      const resultado = await response.json();
 
-  try {
-    const token = localStorage.getItem("token");
-    const response = await fetch("/api/fechar-saldos", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const resultado = await response.json();
-
-    if (response.ok) {
-      alert("✅ " + resultado.mensagem);
-      saldosFechadosHoje = true;
-      resetarSaldosFrontend();
-    } else {
-      if (resultado.erro?.includes("fecho de caixa")) {
-        alert("⚠️ Já fechaste os saldos para hoje.");
+      if (response.ok) {
+        alert("✅ " + resultado.mensagem);
         saldosFechadosHoje = true;
+        resetarSaldosFrontend();
       } else {
-        alert("⚠️ " + (resultado.erro || "Erro ao fechar saldos."));
+        if (resultado.erro?.includes("fecho de caixa")) {
+          alert("⚠️ Já fechaste os saldos para hoje.");
+          saldosFechadosHoje = true;
+        } else {
+          alert("⚠️ " + (resultado.erro || "Erro ao fechar saldos."));
+        }
       }
+    } catch (erro) {
+      console.error("Erro ao fechar saldos:", erro);
+      alert("Erro de ligação com o servidor.");
     }
-  } catch (erro) {
-    console.error("Erro ao fechar saldos:", erro);
-    alert("Erro de ligação com o servidor.");
-  }
-});
+  });
 
 function resetarSaldosFrontend() {
-  const elementos = document.querySelectorAll("#totaisPagamento .valor-pagamento");
+  const elementos = document.querySelectorAll(
+    "#totaisPagamento .valor-pagamento"
+  );
   elementos.forEach((el) => {
     el.textContent = "0.00 €";
   });
@@ -880,27 +892,40 @@ async function carregarSaldosDoDia() {
 
   try {
     const response = await fetch("/api/saldos-hoje", {
-      headers: { Authorization: `Bearer ${token}` },
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Cache-Control": "no-store",
+        Pragma: "no-cache",
+      },
     });
 
     const data = await response.json();
 
     saldosFechadosHoje = data.fechado;
 
-    const dinheiro = parseFloat(data.dinheiro) || 0;
-    const multibanco = parseFloat(data.multibanco) || 0;
-    const transferencia = parseFloat(data.transferencia) || 0;
-    const total = parseFloat(data.total) || 0;
+    // Só atualiza o DOM se ainda não estiverem fechados
+    if (!saldosFechadosHoje) {
+      const dinheiro = parseFloat(data.dinheiro) || 0;
+      const multibanco = parseFloat(data.multibanco) || 0;
+      const transferencia = parseFloat(data.transferencia) || 0;
+      const total = parseFloat(data.total) || 0;
 
-    const elementos = document.querySelectorAll("#totaisPagamento .valor-pagamento");
-    if (elementos.length >= 3) {
-      elementos[0].textContent = `${dinheiro.toFixed(2)} €`;
-      elementos[1].textContent = `${multibanco.toFixed(2)} €`;
-      elementos[2].textContent = `${transferencia.toFixed(2)} €`;
+      const elementos = document.querySelectorAll(
+        "#totaisPagamento .valor-pagamento"
+      );
+      if (elementos.length >= 3) {
+        elementos[0].textContent = `${dinheiro.toFixed(2)} €`;
+        elementos[1].textContent = `${multibanco.toFixed(2)} €`;
+        elementos[2].textContent = `${transferencia.toFixed(2)} €`;
+      }
+
+      const totalEl = document.getElementById("total");
+      if (totalEl) {
+        totalEl.textContent = `${total.toFixed(2)} €`;
+      }
     }
 
-    const totalEl = document.getElementById("total");
-    if (totalEl) totalEl.textContent = `${total.toFixed(2)} €`;
   } catch (err) {
     console.error("Erro ao carregar saldos:", err);
   }
