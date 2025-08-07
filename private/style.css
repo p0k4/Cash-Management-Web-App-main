@@ -415,7 +415,7 @@ th {
 }
 
 .btn-reiniciar-pos {
-  background-color: #f64b0d; 
+  background-color: #083975; 
   color: white;
   border: none;
   padding: 10px 16px;   
@@ -760,4 +760,37 @@ th {
   font-size: 24px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.btn-pdf-dash {
+  background-color: #e25813;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* espaço entre ícone e texto */
+  transition: background-color 0.3s ease;
+  border-radius: 15px;
+  border: 2px solid #0d4a63;
+}
+
+.btn-pdf-dash:hover {
+  background-color: #f2a137;
+  box-shadow: 0 6px 14px rgba(255, 193, 7, 0.5);
+}
+
+.btn-pdf-dash,
+.btn-pdf-dash {
+  text-align: center;
+}
+
+.btn-pdf-dash {
+  justify-content: center;
+  text-align: center;
+  width: 100%;
 }
