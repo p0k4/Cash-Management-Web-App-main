@@ -111,7 +111,6 @@ async function registar() {
     numDocInput.value = contadorDoc;
     atualizarHintProximoDoc();
 
-
     try {
       const response = await fetchProtegido("/api/registar", {
         method: "POST",
@@ -181,9 +180,6 @@ async function carregarDadosDoServidor() {
   }
 }
 window.addEventListener("DOMContentLoaded", async () => {
-  // ================================
-  // Mostrar utilizador ativo no dashboard
-  // ================================
   const token = localStorage.getItem("token");
   let username = "Desconhecido";
 
@@ -200,7 +196,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-    // ✅ Ocultar botão "Apagar Tudo" se não for admin
   if (username !== "admin") {
     const btnApagar = document.getElementById("btnApagarTudo");
     if (btnApagar) btnApagar.style.display = "none";
@@ -208,19 +203,19 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const userKey = username;
 
-  // ================================
-  // 1️⃣ Primeiro -> Buscar do servidor o próximo número
-  // ================================
+  // 1️⃣ Carrega saldos do dia (grava se já está fechado)
+  await carregarSaldosDoDia();
+
+  // 2️⃣ Carrega dados do servidor para mostrar a tabela (mas não interfere com saldos)
+  await carregarDadosDoServidor(); // ❗️mantém para renderizar DOM (totaisPagamento)
+
+  // 3️⃣ Setup de documentos
   await carregarNumDocDoServidor();
 
-  // ⚠️ Se for nulo, define como 1
   if (contadorDoc === null || isNaN(contadorDoc)) {
     contadorDoc = 1;
   }
 
-  // ================================
-  // 2️⃣ Carregar contadores salvos no localStorage
-  // ================================
   contadorOperacao = parseIntSeguro(
     localStorage.getItem(`${userKey}_contadorOperacao`),
     1
@@ -235,15 +230,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     contadorDoc = storedDoc;
   }
 
-  // ⚡️ Agora coloca mesmo no input
   const numDocInput = document.getElementById("num-doc");
   if (numDocInput && contadorDoc !== null && !isNaN(contadorDoc)) {
     numDocInput.value = contadorDoc;
   }
 
-  // ================================
-  // 3️⃣ Atualiza os campos do formulário
-  // ================================
   setarDataAtual();
   atualizarHintProximoDoc();
   atualizarCampoOperacao();
@@ -537,7 +528,9 @@ function exportarPDF() {
       const dataCell = tds[temOperacao ? 1 : 0].textContent.trim();
       const numDocCell = tds[temOperacao ? 2 : 1].textContent.trim();
       const pagamentoCell = tds[temOperacao ? 3 : 2].textContent.trim();
-      let valorTexto = tds[temOperacao ? 4 : 3].textContent.trim().replace(" €", "");
+      let valorTexto = tds[temOperacao ? 4 : 3].textContent
+        .trim()
+        .replace(" €", "");
 
       const valorNum = parseFloat(valorTexto.replace(",", "."));
       if (!isNaN(valorNum)) total += valorNum;
@@ -596,10 +589,11 @@ function exportarPDF() {
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
-
-document.getElementById("btnFecharCaixa").addEventListener("click", function () {
-  exportarResumoPDF();
-});
+document
+  .getElementById("btnFecharCaixa")
+  .addEventListener("click", function () {
+    exportarResumoPDF();
+  });
 
 // Adiciona listeners para exportação se existirem os botões
 const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
@@ -834,6 +828,84 @@ async function guardarNumDocNoServidor() {
     console.error("Erro ao salvar numDoc no servidor:", err);
   }
 }
+let saldosFechadosHoje = false;
+
+
+
+document.getElementById("btnFecharSaldos").addEventListener("click", async () => {
+  const confirmar = confirm("Deseja realmente fechar os saldos do dia?\nEsta ação não pode ser desfeita.");
+  if (!confirmar) return;
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch("/api/fechar-saldos", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const resultado = await response.json();
+
+    if (response.ok) {
+      alert("✅ " + resultado.mensagem);
+      saldosFechadosHoje = true;
+      resetarSaldosFrontend();
+    } else {
+      if (resultado.erro?.includes("fecho de caixa")) {
+        alert("⚠️ Já fechaste os saldos para hoje.");
+        saldosFechadosHoje = true;
+      } else {
+        alert("⚠️ " + (resultado.erro || "Erro ao fechar saldos."));
+      }
+    }
+  } catch (erro) {
+    console.error("Erro ao fechar saldos:", erro);
+    alert("Erro de ligação com o servidor.");
+  }
+});
+
+function resetarSaldosFrontend() {
+  const elementos = document.querySelectorAll("#totaisPagamento .valor-pagamento");
+  elementos.forEach((el) => {
+    el.textContent = "0.00 €";
+  });
+
+  const totalEl = document.getElementById("total");
+  if (totalEl) totalEl.textContent = "0.00 €";
+}
+
+async function carregarSaldosDoDia() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch("/api/saldos-hoje", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await response.json();
+
+    saldosFechadosHoje = data.fechado;
+
+    const dinheiro = parseFloat(data.dinheiro) || 0;
+    const multibanco = parseFloat(data.multibanco) || 0;
+    const transferencia = parseFloat(data.transferencia) || 0;
+    const total = parseFloat(data.total) || 0;
+
+    const elementos = document.querySelectorAll("#totaisPagamento .valor-pagamento");
+    if (elementos.length >= 3) {
+      elementos[0].textContent = `${dinheiro.toFixed(2)} €`;
+      elementos[1].textContent = `${multibanco.toFixed(2)} €`;
+      elementos[2].textContent = `${transferencia.toFixed(2)} €`;
+    }
+
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.textContent = `${total.toFixed(2)} €`;
+  } catch (err) {
+    console.error("Erro ao carregar saldos:", err);
+  }
+}
+//---------------------------------------------------------//
 
 const TEMPO_LIMITE_INATIVIDADE = 30 * 60 * 1000;
 let inatividadeTimer;
@@ -887,4 +959,3 @@ function verificarSessaoAtiva() {
 
 // Verifica a cada 10 segundos
 setInterval(verificarSessaoAtiva, 10 * 1000);
-

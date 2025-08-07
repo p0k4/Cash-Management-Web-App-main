@@ -53,6 +53,25 @@ pool.query(`
   }
 });
 
+// Tabela de saldos diários
+pool.query(`
+  CREATE TABLE IF NOT EXISTS saldos_diarios (
+    id SERIAL PRIMARY KEY,
+    data DATE,
+    dinheiro NUMERIC,
+    multibanco NUMERIC,
+    transferencia NUMERIC,
+    total NUMERIC,
+    user_id INTEGER REFERENCES utilizadores(id)
+  )
+`, (err) => {
+  if (err) {
+    console.error('Erro ao criar tabela saldos_diarios:', err);
+  } else {
+    console.log('✅ Tabela "saldos_diarios" pronta!');
+  }
+});
+
 // =============================
 // MIDDLEWARES GLOBAIS
 // =============================
@@ -433,6 +452,126 @@ app.put('/api/registos/:id', async (req, res) => {
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
+// ✅ Ver saldos do dia (usado no dashboard)
+app.get('/api/saldos-hoje', verificarToken, async (req, res) => {
+  const username = req.user.username;
+
+  // Data no formato YYYY-MM-DD
+  const hoje = new Date();
+  const dataHoje = hoje.getFullYear() + '-' +
+                   String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(hoje.getDate()).padStart(2, '0');
+
+  try {
+    const resultado = await pool.query(
+      'SELECT id FROM utilizadores WHERE username = $1',
+      [username]
+    );
+    const userId = resultado.rows[0].id;
+
+    // Verifica se já existe fecho de caixa para hoje
+    const fecho = await pool.query(
+      'SELECT * FROM saldos_diarios WHERE data = $1 AND user_id = $2',
+      [dataHoje, userId]
+    );
+
+    if (fecho.rows.length > 0) {
+      return res.json({
+        fechado: true,
+        dinheiro: parseFloat(fecho.rows[0].dinheiro),
+        multibanco: parseFloat(fecho.rows[0].multibanco),
+        transferencia: parseFloat(fecho.rows[0].transferencia),
+        total: parseFloat(fecho.rows[0].total)
+      });
+    }
+
+    // Ainda não foi fechado — calcula com base nos registos do dia
+    const { rows } = await pool.query(`
+      SELECT pagamento, SUM(valor) as total
+      FROM registos
+      WHERE data::date = $1 AND utilizador = $2
+      GROUP BY pagamento
+    `, [dataHoje, username]);
+
+    let dinheiro = 0, multibanco = 0, transferencia = 0;
+    rows.forEach(r => {
+      const total = parseFloat(r.total);
+      if (r.pagamento.toLowerCase().includes('dinheiro')) dinheiro += total;
+      if (r.pagamento.toLowerCase().includes('multibanco')) multibanco += total;
+      if (r.pagamento.toLowerCase().includes('transferência')) transferencia += total;
+    });
+
+    const total = dinheiro + multibanco + transferencia;
+
+    res.json({
+      fechado: false,
+      dinheiro,
+      multibanco,
+      transferencia,
+      total
+    });
+
+  } catch (err) {
+    console.error('Erro ao obter saldos do dia:', err);
+    res.status(500).json({ erro: 'Erro no servidor' });
+  }
+});
+
+
+// ✅ Fechar saldos do dia (guardar em saldos_diarios)
+app.post('/api/fechar-saldos', verificarToken, async (req, res) => {
+  const username = req.user.username;
+  const hoje = new Date();
+  const dataHoje = hoje.getFullYear() + '-' +
+                   String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(hoje.getDate()).padStart(2, '0');
+
+  try {
+    const resultado = await pool.query(
+      'SELECT id FROM utilizadores WHERE username = $1',
+      [username]
+    );
+    const userId = resultado.rows[0].id;
+
+    const existe = await pool.query(
+      'SELECT * FROM saldos_diarios WHERE data = $1 AND user_id = $2',
+      [dataHoje, userId]
+    );
+
+    // // Comentável para testes
+    // if (existe.rows.length > 0) {
+    //   return res.status(400).json({ erro: 'Já existe um fecho de caixa para hoje.' });
+    // }
+
+    const { rows } = await pool.query(`
+      SELECT pagamento, SUM(valor) as total
+      FROM registos
+      WHERE data = $1 AND utilizador = $2
+      GROUP BY pagamento
+    `, [dataHoje, username]);
+
+    let dinheiro = 0, multibanco = 0, transferencia = 0;
+    rows.forEach(r => {
+      const total = parseFloat(r.total);
+      if (r.pagamento.toLowerCase().includes('dinheiro')) dinheiro += total;
+      if (r.pagamento.toLowerCase().includes('multibanco')) multibanco += total;
+      if (r.pagamento.toLowerCase().includes('transferência')) transferencia += total;
+    });
+
+    const total = dinheiro + multibanco + transferencia;
+
+    await pool.query(`
+      INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [dataHoje, dinheiro, multibanco, transferencia, total, userId]);
+
+    res.json({ mensagem: 'Saldos fechados com sucesso!' });
+  } catch (err) {
+    console.error("Erro ao fechar saldos:", err);
+    res.status(500).json({ erro: 'Erro ao fechar saldos.' });
+  }
+});
+// ------------------//
 
 // Serve /dashboard
 app.get('/dashboard', (req, res) => {
