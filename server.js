@@ -116,41 +116,44 @@ app.use("/private", express.static(path.join(__dirname, "private")));
 // =============================
 // LOGIN (público)
 // =============================
-app.post("/api/registar-utilizador", async (req, res) => {
-  const { username, senha, adminPassword } = req.body;
+if (process.env.ENABLE_PUBLIC_REGISTRATION === 'true') {
+  app.post("/api/registar-utilizador", async (req, res) => {
+    const { username, senha, adminPassword } = req.body;
 
-  if (!username || !senha || !adminPassword) {
-    return res.status(400).json({ error: "Todos os campos são obrigatórios." });
-  }
-
-  const senhaAdminCorreta = process.env.ADMIN_PASSWORD;
-  if (!senhaAdminCorreta || adminPassword !== senhaAdminCorreta) {
-    return res.status(403).json({ error: "Senha de admin incorreta." });
-  }
-
-  try {
-    // Verificar se utilizador já existe
-    const existe = await pool.query(
-      "SELECT * FROM utilizadores WHERE username = $1",
-      [username]
-    );
-    if (existe.rows.length > 0) {
-      return res.status(409).json({ error: "Utilizador já existe." });
+    if (!username || !senha || !adminPassword) {
+      return res.status(400).json({ error: "Todos os campos são obrigatórios." });
     }
 
-    // Hash da senha
-    const senhaHash = await bcrypt.hash(senha, 10);
-    
-    await pool.query(
-      "INSERT INTO utilizadores (username, senha) VALUES ($1, $2)",
-      [username, senhaHash]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Erro ao registar utilizador:", err);
-    res.status(500).json({ error: "Erro no servidor" });
-  }
-});
+    const senhaAdminCorreta = process.env.ADMIN_PASSWORD;
+    if (!senhaAdminCorreta || adminPassword !== senhaAdminCorreta) {
+      return res.status(403).json({ error: "Senha de admin incorreta." });
+    }
+
+    try {
+      const existe = await pool.query(
+        "SELECT * FROM utilizadores WHERE username = $1",
+        [username]
+      );
+      if (existe.rows.length > 0) {
+        return res.status(409).json({ error: "Utilizador já existe." });
+      }
+
+      const senhaHash = await bcrypt.hash(senha, 10);
+      await pool.query(
+        "INSERT INTO utilizadores (username, senha) VALUES ($1, $2)",
+        [username, senhaHash]
+      );
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Erro ao registar utilizador:", err);
+      res.status(500).json({ error: "Erro no servidor" });
+    }
+  });
+} else {
+  app.post("/api/registar-utilizador", (req, res) => {
+    return res.status(403).json({ error: "Registo público desativado." });
+  });
+}
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
