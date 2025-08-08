@@ -635,45 +635,46 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-function exportarResumoPDF() {
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF ||
-    typeof window.jspdf.jsPDF !== "function"
-  ) {
+async function exportarResumoPDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
     return;
   }
 
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Sessão expirada. Faça login novamente.");
+    return;
+  }
+
+  // 1) Buscar os totais atuais ao backend (respeita fecho / reabertura)
+  let dinheiro = 0, multibanco = 0, transferencia = 0, total = 0;
+
+  try {
+    const resp = await fetch("/api/saldos-hoje", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, "Cache-Control": "no-store" }
+    });
+
+    const dados = await resp.json();
+    if (!resp.ok) throw new Error(dados.erro || "Erro ao obter saldos");
+
+    // Quando está fechado, o backend devolve os valores do fecho (podem ser 0).
+    // Quando há registos depois do fecho, devolve só o período ativo.
+    dinheiro = parseFloat(dados.dinheiro || 0);
+    multibanco = parseFloat(dados.multibanco || 0);
+    transferencia = parseFloat(dados.transferencia || 0);
+    total = parseFloat(dados.total || (dinheiro + multibanco + transferencia));
+  } catch (e) {
+    console.error("Erro ao obter saldos para o PDF:", e);
+    alert("Não foi possível gerar o resumo. Verifique a ligação ao servidor.");
+    return;
+  }
+
+  // 2) Gerar PDF com jsPDF
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // Calcular os totais
-  let total = 0;
-  const totaisPorPagamento = {
-    Dinheiro: 0,
-    Multibanco: 0,
-    "Transferência Bancária": 0,
-  };
-
-  const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
-
-  linhas.forEach((linha) => {
-    if (linha.style.display !== "none") {
-      const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
-      const pagamento = linha.cells[3].textContent.trim();
-      const metodoBase = pagamento.split(" (OP TPA")[0].trim();
-      const valor = parseFloat(valorTexto.replace(",", "."));
-      if (!isNaN(valor)) {
-        total += valor;
-        if (totaisPorPagamento[metodoBase] !== undefined) {
-          totaisPorPagamento[metodoBase] += valor;
-        }
-      }
-    }
-  });
-
-  // Cabeçalho
   const dataHora = new Date().toLocaleString("pt-PT");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
@@ -688,7 +689,6 @@ function exportarResumoPDF() {
   doc.setDrawColor(13, 74, 99);
   doc.line(20, 32, 190, 32);
 
-  // Tabela de Totais
   let y = 45;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
@@ -705,66 +705,39 @@ function exportarResumoPDF() {
   doc.setFontSize(12);
 
   doc.text(`Dinheiro`, 30, y);
-  doc.text(`${totaisPorPagamento["Dinheiro"].toFixed(2)} €`, 160, y, {
-    align: "right",
-  });
+  doc.text(`${dinheiro.toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 8;
   doc.text(`Multibanco`, 30, y);
-  doc.text(`${totaisPorPagamento["Multibanco"].toFixed(2)} €`, 160, y, {
-    align: "right",
-  });
+  doc.text(`${multibanco.toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 8;
   doc.text(`Transferência Bancária`, 30, y);
-  doc.text(
-    `${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €`,
-    160,
-    y,
-    { align: "right" }
-  );
+  doc.text(`${transferencia.toFixed(2)} €`, 160, y, { align: "right" });
 
-  // Separador
   y += 12;
   doc.setDrawColor(13, 74, 99);
   doc.line(20, y, 190, y);
 
-  // Total Geral
   y += 10;
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(0, 102, 51);
   doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 105, y, { align: "center" });
 
-  // Rodapé - Sistema
   y += 20;
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
-  doc.text("Documento gerado pelo Sistema POS", 105, y, {
-    align: "center",
-  });
+  doc.text("Documento gerado pelo Sistema POS", 105, y, { align: "center" });
 
-  // ➜ Emitido por utilizador
   try {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const payloadBase64 = token.split(".")[1];
-      const payloadJson = atob(payloadBase64);
-      const payload = JSON.parse(payloadJson);
-      const username = payload.username || "Desconhecido";
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const username = payload.username || "Desconhecido";
+    y += 8;
+    doc.text(`Emitido por: ${username}`, 105, y, { align: "center" });
+  } catch {}
 
-      y += 8;
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "italic");
-      doc.setTextColor(80);
-      doc.text(`Emitido por: ${username}`, 105, y, { align: "center" });
-    }
-  } catch (e) {
-    console.warn("Erro ao ler token para colocar no PDF:", e);
-  }
-
-  // ➜ Só aqui guardamos o PDF
   doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
