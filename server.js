@@ -594,13 +594,11 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
 
 
 
-// ✅ Fechar saldos do dia (guardar em saldos_diarios)
 app.post("/api/fechar-saldos", verificarToken, async (req, res) => {
   const username = req.user.username;
-  const { dinheiro, multibanco, transferencia, total } = req.body;
+  console.log("🧾 [/api/fechar-saldos] user =", username);
 
   try {
-    // 1️⃣ Obter ID do utilizador
     const userQuery = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
@@ -610,22 +608,46 @@ app.post("/api/fechar-saldos", verificarToken, async (req, res) => {
     }
     const userId = userQuery.rows[0].id;
 
-    // 2️⃣ Inserir fecho com timestamp exato
-    await pool.query(
-      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id, created_at)
-       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, NOW())`,
+    const { rows } = await pool.query(
+      `SELECT pagamento, SUM(valor) AS total
+         FROM registos
+        WHERE data = CURRENT_DATE AND utilizador = $1
+        GROUP BY pagamento`,
+      [username]
+    );
+
+    let dinheiro = 0, multibanco = 0, transferencia = 0;
+    for (const r of rows) {
+      const tot = parseFloat(r.total) || 0;
+      const p = (r.pagamento || "").toLowerCase();
+      if (p.includes("dinheiro")) dinheiro += tot;
+      else if (p.includes("multibanco")) multibanco += tot;
+      else if (p.includes("transferência")) transferencia += tot;
+    }
+    const total = dinheiro + multibanco + transferencia;
+
+    const upsert = await pool.query(
+      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id)
+       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5)
+       ON CONFLICT (data, user_id)
+       DO UPDATE SET
+         dinheiro = EXCLUDED.dinheiro,
+         multibanco = EXCLUDED.multibanco,
+         transferencia = EXCLUDED.transferencia,
+         total = EXCLUDED.total,
+         created_at = NOW()
+       RETURNING *`,
       [dinheiro, multibanco, transferencia, total, userId]
     );
 
-    console.log(`✅ Fecho registado para ${username} (${dinheiro}€ / ${multibanco}€ / ${transferencia}€)`);
-
-    res.json({ sucesso: true, mensagem: "Fecho de saldos registado com sucesso." });
-
+    console.log("✅ Fecho guardado:", upsert.rows[0]);
+    res.json({ mensagem: "Saldos fechados com sucesso!", fecho: upsert.rows[0] });
   } catch (err) {
-    console.error("❌ ERRO /api/fechar-saldos:", err);
-    res.status(500).json({ erro: "Erro interno no servidor." });
+    console.error("💥 ERRO /api/fechar-saldos:", err);
+    res.status(500).json({ erro: "Erro ao fechar saldos.", detalhe: String(err?.message || err) });
   }
 });
+
 
 
 // ------------------//
