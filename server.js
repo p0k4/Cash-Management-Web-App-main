@@ -1,12 +1,12 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
-const jwt = require('jsonwebtoken');
-const { Pool } = require('pg');
+require("dotenv").config();
+const express = require("express");
+const path = require("path");
+const jwt = require("jsonwebtoken");
+const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'um-segredo-bem-forte';
+const JWT_SECRET = process.env.JWT_SECRET || "um-segredo-bem-forte";
 
 // =============================
 // CONFIGURAÇÃO DO POOL PG
@@ -19,8 +19,13 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Criação da tabela se não existir
-pool.query(`
+// =============================
+// CRIAÇÃO DE TABELAS
+// =============================
+
+// registos
+pool.query(
+  `
   CREATE TABLE IF NOT EXISTS registos (
     id SERIAL PRIMARY KEY,
     operacao TEXT,
@@ -29,32 +34,37 @@ pool.query(`
     pagamento TEXT,
     valor NUMERIC,
     op_tpa TEXT,
-    utilizador TEXT
+    utilizador TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
   )
-`, (err) => {
-  if (err) {
-    console.error('Erro ao criar tabela:', err);
-  } else {
-    console.log('✅ Tabela "registos" pronta!');
+`,
+  (err) => {
+    if (err) console.error("Erro ao criar tabela registos:", err);
+    else console.log('✅ Tabela "registos" pronta!');
   }
-});
+);
 
-pool.query(`
+// utilizadores
+pool.query(
+  `
   CREATE TABLE IF NOT EXISTS utilizadores (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     senha TEXT NOT NULL
   )
-`, (err) => {
-  if (err) {
-    console.error('Erro ao criar tabela utilizadores:', err);
-  } else {
-    console.log('✅ Tabela "utilizadores" pronta!');
+`,
+  (err) => {
+    if (err) {
+      console.error("Erro ao criar tabela utilizadores:", err);
+    } else {
+      console.log('✅ Tabela "utilizadores" pronta!');
+    }
   }
-});
+);
 
-// Tabela de saldos diários
-pool.query(`
+// saldos_diarios
+pool.query(
+  `
   CREATE TABLE IF NOT EXISTS saldos_diarios (
     id SERIAL PRIMARY KEY,
     data DATE,
@@ -62,15 +72,30 @@ pool.query(`
     multibanco NUMERIC,
     transferencia NUMERIC,
     total NUMERIC,
-    user_id INTEGER REFERENCES utilizadores(id)
+    user_id INTEGER REFERENCES utilizadores(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
   )
-`, (err) => {
-  if (err) {
-    console.error('Erro ao criar tabela saldos_diarios:', err);
-  } else {
-    console.log('✅ Tabela "saldos_diarios" pronta!');
+`,
+  (err) => {
+    if (err) console.error("Erro ao criar tabela saldos_diarios:", err);
+    else console.log('✅ Tabela "saldos_diarios" pronta!');
   }
-});
+);
+
+// sequencias_doc (guarda a sequência de numDoc por utilizador)
+pool.query(
+  `
+  CREATE TABLE IF NOT EXISTS sequencias_doc (
+    utilizador TEXT PRIMARY KEY,
+    ultimo_numdoc INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  )
+`,
+  (err) => {
+    if (err) console.error("Erro ao criar tabela sequencias_doc:", err);
+    else console.log('✅ Tabela "sequencias_doc" pronta!');
+  }
+);
 
 // =============================
 // MIDDLEWARES GLOBAIS
@@ -83,11 +108,11 @@ app.use(express.urlencoded({ extended: true }));
 // =============================
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).send('Unauthorized');
+  if (!authHeader) return res.status(401).send("Unauthorized");
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).send('Unauthorized');
+    if (err) return res.status(401).send("Unauthorized");
     req.user = decoded;
     next();
   });
@@ -96,212 +121,229 @@ function verificarToken(req, res, next) {
 // =============================
 // ROTAS PÚBLICAS
 // =============================
+app.use(express.static(path.join(__dirname, "public")));
+app.use("/assets", express.static(path.join(__dirname, "public", "assets")));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Assets públicos
-app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
-
-// Página de login
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+app.get("/login.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// Redirecionamento /
-app.get('/', (req, res) => {
-  res.redirect('/login.html');
+app.get("/", (req, res) => {
+  res.redirect("/login.html");
 });
 
 // Serve /private SEM proteção -> HTML, CSS, JS
-app.use('/private', express.static(path.join(__dirname, 'private')));
+app.use("/private", express.static(path.join(__dirname, "private")));
 
 // =============================
 // LOGIN (público)
 // =============================
-
-
-app.post('/api/registar-utilizador', async (req, res) => {
+app.post("/api/registar-utilizador", async (req, res) => {
   const { username, senha, adminPassword } = req.body;
 
   if (!username || !senha || !adminPassword) {
-    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+    return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
-  // Verifica se a senha do admin está correta
-  const senhaAdminCorreta = process.env.ADMIN_PASSWORD || '10000';
+  const senhaAdminCorreta = process.env.ADMIN_PASSWORD || "10000";
   if (adminPassword !== senhaAdminCorreta) {
-    return res.status(403).json({ error: 'Senha de admin incorreta.' });
+    return res.status(403).json({ error: "Senha de admin incorreta." });
   }
 
   try {
-    const existe = await pool.query('SELECT * FROM utilizadores WHERE username = $1', [username]);
+    const existe = await pool.query(
+      "SELECT * FROM utilizadores WHERE username = $1",
+      [username]
+    );
     if (existe.rows.length > 0) {
-      return res.status(409).json({ error: 'Utilizador já existe.' });
+      return res.status(409).json({ error: "Utilizador já existe." });
     }
 
-    await pool.query('INSERT INTO utilizadores (username, senha) VALUES ($1, $2)', [username, senha]);
+    await pool.query(
+      "INSERT INTO utilizadores (username, senha) VALUES ($1, $2)",
+      [username, senha]
+    );
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao registar utilizador:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao registar utilizador:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
     const result = await pool.query(
-      'SELECT * FROM utilizadores WHERE username = $1 AND senha = $2',
+      "SELECT * FROM utilizadores WHERE username = $1 AND senha = $2",
       [username, password]
     );
 
-   if (result.rows.length === 1) {
-  const user = result.rows[0];
-  const token = jwt.sign(
-    { username: user.username, id: user.id },
-    JWT_SECRET,
-    { expiresIn: '30m' }
-  );
-  return res.json({ token });
-
+    if (result.rows.length === 1) {
+      const user = result.rows[0];
+      const token = jwt.sign(
+        { username: user.username, id: user.id },
+        JWT_SECRET,
+        { expiresIn: "30m" }
+      );
+      return res.json({ token });
     } else {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(401).json({ error: "Credenciais inválidas" });
     }
   } catch (err) {
-    console.error('Erro no login:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro no login:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
-
-
 // ✅ NOVA ROTA: listar utilizadores para o login
-app.get('/api/utilizadores', async (req, res) => {
+app.get("/api/utilizadores", async (req, res) => {
   try {
-    const result = await pool.query('SELECT username FROM utilizadores ORDER BY username ASC');
-    const nomes = result.rows.map(u => u.username);
+    const result = await pool.query(
+      "SELECT username FROM utilizadores ORDER BY username ASC"
+    );
+    const nomes = result.rows.map((u) => u.username);
     res.json(nomes);
   } catch (err) {
-    console.error('Erro ao listar utilizadores:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao listar utilizadores:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
 // Protege todas as outras rotas
-app.use('/api', verificarToken);
-
+app.use("/api", verificarToken);
 
 // Listar todos os utilizadores
-app.get('/api/todos-utilizadores', async (req, res) => {
-  if (req.user.username !== 'admin') {
-    return res.status(403).json({ error: 'Apenas o admin pode ver todos os utilizadores.' });
+app.get("/api/todos-utilizadores", async (req, res) => {
+  if (req.user.username !== "admin") {
+    return res
+      .status(403)
+      .json({ error: "Apenas o admin pode ver todos os utilizadores." });
   }
 
   try {
-    const resultado = await pool.query('SELECT username FROM utilizadores ORDER BY username ASC');
+    const resultado = await pool.query(
+      "SELECT username FROM utilizadores ORDER BY username ASC"
+    );
     res.json(resultado.rows);
   } catch (err) {
     console.error("Erro ao buscar utilizadores:", err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
 // Criar novo utilizador
-app.post('/api/novo-utilizador', async (req, res) => {
+app.post("/api/novo-utilizador", async (req, res) => {
   const { username, senha } = req.body;
 
-  if (req.user.username !== 'admin') {
-    return res.status(403).json({ error: 'Apenas o admin pode criar utilizadores.' });
+  if (req.user.username !== "admin") {
+    return res
+      .status(403)
+      .json({ error: "Apenas o admin pode criar utilizadores." });
   }
 
   if (!username || !senha) {
-    return res.status(400).json({ error: 'Campos obrigatórios em falta.' });
+    return res.status(400).json({ error: "Campos obrigatórios em falta." });
   }
 
   try {
-    const existe = await pool.query('SELECT * FROM utilizadores WHERE username = $1', [username]);
+    const existe = await pool.query(
+      "SELECT * FROM utilizadores WHERE username = $1",
+      [username]
+    );
     if (existe.rows.length > 0) {
-      return res.status(409).json({ error: 'Utilizador já existe.' });
+      return res.status(409).json({ error: "Utilizador já existe." });
     }
 
-    await pool.query('INSERT INTO utilizadores (username, senha) VALUES ($1, $2)', [username, senha]);
+    await pool.query(
+      "INSERT INTO utilizadores (username, senha) VALUES ($1, $2)",
+      [username, senha]
+    );
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao criar utilizador:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao criar utilizador:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
 // Apagar utilizador
-app.delete('/api/utilizadores/:username', async (req, res) => {
+app.delete("/api/utilizadores/:username", async (req, res) => {
   const { username } = req.params;
 
-  if (req.user.username !== 'admin') {
-    return res.status(403).json({ error: 'Apenas o admin pode apagar utilizadores.' });
+  if (req.user.username !== "admin") {
+    return res
+      .status(403)
+      .json({ error: "Apenas o admin pode apagar utilizadores." });
   }
 
-  if (username === 'admin') {
-    return res.status(403).json({ error: 'Não é possível apagar o utilizador admin.' });
+  if (username === "admin") {
+    return res
+      .status(403)
+      .json({ error: "Não é possível apagar o utilizador admin." });
   }
 
   try {
-    await pool.query('DELETE FROM utilizadores WHERE username = $1', [username]);
+    await pool.query("DELETE FROM utilizadores WHERE username = $1", [
+      username,
+    ]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao apagar utilizador:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao apagar utilizador:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
-// Editar utilizador (exemplo: alterar senha no futuro)
-app.put('/api/utilizadores/:username', async (req, res) => {
+// Editar utilizador
+app.put("/api/utilizadores/:username", async (req, res) => {
   const { username } = req.params;
   const { novaSenha } = req.body;
 
-  if (req.user.username !== 'admin') {
-    return res.status(403).json({ error: 'Apenas o admin pode editar utilizadores.' });
+  if (req.user.username !== "admin") {
+    return res
+      .status(403)
+      .json({ error: "Apenas o admin pode editar utilizadores." });
   }
 
   try {
-    await pool.query('UPDATE utilizadores SET senha = $1 WHERE username = $2', [novaSenha, username]);
+    await pool.query("UPDATE utilizadores SET senha = $1 WHERE username = $2", [
+      novaSenha,
+      username,
+    ]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao editar utilizador:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao editar utilizador:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
-app.get('/api/utilizador', (req, res) => {
+app.get("/api/utilizador", (req, res) => {
   res.json({ username: req.user.username });
 });
+
 // Obter todos os registos
-app.get('/api/registos', async (req, res) => {
+app.get("/api/registos", async (req, res) => {
   try {
     const username = req.user.username;
 
     let resultado;
-
-    if (username === 'admin') {
-      // admin vê tudo
-      resultado = await pool.query('SELECT * FROM registos ORDER BY id ASC');
+    if (username === "admin") {
+      resultado = await pool.query("SELECT * FROM registos ORDER BY id ASC");
     } else {
-      // outros só veem os seus
       resultado = await pool.query(
-        'SELECT * FROM registos WHERE utilizador = $1 ORDER BY id ASC',
+        "SELECT * FROM registos WHERE utilizador = $1 ORDER BY id ASC",
         [username]
       );
     }
 
     res.json(resultado.rows);
   } catch (err) {
-    console.error('Erro ao obter registos:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao obter registos:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
 // API GET /api/registos/intervalo
-app.get('/api/registos/intervalo', async (req, res) => {
+app.get("/api/registos/intervalo", async (req, res) => {
   const { inicio, fim } = req.query;
   const username = req.user.username;
 
@@ -311,21 +353,21 @@ app.get('/api/registos/intervalo', async (req, res) => {
 
   try {
     let resultado;
-if (username === 'admin') {
-  resultado = await pool.query(
-    `SELECT data, numdoc, pagamento, valor, op_tpa FROM registos
-     WHERE data BETWEEN $1 AND $2
-     ORDER BY data ASC`,
-    [inicio, fim]
-  );
-} else {
-  resultado = await pool.query(
-    `SELECT data, numdoc, pagamento, valor, op_tpa FROM registos
-     WHERE data BETWEEN $1 AND $2 AND utilizador = $3
-     ORDER BY data ASC`,
-    [inicio, fim, username]
-  );
-}
+    if (username === "admin") {
+      resultado = await pool.query(
+        `SELECT data, numdoc, pagamento, valor, op_tpa FROM registos
+         WHERE data BETWEEN $1 AND $2
+         ORDER BY data ASC`,
+        [inicio, fim]
+      );
+    } else {
+      resultado = await pool.query(
+        `SELECT data, numdoc, pagamento, valor, op_tpa FROM registos
+         WHERE data BETWEEN $1 AND $2 AND utilizador = $3
+         ORDER BY data ASC`,
+        [inicio, fim, username]
+      );
+    }
 
     res.json(resultado.rows);
   } catch (err) {
@@ -333,20 +375,11 @@ if (username === 'admin') {
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
+
 // Inserir novo registo
-app.post('/api/registar', async (req, res) => {
+app.post("/api/registar", async (req, res) => {
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
   const username = req.user.username;
-
-  // console.log("➡️ Novo registo recebido:", {
-  //   username,
-  //   operacao,
-  //   data,
-  //   numDoc,
-  //   pagamento,
-  //   valor,
-  //   op_tpa
-  // });
 
   try {
     // 1️⃣ Inserir na tabela de registos
@@ -360,22 +393,24 @@ app.post('/api/registar', async (req, res) => {
     await pool.query(
       `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc)
        VALUES ($1, $2)
-       ON CONFLICT (utilizador) DO UPDATE SET ultimo_numdoc = $2`,
+       ON CONFLICT (utilizador) DO UPDATE SET ultimo_numdoc = $2, updated_at = NOW()`,
       [username, numDoc]
     );
 
     res.json({ success: true });
   } catch (err) {
-    console.error('❌ Erro ao inserir registo:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("❌ Erro ao inserir registo:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
-app.get('/api/next-numdoc', async (req, res) => {
+
+// Próximo numDoc
+app.get("/api/next-numdoc", async (req, res) => {
   try {
     const username = req.user.username;
 
     const result = await pool.query(
-      'SELECT ultimo_numdoc FROM sequencias_doc WHERE utilizador = $1',
+      "SELECT ultimo_numdoc FROM sequencias_doc WHERE utilizador = $1",
       [username]
     );
 
@@ -386,63 +421,46 @@ app.get('/api/next-numdoc', async (req, res) => {
 
     res.json({ nextNumDoc });
   } catch (err) {
-    console.error('Erro ao obter próximo numDoc:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao obter próximo numDoc:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
-// Apagar registos
-app.delete('/api/registos', async (req, res) => {
+// Apagar registos (admin)
+app.delete("/api/registos", async (req, res) => {
   const username = req.user.username;
 
   try {
-    if (username !== 'admin') {
-      return res.status(403).json({ error: 'Apenas o admin pode apagar todos os dados.' });
+    if (username !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Apenas o admin pode apagar todos os dados." });
     }
 
-    await pool.query('DELETE FROM registos');
-    await pool.query('DELETE FROM sequencias_doc');
+    await pool.query("DELETE FROM registos");
+    await pool.query("DELETE FROM sequencias_doc");
 
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao apagar registos:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
-  }
-});
-
-app.post('/api/save-numdoc', async (req, res) => {
-  try {
-    const username = req.user.username;
-    const { ultimoNumDoc } = req.body;
-
-    await pool.query(
-      `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc)
-       VALUES ($1, $2)
-       ON CONFLICT (utilizador) DO UPDATE SET ultimo_numdoc = $2`,
-      [username, ultimoNumDoc]
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Erro ao salvar numDoc:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao apagar registos:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
 // Apagar um registo por ID
-app.delete('/api/registos/:id', async (req, res) => {
+app.delete("/api/registos/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM registos WHERE id = $1', [id]);
+    await pool.query("DELETE FROM registos WHERE id = $1", [id]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao apagar registo:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao apagar registo:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
 // Editar registo por ID
-app.put('/api/registos/:id', async (req, res) => {
+app.put("/api/registos/:id", async (req, res) => {
   const { id } = req.params;
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
   try {
@@ -454,15 +472,13 @@ app.put('/api/registos/:id', async (req, res) => {
     );
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao atualizar registo:', err);
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error("Erro ao atualizar registo:", err);
+    res.status(500).json({ error: "Erro no servidor" });
   }
 });
-// ✅ Ver saldos do dia (usado no dashboard)
 
 // ✅ Ver saldos do dia (usado no dashboard)
 app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
-  const dataHoje = new Date().toISOString().split("T")[0];
   const username = req.user.username;
 
   try {
@@ -470,39 +486,65 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
     );
-    if (userQuery.rows.length === 0) {
+    if (!userQuery.rows.length) {
       return res.status(404).json({ erro: "Utilizador não encontrado." });
     }
     const userId = userQuery.rows[0].id;
 
-    // 1️⃣ Verifica se já existe fecho de saldos para hoje
-    const resultado = await pool.query(
-      "SELECT * FROM saldos_diarios WHERE data = $1 AND user_id = $2 ORDER BY id DESC LIMIT 1",
-      [dataHoje, userId]
+    // Último fecho de hoje
+    const fechoRes = await pool.query(
+      `SELECT dinheiro, multibanco, transferencia, total, created_at
+       FROM saldos_diarios
+       WHERE data = CURRENT_DATE AND user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [userId]
     );
 
-    if (resultado.rows.length > 0) {
-      const fecho = resultado.rows[0];
-      return res.json({
-        fechado: true,
-        dinheiro: parseFloat(fecho.dinheiro),
-        multibanco: parseFloat(fecho.multibanco),
-        transferencia: parseFloat(fecho.transferencia),
-        total: parseFloat(fecho.total),
-      });
+    // Último registo de hoje
+    const registoRes = await pool.query(
+      `SELECT created_at
+         FROM registos
+        WHERE data = CURRENT_DATE AND utilizador = $1
+        ORDER BY created_at DESC
+        LIMIT 1`,
+      [username]
+    );
+
+    const temFecho = fechoRes.rows.length > 0;
+    const temRegistosHoje = registoRes.rows.length > 0;
+
+    if (temFecho) {
+      const fecho = fechoRes.rows[0];
+      const tsFecho = new Date(fecho.created_at);
+      const tsUltReg = temRegistosHoje ? new Date(registoRes.rows[0].created_at) : null;
+
+      // Registos depois do fecho => reabre
+      const reaberto = tsUltReg && tsUltReg > tsFecho;
+
+      if (!reaberto) {
+        return res.json({
+          fechado: true,
+          dinheiro: parseFloat(fecho.dinheiro),
+          multibanco: parseFloat(fecho.multibanco),
+          transferencia: parseFloat(fecho.transferencia),
+          total: parseFloat(fecho.total),
+        });
+      }
+      // senão, cai no cálculo em aberto
     }
 
-    // 2️⃣ Se ainda não foi fechado, calcula com base nos registos
-    const query = await pool.query(
+    // Em aberto ou reaberto: soma registos do dia
+    const somaRes = await pool.query(
       `SELECT pagamento, SUM(valor) AS total
-       FROM registos
-       WHERE data = $1 AND utilizador = $2
-       GROUP BY pagamento`,
-      [dataHoje, username]
+         FROM registos
+        WHERE data = CURRENT_DATE AND utilizador = $1
+        GROUP BY pagamento`,
+      [username]
     );
 
     let dinheiro = 0, multibanco = 0, transferencia = 0;
-    query.rows.forEach(row => {
+    somaRes.rows.forEach((row) => {
       const metodo = row.pagamento.split(" ")[0];
       const valor = parseFloat(row.total);
       if (metodo === "Dinheiro") dinheiro += valor;
@@ -519,72 +561,80 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       transferencia,
       total,
     });
-
   } catch (err) {
     console.error("❌ ERRO /api/saldos-hoje:", err);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
+
 // ✅ Fechar saldos do dia (guardar em saldos_diarios)
-app.post('/api/fechar-saldos', verificarToken, async (req, res) => {
+app.post("/api/fechar-saldos", verificarToken, async (req, res) => {
   const username = req.user.username;
-  const hoje = new Date();
-  const dataHoje = hoje.toISOString().split("T")[0];
 
   try {
     const userQuery = await pool.query(
-      'SELECT id FROM utilizadores WHERE username = $1',
+      "SELECT id FROM utilizadores WHERE username = $1",
       [username]
     );
     const userId = userQuery.rows[0].id;
 
-    const { rows } = await pool.query(`
-      SELECT pagamento, SUM(valor) as total
-      FROM registos
-      WHERE data = $1 AND utilizador = $2
-      GROUP BY pagamento
-    `, [dataHoje, username]);
+    // Soma dos registos de HOJE para este utilizador
+    const { rows } = await pool.query(
+      `SELECT pagamento, SUM(valor) as total
+       FROM registos
+       WHERE data = CURRENT_DATE AND utilizador = $1
+       GROUP BY pagamento`,
+      [username]
+    );
 
-    let dinheiro = 0, multibanco = 0, transferencia = 0;
-    rows.forEach(r => {
+    let dinheiro = 0,
+        multibanco = 0,
+        transferencia = 0;
+
+    rows.forEach((r) => {
       const total = parseFloat(r.total);
-      if (r.pagamento.toLowerCase().includes('dinheiro')) dinheiro += total;
-      if (r.pagamento.toLowerCase().includes('multibanco')) multibanco += total;
-      if (r.pagamento.toLowerCase().includes('transferência')) transferencia += total;
+      const p = r.pagamento.toLowerCase();
+      if (p.includes("dinheiro")) dinheiro += total;
+      if (p.includes("multibanco")) multibanco += total;
+      if (p.includes("transferência")) transferencia += total;
     });
 
     const total = dinheiro + multibanco + transferencia;
 
-    await pool.query(`
-      INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [dataHoje, dinheiro, multibanco, transferencia, total, userId]);
+    // Insere fecho para a data do Postgres
+    await pool.query(
+      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id)
+       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5)`,
+      [dinheiro, multibanco, transferencia, total, userId]
+    );
 
-    res.json({ mensagem: 'Saldos fechados com sucesso!' });
+    res.json({ mensagem: "Saldos fechados com sucesso!" });
   } catch (err) {
     console.error("❌ ERRO ao fechar saldos:", err);
-    res.status(500).json({ erro: 'Erro ao fechar saldos.' });
+    res.status(500).json({ erro: "Erro ao fechar saldos." });
   }
 });
+
 // ------------------//
 
 // Serve /dashboard
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'private', 'index.html'));
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "index.html"));
 });
 
 // Serve /tabela.html
-app.get('/dashboard/tabela', (req, res) => {
-  res.sendFile(path.join(__dirname, 'private', 'tabela.html'));
+app.get("/dashboard/tabela", (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "tabela.html"));
 });
+
 // Serve /dashboard/historico
-app.get('/dashboard/historico', (req, res) => {
-  res.sendFile(path.join(__dirname, 'private', 'historico.html'));
+app.get("/dashboard/historico", (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "historico.html"));
 });
 
 // Serve outras rotas (404)
 app.use((req, res) => {
-  res.status(404).send('404 - Rota não encontrada.');
+  res.status(404).send("404 - Rota não encontrada.");
 });
 
 // =============================
