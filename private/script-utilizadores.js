@@ -12,12 +12,14 @@ async function carregarUtilizadores() {
 
     utilizadores.forEach(u => {
       const tr = document.createElement("tr");
+      const role = u.username === "admin" ? "Administrador" : "Utilizador";
+      const roleBadge = u.username === "admin" ? `<span class="badge badge-admin">${role}</span>` : `<span class="badge badge-user">${role}</span>`;
       tr.innerHTML = `
         <td>${u.username}</td>
-        <td>${u.username === "admin" ? "Administrador" : "Utilizador"}</td>
+        <td>${roleBadge}</td>
         <td>
-          <button class="btn-editar" data-user="${u.username}">Editar</button>
-          <button class="btn-apagar" data-user="${u.username}">Apagar</button>
+          <button class="btn-editar" data-user="${u.username}"><i class="fa-solid fa-key"></i> Alterar senha</button>
+          <button class="btn-apagar" data-user="${u.username}"><i class="fa-solid fa-user-xmark"></i> Apagar</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -52,8 +54,9 @@ async function carregarUtilizadores() {
 document.addEventListener("DOMContentLoaded", carregarUtilizadores);
 
 document.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("btn-editar")) {
-    const username = e.target.dataset.user;
+  const editBtn = e.target.closest(".btn-editar");
+  if (editBtn) {
+    const username = editBtn.dataset.user;
     const novaSenha = prompt(`Nova senha para "${username}":`);
     if (novaSenha) {
       const res = await fetch(`/api/utilizadores/${username}`, {

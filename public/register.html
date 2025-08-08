@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Registar Utilizador - POS Cash Management</title>
+  <link rel="stylesheet" href="/assets/login.css" />
+  <style>
+    /* Extensões específicas para a página de registro */
+    .register-form {
+      display: block;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #ffffff;
+      color: #333;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+      border: 2px solid #28a745;
+    }
+    
+    .buttons-container {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background-color: #28a745;
+      color: white;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      flex: 1;
+      max-width: 200px;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      flex: 1;
+      max-width: 200px;
+    }
+    
+    .btn-primary:hover {
+      background-color: #218838;
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .success-message {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+      font-size: 1rem;
+      border: 1px solid #c3e6cb;
+    }
+
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+      font-size: 1rem;
+      border: 1px solid #f5c6cb;
+    }
+
+    .register-subtitle {
+      color: #bcd2df;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      font-weight: normal;
+    }
+
+    .password-hint {
+      background-color: rgba(188, 210, 223, 0.1);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #bcd2df;
+      border: 1px solid rgba(188, 210, 223, 0.3);
+    }
+
+    .password-hint strong {
+      color: #ffffff;
+    }
+
+    /* Ícones para os inputs */
+    .input-container {
+      position: relative;
+    }
+
+    .input-container::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      background-size: contain;
+      z-index: 1;
+    }
+
+    .input-container.username::before {
+      content: '👤';
+      font-size: 16px;
+    }
+
+    .input-container.password::before {
+      content: '🔒';
+      font-size: 16px;
+    }
+
+    .input-container.admin::before {
+      content: '🔑';
+      font-size: 16px;
+    }
+
+    .input-container input {
+      padding-left: 2.5rem;
+    }
+
+    .form-actions {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: #bcd2df;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <h1>Registar <span>Novo Utilizador</span></h1>
+      <p class="register-subtitle">Adicione um novo utilizador ao sistema</p>
+
+      <div id="success" class="success-message"></div>
+      <div id="error" class="error-message"></div>
+
+      <form id="registerForm" class="register-form">
+        <div class="form-group">
+          <label for="username">👤 Nome de Utilizador</label>
+          <div class="input-container username">
+            <input type="text" id="username" placeholder="Digite o nome de utilizador" required autocomplete="username" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">🔒 Senha do Utilizador</label>
+          <div class="input-container password">
+            <input type="password" id="password" placeholder="Digite a senha do utilizador" required autocomplete="new-password" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="adminPassword">🔑 Senha de Administrador</label>
+          <div class="input-container admin">
+            <input type="password" id="adminPassword" placeholder="Digite a senha de administrador" required />
+          </div>
+        </div>
+
+        <div class="password-hint">
+          <strong>💡 Dica:</strong> Digite a senha de administrador fornecida pelo sistema
+        </div>
+
+        <div class="buttons-container">
+          <button type="submit" class="btn-primary">✅ Registar</button>
+          <button type="button" class="btn-secondary" onclick="window.location.href='/login.html'">⬅️ Voltar</button>
+        </div>
+      </form>
+
+      <div class="form-actions">
+        <a href="/login.html" class="back-link">← Voltar ao Login</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const registerForm = document.getElementById("registerForm");
+      const errorDiv = document.getElementById("error");
+      const successDiv = document.getElementById("success");
+
+      function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+        successDiv.style.display = "none";
+        
+        // Scroll para o topo para mostrar o erro
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function showSuccess(message) {
+        successDiv.textContent = message;
+        successDiv.style.display = "block";
+        errorDiv.style.display = "none";
+        
+        // Scroll para o topo para mostrar o sucesso
+        successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function clearMessages() {
+        errorDiv.style.display = "none";
+        successDiv.style.display = "none";
+      }
+
+      // Animação nos inputs
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+          input.parentElement.style.transform = 'scale(1.02)';
+          input.parentElement.style.transition = 'transform 0.2s ease';
+        });
+        
+        input.addEventListener('blur', () => {
+          input.parentElement.style.transform = 'scale(1)';
+        });
+      });
+
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessages();
+
+        const username = document.getElementById("username").value.trim();
+        const senha = document.getElementById("password").value.trim();
+        const adminPassword = document.getElementById("adminPassword").value.trim();
+
+        // Validações
+        if (!username || !senha || !adminPassword) {
+          showError("❌ Todos os campos são obrigatórios.");
+          return;
+        }
+
+        if (username.length < 3) {
+          showError("❌ O nome de utilizador deve ter pelo menos 3 caracteres.");
+          return;
+        }
+
+        if (senha.length < 4) {
+          showError("❌ A senha deve ter pelo menos 4 caracteres.");
+          return;
+        }
+
+        // Desabilitar botão durante o envio
+        const submitBtn = document.querySelector('.btn-primary');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '⏳ Registando...';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch("/api/registar-utilizador", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, senha, adminPassword }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Erro no servidor");
+          }
+
+          showSuccess(`🎉 Utilizador '${username}' registado com sucesso!`);
+          registerForm.reset();
+          
+          // Redirecionar para login após 3 segundos
+          setTimeout(() => {
+            window.location.href = "/login.html";
+          }, 3000);
+
+        } catch (err) {
+          console.error("Erro no registro:", err);
+          
+          // Mensagens de erro mais amigáveis
+          let errorMessage = err.message;
+          if (errorMessage.includes("já existe")) {
+            errorMessage = "❌ Este nome de utilizador já está em uso. Escolha outro.";
+          } else if (errorMessage.includes("admin")) {
+            errorMessage = "❌ Senha de administrador incorreta. Verifique e tente novamente.";
+          } else if (errorMessage.includes("servidor")) {
+            errorMessage = "❌ Erro no servidor. Tente novamente mais tarde.";
+          }
+          
+          showError(errorMessage);
+        } finally {
+          // Reabilitar botão
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+
+      // Efeito de digitação no título
+      const title = document.querySelector('h1');
+      title.style.opacity = '0';
+      title.style.transform = 'translateY(-20px)';
+      
+      setTimeout(() => {
+        title.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        title.style.opacity = '1';
+        title.style.transform = 'translateY(0)';
+      }, 100);
+
+      // Auto-focus no primeiro input
+      document.getElementById('username').focus();
+    });
+  </script>
+</body>
+
+</html>

@@ -2,30 +2,33 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gestão de Utilizadores</title>
   <link rel="stylesheet" href="/private/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
-<div class="menu-lateral">
-  <div class="caixa-utilizador-ativo">
-    <p id="utilizadorAtivo">
-      Utilizador:<span class="nome-utilizador">admin</span>
-    </p>
-  </div>
-  <br>
-  <h3>Menu</h3>
-<ul id="menuLateral">
-    <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
-    <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
-    <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Movimentos (pesquisa)</a></li>
-    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-  </ul>
-</div>
 <body>
+  <div class="menu-lateral">
+    <div class="caixa-utilizador-ativo">
+      <p id="utilizadorAtivo">
+        Utilizador:<span class="nome-utilizador">admin</span>
+      </p>
+    </div>
+    <br>
+    <h3>Menu</h3>
+    <ul id="menuLateral">
+      <li><a class="btn-menu" href="/dashboard"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+      <li><a class="btn-menu" href="/dashboard/tabela"><i class="fa-solid fa-table"></i> Movimentos</a></li>
+      <li><a class="btn-menu" href="/dashboard/historico"><i class="fa-solid fa-magnifying-glass"></i> Movimentos (pesquisa)</a></li>
+      <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+  </div>
   <div class="container">
-    <h1>Gestão de Utilizadores</h1>
-    <button id="btnNovo" class="btn-registar">+ Novo Utilizador</button>
-    
-    <table>
+    <div class="users-header">
+      <h1>Gestão de Utilizadores</h1>
+      <button id="btnNovo" class="btn-registar"><i class="fa-solid fa-user-plus"></i> Novo Utilizador</button>
+    </div>
+    <table class="tabela-utilizadores">
       <thead>
         <tr>
           <th>Username</th>

@@ -2,11 +2,18 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || "um-segredo-bem-forte";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validação do JWT_SECRET
+if (!JWT_SECRET) {
+  console.error("❌ JWT_SECRET não configurado no .env");
+  process.exit(1);
+}
 
 // =============================
 // CONFIGURAÇÃO DO POOL PG
@@ -19,105 +26,74 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// =============================
-// CRIAÇÃO DE TABELAS
-// =============================
-
-// registos
-pool.query(
-  `
-  CREATE TABLE IF NOT EXISTS registos (
-    id SERIAL PRIMARY KEY,
-    operacao TEXT,
-    data DATE,
-    numDoc INTEGER,
-    pagamento TEXT,
-    valor NUMERIC,
-    op_tpa TEXT,
-    utilizador TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-  )
-`,
-  (err) => {
-    if (err) console.error("Erro ao criar tabela registos:", err);
-    else console.log('✅ Tabela "registos" pronta!');
-  }
-);
-
-// utilizadores
-pool.query(
-  `
-  CREATE TABLE IF NOT EXISTS utilizadores (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    senha TEXT NOT NULL
-  )
-`,
-  (err) => {
-    if (err) {
-      console.error("Erro ao criar tabela utilizadores:", err);
-    } else {
-      console.log('✅ Tabela "utilizadores" pronta!');
-    }
-  }
-);
-
-// saldos_diarios
-pool.query(
-  `
-  CREATE TABLE IF NOT EXISTS saldos_diarios (
-    id SERIAL PRIMARY KEY,
-    data DATE,
-    dinheiro NUMERIC,
-    multibanco NUMERIC,
-    transferencia NUMERIC,
-    total NUMERIC,
-    user_id INTEGER REFERENCES utilizadores(id),
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-  )
-`,
-  (err) => {
-    if (err) console.error("Erro ao criar tabela saldos_diarios:", err);
-    else console.log('✅ Tabela "saldos_diarios" pronta!');
-  }
-);
-
-// sequencias_doc (guarda a sequência de numDoc por utilizador)
- pool.query(`
-  CREATE TABLE IF NOT EXISTS sequencias_doc (
-    utilizador TEXT PRIMARY KEY,
-    ultimo_numdoc INTEGER NOT NULL
-  )
-`);
-
-// garante que a coluna updated_at existe
-pool.query(`
-  ALTER TABLE sequencias_doc
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW();
-`, (err) => {
-  if (err) console.error("Erro ao garantir coluna updated_at:", err);
+// Teste de conexão
+pool.on('error', (err) => {
+  console.error('❌ Erro inesperado no pool:', err);
+  process.exit(-1);
 });
-
 
 // =============================
 // MIDDLEWARES GLOBAIS
 // =============================
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware de logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // =============================
 // MIDDLEWARE JWT PARA A API
 // =============================
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).send("Unauthorized");
+  if (!authHeader) {
+    return res.status(401).json({ error: "Token não fornecido" });
+  }
 
   const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ error: "Formato de token inválido" });
+  }
+
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).send("Unauthorized");
+    if (err) {
+      return res.status(401).json({ error: "Token inválido ou expirado" });
+    }
     req.user = decoded;
     next();
   });
+}
+
+// Middleware para verificar se é admin
+function verificarAdmin(req, res, next) {
+  if (req.user.username !== "admin") {
+    return res.status(403).json({ error: "Acesso negado - Apenas admin" });
+  }
+  next();
+}
+
+// =============================
+// VALIDAÇÕES
+// =============================
+function validarRegisto(req, res, next) {
+  const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
+  
+  if (!operacao || !data || !numDoc || !pagamento || !valor) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
+  
+  if (isNaN(valor) || parseFloat(valor) <= 0) {
+    return res.status(400).json({ error: "Valor deve ser um número positivo" });
+  }
+  
+  if (isNaN(numDoc) || parseInt(numDoc) <= 0) {
+    return res.status(400).json({ error: "Número do documento deve ser positivo" });
+  }
+  
+  next();
 }
 
 // =============================
@@ -147,12 +123,13 @@ app.post("/api/registar-utilizador", async (req, res) => {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
-  const senhaAdminCorreta = process.env.ADMIN_PASSWORD || "10000";
-  if (adminPassword !== senhaAdminCorreta) {
+  const senhaAdminCorreta = process.env.ADMIN_PASSWORD;
+  if (!senhaAdminCorreta || adminPassword !== senhaAdminCorreta) {
     return res.status(403).json({ error: "Senha de admin incorreta." });
   }
 
   try {
+    // Verificar se utilizador já existe
     const existe = await pool.query(
       "SELECT * FROM utilizadores WHERE username = $1",
       [username]
@@ -161,9 +138,12 @@ app.post("/api/registar-utilizador", async (req, res) => {
       return res.status(409).json({ error: "Utilizador já existe." });
     }
 
+    // Hash da senha
+    const senhaHash = await bcrypt.hash(senha, 10);
+    
     await pool.query(
       "INSERT INTO utilizadores (username, senha) VALUES ($1, $2)",
-      [username, senha]
+      [username, senhaHash]
     );
     res.json({ success: true });
   } catch (err) {
@@ -175,30 +155,38 @@ app.post("/api/registar-utilizador", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username e password são obrigatórios" });
+  }
+
   try {
     const result = await pool.query(
-      "SELECT * FROM utilizadores WHERE username = $1 AND senha = $2",
-      [username, password]
+      "SELECT * FROM utilizadores WHERE username = $1",
+      [username]
     );
 
     if (result.rows.length === 1) {
       const user = result.rows[0];
-      const token = jwt.sign(
-        { username: user.username, id: user.id },
-        JWT_SECRET,
-        { expiresIn: "30m" }
-      );
-      return res.json({ token });
-    } else {
-      return res.status(401).json({ error: "Credenciais inválidas" });
+      const senhaValida = await bcrypt.compare(password, user.senha);
+      
+      if (senhaValida) {
+        const token = jwt.sign(
+          { username: user.username, id: user.id },
+          JWT_SECRET,
+          { expiresIn: "30m" }
+        );
+        return res.json({ token });
+      }
     }
+    
+    return res.status(401).json({ error: "Credenciais inválidas" });
   } catch (err) {
     console.error("Erro no login:", err);
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
 
-// ✅ NOVA ROTA: listar utilizadores para o login
+// Listar utilizadores para o login
 app.get("/api/utilizadores", async (req, res) => {
   try {
     const result = await pool.query(
@@ -212,17 +200,13 @@ app.get("/api/utilizadores", async (req, res) => {
   }
 });
 
-// Protege todas as outras rotas
+// =============================
+// ROTAS PROTEGIDAS
+// =============================
 app.use("/api", verificarToken);
 
-// Listar todos os utilizadores
-app.get("/api/todos-utilizadores", async (req, res) => {
-  if (req.user.username !== "admin") {
-    return res
-      .status(403)
-      .json({ error: "Apenas o admin pode ver todos os utilizadores." });
-  }
-
+// Listar todos os utilizadores (apenas admin)
+app.get("/api/todos-utilizadores", verificarAdmin, async (req, res) => {
   try {
     const resultado = await pool.query(
       "SELECT username FROM utilizadores ORDER BY username ASC"
@@ -234,15 +218,9 @@ app.get("/api/todos-utilizadores", async (req, res) => {
   }
 });
 
-// Criar novo utilizador
-app.post("/api/novo-utilizador", async (req, res) => {
+// Criar novo utilizador (apenas admin)
+app.post("/api/novo-utilizador", verificarAdmin, async (req, res) => {
   const { username, senha } = req.body;
-
-  if (req.user.username !== "admin") {
-    return res
-      .status(403)
-      .json({ error: "Apenas o admin pode criar utilizadores." });
-  }
 
   if (!username || !senha) {
     return res.status(400).json({ error: "Campos obrigatórios em falta." });
@@ -257,9 +235,10 @@ app.post("/api/novo-utilizador", async (req, res) => {
       return res.status(409).json({ error: "Utilizador já existe." });
     }
 
+    const senhaHash = await bcrypt.hash(senha, 10);
     await pool.query(
       "INSERT INTO utilizadores (username, senha) VALUES ($1, $2)",
-      [username, senha]
+      [username, senhaHash]
     );
     res.json({ success: true });
   } catch (err) {
@@ -268,26 +247,19 @@ app.post("/api/novo-utilizador", async (req, res) => {
   }
 });
 
-// Apagar utilizador
-app.delete("/api/utilizadores/:username", async (req, res) => {
+// Apagar utilizador (apenas admin)
+app.delete("/api/utilizadores/:username", verificarAdmin, async (req, res) => {
   const { username } = req.params;
 
-  if (req.user.username !== "admin") {
-    return res
-      .status(403)
-      .json({ error: "Apenas o admin pode apagar utilizadores." });
-  }
-
   if (username === "admin") {
-    return res
-      .status(403)
-      .json({ error: "Não é possível apagar o utilizador admin." });
+    return res.status(403).json({ error: "Não é possível apagar o utilizador admin." });
   }
 
   try {
-    await pool.query("DELETE FROM utilizadores WHERE username = $1", [
-      username,
-    ]);
+    const result = await pool.query("DELETE FROM utilizadores WHERE username = $1", [username]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Utilizador não encontrado" });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao apagar utilizador:", err);
@@ -295,22 +267,26 @@ app.delete("/api/utilizadores/:username", async (req, res) => {
   }
 });
 
-// Editar utilizador
-app.put("/api/utilizadores/:username", async (req, res) => {
+// Editar utilizador (apenas admin)
+app.put("/api/utilizadores/:username", verificarAdmin, async (req, res) => {
   const { username } = req.params;
   const { novaSenha } = req.body;
 
-  if (req.user.username !== "admin") {
-    return res
-      .status(403)
-      .json({ error: "Apenas o admin pode editar utilizadores." });
+  if (!novaSenha) {
+    return res.status(400).json({ error: "Nova senha é obrigatória" });
   }
 
   try {
-    await pool.query("UPDATE utilizadores SET senha = $1 WHERE username = $2", [
-      novaSenha,
-      username,
-    ]);
+    const senhaHash = await bcrypt.hash(novaSenha, 10);
+    const result = await pool.query(
+      "UPDATE utilizadores SET senha = $1 WHERE username = $2",
+      [senhaHash, username]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Utilizador não encontrado" });
+    }
+    
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao editar utilizador:", err);
@@ -321,6 +297,10 @@ app.put("/api/utilizadores/:username", async (req, res) => {
 app.get("/api/utilizador", (req, res) => {
   res.json({ username: req.user.username });
 });
+
+// =============================
+// GESTÃO DE REGISTOS
+// =============================
 
 // Obter todos os registos
 app.get("/api/registos", async (req, res) => {
@@ -344,7 +324,7 @@ app.get("/api/registos", async (req, res) => {
   }
 });
 
-// API GET /api/registos/intervalo
+// Buscar registos por intervalo
 app.get("/api/registos/intervalo", async (req, res) => {
   const { inicio, fim } = req.query;
   const username = req.user.username;
@@ -379,19 +359,19 @@ app.get("/api/registos/intervalo", async (req, res) => {
 });
 
 // Inserir novo registo
-app.post("/api/registar", async (req, res) => {
+app.post("/api/registar", validarRegisto, async (req, res) => {
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
   const username = req.user.username;
 
   try {
-    // 1️⃣ Inserir na tabela de registos
+    // Inserir na tabela de registos
     await pool.query(
       `INSERT INTO registos (operacao, data, numDoc, pagamento, valor, op_tpa, utilizador)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [operacao, data, numDoc, pagamento, valor, op_tpa, username]
     );
 
-    // 2️⃣ Atualizar sequência
+    // Atualizar sequência
     await pool.query(
       `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc)
        VALUES ($1, $2)
@@ -405,11 +385,16 @@ app.post("/api/registar", async (req, res) => {
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
-// ✅ Guardar numDoc atual
-app.post("/api/save-numdoc", verificarToken, async (req, res) => {
+
+// Guardar numDoc atual
+app.post("/api/save-numdoc", async (req, res) => {
   try {
     const username = req.user.username;
     const { ultimo_numdoc } = req.body;
+
+    if (!ultimo_numdoc || isNaN(ultimo_numdoc)) {
+      return res.status(400).json({ error: "numDoc inválido" });
+    }
 
     await pool.query(
       `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc, updated_at)
@@ -426,8 +411,8 @@ app.post("/api/save-numdoc", verificarToken, async (req, res) => {
   }
 });
 
-// ✅ Obter próximo numDoc
-app.get("/api/next-numdoc", verificarToken, async (req, res) => {
+// Obter próximo numDoc
+app.get("/api/next-numdoc", async (req, res) => {
   try {
     const username = req.user.username;
 
@@ -448,12 +433,19 @@ app.get("/api/next-numdoc", verificarToken, async (req, res) => {
   }
 });
 
-
 // Apagar um registo por ID
 app.delete("/api/registos/:id", async (req, res) => {
   const { id } = req.params;
+  
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
   try {
-    await pool.query("DELETE FROM registos WHERE id = $1", [id]);
+    const result = await pool.query("DELETE FROM registos WHERE id = $1", [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Registo não encontrado" });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao apagar registo:", err);
@@ -462,16 +454,26 @@ app.delete("/api/registos/:id", async (req, res) => {
 });
 
 // Editar registo por ID
-app.put("/api/registos/:id", async (req, res) => {
+app.put("/api/registos/:id", validarRegisto, async (req, res) => {
   const { id } = req.params;
   const { operacao, data, numDoc, pagamento, valor, op_tpa } = req.body;
+  
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
   try {
-    await pool.query(
+    const result = await pool.query(
       `UPDATE registos
        SET operacao = $1, data = $2, numDoc = $3, pagamento = $4, valor = $5, op_tpa = $6
        WHERE id = $7`,
       [operacao, data, numDoc, pagamento, valor, op_tpa, id]
     );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Registo não encontrado" });
+    }
+    
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao atualizar registo:", err);
@@ -479,12 +481,16 @@ app.put("/api/registos/:id", async (req, res) => {
   }
 });
 
-// ✅ /api/saldos-hoje — devolve saldos do período atual
-app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
+// =============================
+// GESTÃO DE SALDOS
+// =============================
+
+// Obter saldos de hoje
+app.get("/api/saldos-hoje", async (req, res) => {
   const username = req.user.username;
 
   try {
-    // 1) obter user_id
+    // Obter user_id
     const { rows: userRows } = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
@@ -494,7 +500,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     }
     const userId = userRows[0].id;
 
-    // 2) último fecho de HOJE
+    // Último fecho de HOJE
     const { rows: fechos } = await pool.query(
       `SELECT dinheiro, multibanco, transferencia, total, created_at
          FROM saldos_diarios
@@ -504,7 +510,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       [userId]
     );
 
-    // 👉 Sem fecho hoje: somar tudo de hoje
+    // Sem fecho hoje: somar tudo de hoje
     if (fechos.length === 0) {
       const { rows: somaRows } = await pool.query(
         `SELECT pagamento, SUM(valor) AS total
@@ -520,11 +526,11 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
         const v = parseFloat(r.total || 0);
         if (m.includes("dinheiro")) dinheiro += v;
         else if (m.includes("multibanco")) multibanco += v;
-        else if (m.includes("transfer")) transferencia += v; // cobre “Transferência Bancária”
+        else if (m.includes("transfer")) transferencia += v;
       }
 
       return res.json({
-        fechado: false,           // ainda não há fecho
+        fechado: false,
         dinheiro,
         multibanco,
         transferencia,
@@ -532,11 +538,11 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       });
     }
 
-    // 👉 Há fecho hoje
+    // Há fecho hoje
     const fecho = fechos[0];
     const tsFecho = fecho.created_at;
 
-    // 3) ver se há registos DEPOIS do fecho
+    // Ver se há registos DEPOIS do fecho
     const { rows: regDepoisFecho } = await pool.query(
       `SELECT 1
          FROM registos
@@ -547,7 +553,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       [username, tsFecho]
     );
 
-    // 🔒 Sem novos registos → mostra o valor do fecho tal como está
+    // Sem novos registos → mostra o valor do fecho
     if (regDepoisFecho.length === 0) {
       return res.json({
         fechado: true,
@@ -558,7 +564,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       });
     }
 
-    // 🔓 Houve registos após fecho → somar APENAS os posteriores
+    // Houve registos após fecho → somar APENAS os posteriores
     const { rows: somaPos } = await pool.query(
       `SELECT pagamento, SUM(valor) AS total
          FROM registos
@@ -579,7 +585,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     }
 
     return res.json({
-      fechado: false, // reaberto (há movimento pós-fecho)
+      fechado: false,
       dinheiro,
       multibanco,
       transferencia,
@@ -591,10 +597,8 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
   }
 });
 
-
-
-
-app.post("/api/fechar-saldos", verificarToken, async (req, res) => {
+// Fechar saldos
+app.post("/api/fechar-saldos", async (req, res) => {
   const username = req.user.username;
   console.log("🧾 [/api/fechar-saldos] user =", username);
 
@@ -648,28 +652,35 @@ app.post("/api/fechar-saldos", verificarToken, async (req, res) => {
   }
 });
 
+// =============================
+// ROTAS DE PÁGINAS
+// =============================
 
-
-// ------------------//
-
-// Serve /dashboard
 app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "private", "index.html"));
 });
 
-// Serve /tabela.html
 app.get("/dashboard/tabela", (req, res) => {
   res.sendFile(path.join(__dirname, "private", "tabela.html"));
 });
 
-// Serve /dashboard/historico
 app.get("/dashboard/historico", (req, res) => {
   res.sendFile(path.join(__dirname, "private", "historico.html"));
 });
 
-// Serve outras rotas (404)
+// =============================
+// TRATAMENTO DE ERROS
+// =============================
+
+// Middleware de tratamento de erros
+app.use((err, req, res, next) => {
+  console.error('❌ Erro não tratado:', err);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
+
+// Rota 404
 app.use((req, res) => {
-  res.status(404).send("404 - Rota não encontrada.");
+  res.status(404).json({ error: "Rota não encontrada" });
 });
 
 // =============================
@@ -677,4 +688,12 @@ app.use((req, res) => {
 // =============================
 app.listen(PORT, () => {
   console.log(`✅ Servidor a correr em http://localhost:${PORT}`);
+  console.log(`🔐 JWT_SECRET configurado: ${JWT_SECRET ? 'Sim' : 'Não'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🔄 Encerrando servidor...');
+  pool.end();
+  process.exit(0);
 });

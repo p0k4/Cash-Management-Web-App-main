@@ -17,6 +17,16 @@ body {
   border-radius: 40px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
+/* Cabeçalho da página de utilizadores */
+.users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.users-header h1 {
+  margin: 0;
+}
 .icone-main {
   position: absolute;
   display: block;
@@ -161,6 +171,33 @@ button:disabled {
   cursor: pointer;
 }
 
+/* Botões da tabela de utilizadores */
+.btn-editar {
+  background-color: #0d4a63;
+  color: #fff;
+  border: 2px solid #0a3a4f;
+}
+.btn-editar:hover {
+  background-color: #146283;
+}
+.btn-apagar {
+  background-color: #dc3545;
+  color: #fff;
+  border: 2px solid #b02a37;
+}
+.btn-apagar:hover {
+  background-color: #b02a37;
+}
+
+.btn-verde {
+  background-color: #28a745;
+  color: #fff;
+  border: 2px solid #1e7e34;
+}
+.btn-verde:hover {
+  background-color: #218838;
+}
+
 .btn-editar-linha {
   background-color: #ffc107; /* Amarelo */
   color: rgb(249, 246, 246);
@@ -168,6 +205,18 @@ button:disabled {
   padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
+}
+.btn-editar,
+.btn-apagar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.btn-editar i,
+.btn-apagar i {
+  font-size: 14px;
 }
 .btn-cancelar-linha {
   background-color: #0d4a63; /* Amarelo */
@@ -306,6 +355,29 @@ table {
   border-radius: 15px;
   overflow: hidden;
   margin-top: 20px;
+}
+/* Estilo especial para a tabela de utilizadores */
+.tabela-utilizadores tbody tr:hover {
+  background-color: #f4f9fc;
+}
+.tabela-utilizadores td:last-child {
+  white-space: nowrap;
+}
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.badge-admin {
+  background-color: #0d4a63;
+  color: #fff;
+}
+.badge-user {
+  background-color: #e3f2fd;
+  color: #0d4a63;
+  border: 1px solid #b3d7ef;
 }
 
 th,
