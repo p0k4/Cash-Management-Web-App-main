@@ -77,57 +77,9 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-document.getElementById("btnCriarUtilizador").addEventListener("click", async () => {
-  const username = document.getElementById("novoUsername").value.trim();
-  const senha = document.getElementById("novaSenha").value;
-
-  if (!username || !senha) {
-    alert("Preenche todos os campos.");
-    return;
-  }
-
-  const confirmar = confirm(`Criar utilizador "${username}"?`);
-  if (!confirmar) return;
-
-  try {
-    const res = await fetch("/api/novo-utilizador", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("token")
-      },
-      body: JSON.stringify({ username, senha })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      alert("Utilizador criado com sucesso!");
-      document.getElementById("novoUsername").value = "";
-      document.getElementById("novaSenha").value = "";
-      document.getElementById("modalNovoUtilizador").style.display = "none";
-      carregarUtilizadores();
-    } else {
-      alert(data.error || "Erro ao criar utilizador.");
-    }
-  } catch (err) {
-    console.error("Erro ao criar utilizador:", err);
-    alert("Erro inesperado.");
-  }
-});
-
-// Abrir e fechar modal
+// Botão Novo Utilizador → redireciona para página de registo
 document.getElementById("btnNovo").addEventListener("click", () => {
-  document.getElementById("modalNovoUtilizador").style.display = "block";
-});
-
-document.getElementById("fecharModal").addEventListener("click", () => {
-  document.getElementById("modalNovoUtilizador").style.display = "none";
-});
-
-window.addEventListener("click", (event) => {
-  if (event.target.id === "modalNovoUtilizador") {
-    document.getElementById("modalNovoUtilizador").style.display = "none";
-  }
+  window.location.href = "/register.html";
 });
 
 document.getElementById("btnLogout")?.addEventListener("click", () => {

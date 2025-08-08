@@ -12,6 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok) throw new Error("Erro ao carregar utilizadores");
 
       const utilizadores = await response.json();
+      // Ordena garantindo que o 'admin' aparece sempre primeiro
+      utilizadores.sort((a, b) => {
+        if (a === "admin") return -1;
+        if (b === "admin") return 1;
+        return a.localeCompare(b, "pt", { sensitivity: "base" });
+      });
       userList.innerHTML = "";
 
       utilizadores.forEach((user) => {

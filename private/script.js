@@ -671,6 +671,16 @@ async function exportarResumoPDF() {
     return;
   }
 
+  // Bloqueia exportação se saldos do dashboard estiverem a zero ou fechados
+  if (
+    (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje) ||
+    (Number.isFinite(dinheiro) && Number.isFinite(multibanco) && Number.isFinite(transferencia) &&
+      dinheiro === 0 && multibanco === 0 && transferencia === 0)
+  ) {
+    alert("Não existem valores a exportar.");
+    return;
+  }
+
   // 2) Gerar PDF com jsPDF
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
