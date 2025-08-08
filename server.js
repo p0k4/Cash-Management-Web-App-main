@@ -480,10 +480,12 @@ app.put("/api/registos/:id", async (req, res) => {
 });
 
 // ✅ Ver saldos do dia (reabre se houver registos depois do fecho)
+// ✅ Ver saldos do dia (zero após fecho; se houver registos depois do fecho, soma só esses)
 app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
   const username = req.user.username;
 
   try {
+    // id do utilizador
     const userQuery = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
@@ -493,79 +495,105 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     }
     const userId = userQuery.rows[0].id;
 
-    // último fecho de hoje
+    // último fecho de HOJE
     const fechoRes = await pool.query(
       `SELECT dinheiro, multibanco, transferencia, total, created_at
-       FROM saldos_diarios
-       WHERE data = CURRENT_DATE AND user_id = $1
-       ORDER BY created_at DESC
-       LIMIT 1`,
+         FROM saldos_diarios
+        WHERE data = CURRENT_DATE AND user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1`,
       [userId]
     );
 
-    // último registo de hoje
-    const registoRes = await pool.query(
+    if (fechoRes.rows.length === 0) {
+      // 👉 Sem fecho hoje: soma TUDO de hoje
+      const somaRes = await pool.query(
+        `SELECT pagamento, SUM(valor) AS total
+           FROM registos
+          WHERE data = CURRENT_DATE AND utilizador = $1
+          GROUP BY pagamento`,
+        [username]
+      );
+
+      let dinheiro = 0, multibanco = 0, transferencia = 0;
+      somaRes.rows.forEach((row) => {
+        const metodo = row.pagamento.split(" ")[0];
+        const v = parseFloat(row.total);
+        if (metodo === "Dinheiro") dinheiro += v;
+        else if (metodo === "Multibanco") multibanco += v;
+        else if (metodo === "Transferência") transferencia += v;
+      });
+
+      return res.json({
+        fechado: false,
+        dinheiro,
+        multibanco,
+        transferencia,
+        total: dinheiro + multibanco + transferencia,
+      });
+    }
+
+    // 👉 Há fecho hoje
+    const fecho = fechoRes.rows[0];
+    const tsFecho = new Date(fecho.created_at);
+
+    // existe ALGUM registo depois do fecho?
+    const ultRegRes = await pool.query(
       `SELECT created_at
          FROM registos
         WHERE data = CURRENT_DATE AND utilizador = $1
+          AND created_at > $2
         ORDER BY created_at DESC
         LIMIT 1`,
-      [username]
+      [username, tsFecho]
     );
 
-    const temFecho = fechoRes.rows.length > 0;
-    const temRegistosHoje = registoRes.rows.length > 0;
+    const haRegistosDepoisDoFecho = ultRegRes.rows.length > 0;
 
-    if (temFecho) {
-      const fecho = fechoRes.rows[0];
-      const tsFecho = new Date(fecho.created_at);
-      const tsUltReg = temRegistosHoje ? new Date(registoRes.rows[0].created_at) : null;
-
-      // Se não houver registos após o fecho, mantém fechado e mostra o fecho
-      if (!tsUltReg || tsUltReg <= tsFecho) {
-        return res.json({
-          fechado: true,
-          dinheiro: parseFloat(fecho.dinheiro),
-          multibanco: parseFloat(fecho.multibanco),
-          transferencia: parseFloat(fecho.transferencia),
-          total: parseFloat(fecho.total),
-        });
-      }
-      // Se houver registos depois do fecho → reabre (cai no cálculo abaixo)
+    if (!haRegistosDepoisDoFecho) {
+      // 🔒 Sem registos após fecho → mostra fecho (fica a zero se fecho foi 0)
+      return res.json({
+        fechado: true,
+        dinheiro: parseFloat(fecho.dinheiro),
+        multibanco: parseFloat(fecho.multibanco),
+        transferencia: parseFloat(fecho.transferencia),
+        total: parseFloat(fecho.total),
+      });
     }
 
-    // Em aberto (sem fecho) ou reaberto: somar registos do dia
-    const somaRes = await pool.query(
+    // 🔓 Reaberto: soma APENAS registos depois do fecho
+    const somaPosFecho = await pool.query(
       `SELECT pagamento, SUM(valor) AS total
          FROM registos
-        WHERE data = CURRENT_DATE AND utilizador = $1
+        WHERE data = CURRENT_DATE
+          AND utilizador = $1
+          AND created_at > $2
         GROUP BY pagamento`,
-      [username]
+      [username, tsFecho]
     );
 
     let dinheiro = 0, multibanco = 0, transferencia = 0;
-    somaRes.rows.forEach((row) => {
+    somaPosFecho.rows.forEach((row) => {
       const metodo = row.pagamento.split(" ")[0];
-      const valor = parseFloat(row.total);
-      if (metodo === "Dinheiro") dinheiro += valor;
-      else if (metodo === "Multibanco") multibanco += valor;
-      else if (metodo === "Transferência") transferencia += valor;
+      const v = parseFloat(row.total);
+      if (metodo === "Dinheiro") dinheiro += v;
+      else if (metodo === "Multibanco") multibanco += v;
+      else if (metodo === "Transferência") transferencia += v;
     });
-
-    const total = dinheiro + multibanco + transferencia;
 
     return res.json({
       fechado: false,
       dinheiro,
       multibanco,
       transferencia,
-      total,
+      total: dinheiro + multibanco + transferencia,
     });
   } catch (err) {
     console.error("❌ ERRO /api/saldos-hoje:", err);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
+
 
 
 // ✅ Fechar saldos do dia (guardar em saldos_diarios)
