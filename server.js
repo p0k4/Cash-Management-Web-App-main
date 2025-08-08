@@ -479,24 +479,23 @@ app.put("/api/registos/:id", async (req, res) => {
   }
 });
 
-// ✅ Ver saldos do dia (reabre se houver registos depois do fecho)
-// ✅ Ver saldos do dia (zero após fecho; se houver registos depois do fecho, soma só esses)
+// ✅ /api/saldos-hoje — devolve saldos do período atual
 app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
   const username = req.user.username;
 
   try {
-    // id do utilizador
-    const userQuery = await pool.query(
+    // 1) obter user_id
+    const { rows: userRows } = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
     );
-    if (!userQuery.rows.length) {
+    if (!userRows.length) {
       return res.status(404).json({ erro: "Utilizador não encontrado." });
     }
-    const userId = userQuery.rows[0].id;
+    const userId = userRows[0].id;
 
-    // último fecho de HOJE
-    const fechoRes = await pool.query(
+    // 2) último fecho de HOJE
+    const { rows: fechos } = await pool.query(
       `SELECT dinheiro, multibanco, transferencia, total, created_at
          FROM saldos_diarios
         WHERE data = CURRENT_DATE AND user_id = $1
@@ -505,9 +504,9 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       [userId]
     );
 
-    if (fechoRes.rows.length === 0) {
-      // 👉 Sem fecho hoje: soma TUDO de hoje
-      const somaRes = await pool.query(
+    // 👉 Sem fecho hoje: somar tudo de hoje
+    if (fechos.length === 0) {
+      const { rows: somaRows } = await pool.query(
         `SELECT pagamento, SUM(valor) AS total
            FROM registos
           WHERE data = CURRENT_DATE AND utilizador = $1
@@ -516,16 +515,16 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       );
 
       let dinheiro = 0, multibanco = 0, transferencia = 0;
-      somaRes.rows.forEach((row) => {
-        const metodo = row.pagamento.split(" ")[0];
-        const v = parseFloat(row.total);
-        if (metodo === "Dinheiro") dinheiro += v;
-        else if (metodo === "Multibanco") multibanco += v;
-        else if (metodo === "Transferência") transferencia += v;
-      });
+      for (const r of somaRows) {
+        const m = (r.pagamento || "").toLowerCase();
+        const v = parseFloat(r.total || 0);
+        if (m.includes("dinheiro")) dinheiro += v;
+        else if (m.includes("multibanco")) multibanco += v;
+        else if (m.includes("transfer")) transferencia += v; // cobre “Transferência Bancária”
+      }
 
       return res.json({
-        fechado: false,
+        fechado: false,           // ainda não há fecho
         dinheiro,
         multibanco,
         transferencia,
@@ -534,35 +533,33 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     }
 
     // 👉 Há fecho hoje
-    const fecho = fechoRes.rows[0];
-    const tsFecho = new Date(fecho.created_at);
+    const fecho = fechos[0];
+    const tsFecho = fecho.created_at;
 
-    // existe ALGUM registo depois do fecho?
-    const ultRegRes = await pool.query(
-      `SELECT created_at
+    // 3) ver se há registos DEPOIS do fecho
+    const { rows: regDepoisFecho } = await pool.query(
+      `SELECT 1
          FROM registos
-        WHERE data = CURRENT_DATE AND utilizador = $1
+        WHERE data = CURRENT_DATE
+          AND utilizador = $1
           AND created_at > $2
-        ORDER BY created_at DESC
         LIMIT 1`,
       [username, tsFecho]
     );
 
-    const haRegistosDepoisDoFecho = ultRegRes.rows.length > 0;
-
-    if (!haRegistosDepoisDoFecho) {
-      // 🔒 Sem registos após fecho → mostra fecho (fica a zero se fecho foi 0)
+    // 🔒 Sem novos registos → mostra o valor do fecho tal como está
+    if (regDepoisFecho.length === 0) {
       return res.json({
         fechado: true,
-        dinheiro: parseFloat(fecho.dinheiro),
-        multibanco: parseFloat(fecho.multibanco),
-        transferencia: parseFloat(fecho.transferencia),
-        total: parseFloat(fecho.total),
+        dinheiro: parseFloat(fecho.dinheiro || 0),
+        multibanco: parseFloat(fecho.multibanco || 0),
+        transferencia: parseFloat(fecho.transferencia || 0),
+        total: parseFloat(fecho.total || 0),
       });
     }
 
-    // 🔓 Reaberto: soma APENAS registos depois do fecho
-    const somaPosFecho = await pool.query(
+    // 🔓 Houve registos após fecho → somar APENAS os posteriores
+    const { rows: somaPos } = await pool.query(
       `SELECT pagamento, SUM(valor) AS total
          FROM registos
         WHERE data = CURRENT_DATE
@@ -573,16 +570,16 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     );
 
     let dinheiro = 0, multibanco = 0, transferencia = 0;
-    somaPosFecho.rows.forEach((row) => {
-      const metodo = row.pagamento.split(" ")[0];
-      const v = parseFloat(row.total);
-      if (metodo === "Dinheiro") dinheiro += v;
-      else if (metodo === "Multibanco") multibanco += v;
-      else if (metodo === "Transferência") transferencia += v;
-    });
+    for (const r of somaPos) {
+      const m = (r.pagamento || "").toLowerCase();
+      const v = parseFloat(r.total || 0);
+      if (m.includes("dinheiro")) dinheiro += v;
+      else if (m.includes("multibanco")) multibanco += v;
+      else if (m.includes("transfer")) transferencia += v;
+    }
 
     return res.json({
-      fechado: false,
+      fechado: false, // reaberto (há movimento pós-fecho)
       dinheiro,
       multibanco,
       transferencia,
@@ -596,53 +593,40 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
 
 
 
+
 // ✅ Fechar saldos do dia (guardar em saldos_diarios)
 app.post("/api/fechar-saldos", verificarToken, async (req, res) => {
   const username = req.user.username;
+  const { dinheiro, multibanco, transferencia, total } = req.body;
 
   try {
+    // 1️⃣ Obter ID do utilizador
     const userQuery = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
     );
+    if (!userQuery.rows.length) {
+      return res.status(404).json({ erro: "Utilizador não encontrado." });
+    }
     const userId = userQuery.rows[0].id;
 
-    // Soma dos registos de HOJE para este utilizador
-    const { rows } = await pool.query(
-      `SELECT pagamento, SUM(valor) as total
-       FROM registos
-       WHERE data = CURRENT_DATE AND utilizador = $1
-       GROUP BY pagamento`,
-      [username]
-    );
-
-    let dinheiro = 0,
-        multibanco = 0,
-        transferencia = 0;
-
-    rows.forEach((r) => {
-      const total = parseFloat(r.total);
-      const p = r.pagamento.toLowerCase();
-      if (p.includes("dinheiro")) dinheiro += total;
-      if (p.includes("multibanco")) multibanco += total;
-      if (p.includes("transferência")) transferencia += total;
-    });
-
-    const total = dinheiro + multibanco + transferencia;
-
-    // Insere fecho para a data do Postgres
+    // 2️⃣ Inserir fecho com timestamp exato
     await pool.query(
-      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id)
-       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5)`,
+      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id, created_at)
+       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, NOW())`,
       [dinheiro, multibanco, transferencia, total, userId]
     );
 
-    res.json({ mensagem: "Saldos fechados com sucesso!" });
+    console.log(`✅ Fecho registado para ${username} (${dinheiro}€ / ${multibanco}€ / ${transferencia}€)`);
+
+    res.json({ sucesso: true, mensagem: "Fecho de saldos registado com sucesso." });
+
   } catch (err) {
-    console.error("❌ ERRO ao fechar saldos:", err);
-    res.status(500).json({ erro: "Erro ao fechar saldos." });
+    console.error("❌ ERRO /api/fechar-saldos:", err);
+    res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
+
 
 // ------------------//
 

@@ -191,40 +191,49 @@ window.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   let username = "Desconhecido";
 
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      username = payload.username || "Desconhecido";
-      const spanNome = document.querySelector(".nome-utilizador");
-      if (spanNome) spanNome.textContent = username;
-    } catch (e) {
-      console.error("Token inválido:", e);
-    }
+  if (!token) {
+    window.location.href = "/login.html";
+    return;
   }
 
-  const userKey = username;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    username = payload.username || "Desconhecido";
+    const spanNome = document.querySelector(".nome-utilizador");
+    if (spanNome) spanNome.textContent = username;
+  } catch (e) {
+    console.error("Token inválido:", e);
+    window.location.href = "/login.html";
+    return;
+  }
+
   if (username !== "admin") {
     const btnApagar = document.getElementById("btnApagarTudo");
     if (btnApagar) btnApagar.style.display = "none";
   }
 
-  // ✅ 1. Carrega saldos e aguarda definição de saldosFechadosHoje
+  const isDashboardPage =
+    window.location.pathname.includes("/dashboard") &&
+    !window.location.pathname.includes("/dashboard/tabela");
+  const isTabelaPage =
+    window.location.pathname.includes("/dashboard/tabela") ||
+    window.location.pathname.endsWith("tabela.html");
+
+  // 1) Sempre: carregar saldos do dia (o dashboard mostra via API)
   await carregarSaldosDoDia();
 
-  // ❌ 2. Se os saldos já estiverem fechados, para aqui.
-  if (saldosFechadosHoje) {
-    console.log("🔒 Saldos fechados — manter zerado.");
-    return;
+  // 2) TABELA: carregar registos e calcular totais locais
+  if (isTabelaPage) {
+    await carregarDadosDoServidor();
+    atualizarTotalTabela();
   }
 
-  // ✅ 3. Só continua se os saldos NÃO estiverem fechados
-  await carregarDadosDoServidor();
-  atualizarTotalTabela();
-
+  // 3) Sequência de nº doc e UI comum
   await carregarNumDocDoServidor();
 
   if (contadorDoc === null || isNaN(contadorDoc)) contadorDoc = 1;
 
+  const userKey = username;
   contadorOperacao = parseIntSeguro(
     localStorage.getItem(`${userKey}_contadorOperacao`),
     1
@@ -234,7 +243,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     localStorage.getItem(`${userKey}_contadorDoc`),
     null
   );
-
   if (storedDoc !== null && storedDoc > contadorDoc) {
     contadorDoc = storedDoc;
   }
@@ -250,12 +258,17 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 function atualizarTotalTabela() {
-  // Se estiver fechado e ainda não reabrimos, não recalcula nem mexe no painel
-  if (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje) {
-    return;
-  }
+  // Só recalcula na página da TABELA e quando NÃO está fechado
+  const isTabelaPage =
+    window.location.pathname.includes("/dashboard/tabela") ||
+    window.location.pathname.endsWith("tabela.html");
+
+  if (!isTabelaPage) return;
+  if (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje) return;
 
   const tabela = document.getElementById("tabelaRegistos");
+  if (!tabela) return;
+
   const linhas = tabela.querySelectorAll("tbody tr");
   let total = 0;
 
@@ -267,8 +280,8 @@ function atualizarTotalTabela() {
 
   linhas.forEach((linha) => {
     if (linha.style.display !== "none") {
-      const valorTexto = linha.cells[4].textContent.replace("€", "").trim();
-      let pagamento = linha.cells[3].textContent.trim();
+      const valorTexto = (linha.cells[4]?.textContent || "").replace("€", "").trim();
+      const pagamento = (linha.cells[3]?.textContent || "").trim();
       const metodoBase = pagamento.split(" (OP TPA")[0].trim();
       const valor = parseFloat(valorTexto.replace(",", "."));
       if (!isNaN(valor)) {
@@ -280,11 +293,15 @@ function atualizarTotalTabela() {
     }
   });
 
-  document.getElementById("totalTabela").textContent =
-    "Total: " + total.toFixed(2) + " €";
+  const totalTabelaEl = document.getElementById("totalTabela");
+  if (totalTabelaEl) {
+    totalTabelaEl.textContent = "Total: " + total.toFixed(2) + " €";
+  }
 
   const totalEl = document.getElementById("total");
-  if (totalEl) totalEl.textContent = total.toFixed(2) + " €";
+  if (totalEl) {
+    totalEl.textContent = total.toFixed(2) + " €";
+  }
 
   const divTotaisPorPagamento = document.getElementById("totaisPagamento");
   if (divTotaisPorPagamento) {
@@ -304,6 +321,7 @@ function atualizarTotalTabela() {
     `;
   }
 }
+
 
 function validarFormulario() {
   const campos = {
