@@ -156,9 +156,15 @@ app.post('/api/login', async (req, res) => {
       [username, password]
     );
 
-    if (result.rows.length === 1) {
-      const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '30m' });
-      return res.json({ token });
+   if (result.rows.length === 1) {
+  const user = result.rows[0];
+  const token = jwt.sign(
+    { username: user.username, id: user.id },
+    JWT_SECRET,
+    { expiresIn: '30m' }
+  );
+  return res.json({ token });
+
     } else {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
@@ -453,95 +459,84 @@ app.put('/api/registos/:id', async (req, res) => {
   }
 });
 // ✅ Ver saldos do dia (usado no dashboard)
-app.get('/api/saldos-hoje', verificarToken, async (req, res) => {
+
+// ✅ Ver saldos do dia (usado no dashboard)
+app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
+  const dataHoje = new Date().toISOString().split("T")[0];
   const username = req.user.username;
 
-  // Data no formato YYYY-MM-DD
-  const hoje = new Date();
-  const dataHoje = hoje.getFullYear() + '-' +
-                   String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
-                   String(hoje.getDate()).padStart(2, '0');
-
   try {
-    const resultado = await pool.query(
-      'SELECT id FROM utilizadores WHERE username = $1',
+    const userQuery = await pool.query(
+      "SELECT id FROM utilizadores WHERE username = $1",
       [username]
     );
-    const userId = resultado.rows[0].id;
+    if (userQuery.rows.length === 0) {
+      return res.status(404).json({ erro: "Utilizador não encontrado." });
+    }
+    const userId = userQuery.rows[0].id;
 
-    // Verifica se já existe fecho de caixa para hoje
-    const fecho = await pool.query(
-      'SELECT * FROM saldos_diarios WHERE data = $1 AND user_id = $2',
+    // 1️⃣ Verifica se já existe fecho de saldos para hoje
+    const resultado = await pool.query(
+      "SELECT * FROM saldos_diarios WHERE data = $1 AND user_id = $2 ORDER BY id DESC LIMIT 1",
       [dataHoje, userId]
     );
 
-    if (fecho.rows.length > 0) {
+    if (resultado.rows.length > 0) {
+      const fecho = resultado.rows[0];
       return res.json({
         fechado: true,
-        dinheiro: parseFloat(fecho.rows[0].dinheiro),
-        multibanco: parseFloat(fecho.rows[0].multibanco),
-        transferencia: parseFloat(fecho.rows[0].transferencia),
-        total: parseFloat(fecho.rows[0].total)
+        dinheiro: parseFloat(fecho.dinheiro),
+        multibanco: parseFloat(fecho.multibanco),
+        transferencia: parseFloat(fecho.transferencia),
+        total: parseFloat(fecho.total),
       });
     }
 
-    // Ainda não foi fechado — calcula com base nos registos do dia
-    const { rows } = await pool.query(`
-      SELECT pagamento, SUM(valor) as total
-      FROM registos
-      WHERE data::date = $1 AND utilizador = $2
-      GROUP BY pagamento
-    `, [dataHoje, username]);
+    // 2️⃣ Se ainda não foi fechado, calcula com base nos registos
+    const query = await pool.query(
+      `SELECT pagamento, SUM(valor) AS total
+       FROM registos
+       WHERE data = $1 AND utilizador = $2
+       GROUP BY pagamento`,
+      [dataHoje, username]
+    );
 
     let dinheiro = 0, multibanco = 0, transferencia = 0;
-    rows.forEach(r => {
-      const total = parseFloat(r.total);
-      if (r.pagamento.toLowerCase().includes('dinheiro')) dinheiro += total;
-      if (r.pagamento.toLowerCase().includes('multibanco')) multibanco += total;
-      if (r.pagamento.toLowerCase().includes('transferência')) transferencia += total;
+    query.rows.forEach(row => {
+      const metodo = row.pagamento.split(" ")[0];
+      const valor = parseFloat(row.total);
+      if (metodo === "Dinheiro") dinheiro += valor;
+      else if (metodo === "Multibanco") multibanco += valor;
+      else if (metodo === "Transferência") transferencia += valor;
     });
 
     const total = dinheiro + multibanco + transferencia;
 
-    res.json({
+    return res.json({
       fechado: false,
       dinheiro,
       multibanco,
       transferencia,
-      total
+      total,
     });
 
   } catch (err) {
-    console.error('Erro ao obter saldos do dia:', err);
-    res.status(500).json({ erro: 'Erro no servidor' });
+    console.error("❌ ERRO /api/saldos-hoje:", err);
+    res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
-
-
 // ✅ Fechar saldos do dia (guardar em saldos_diarios)
 app.post('/api/fechar-saldos', verificarToken, async (req, res) => {
   const username = req.user.username;
   const hoje = new Date();
-  const dataHoje = hoje.getFullYear() + '-' +
-                   String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
-                   String(hoje.getDate()).padStart(2, '0');
+  const dataHoje = hoje.toISOString().split("T")[0];
 
   try {
-    const resultado = await pool.query(
+    const userQuery = await pool.query(
       'SELECT id FROM utilizadores WHERE username = $1',
       [username]
     );
-    const userId = resultado.rows[0].id;
-
-    const existe = await pool.query(
-      'SELECT * FROM saldos_diarios WHERE data = $1 AND user_id = $2',
-      [dataHoje, userId]
-    );
-
-    // // Comentável para testes
-    // if (existe.rows.length > 0) {
-    //   return res.status(400).json({ erro: 'Já existe um fecho de caixa para hoje.' });
-    // }
+    const userId = userQuery.rows[0].id;
 
     const { rows } = await pool.query(`
       SELECT pagamento, SUM(valor) as total
@@ -567,7 +562,7 @@ app.post('/api/fechar-saldos', verificarToken, async (req, res) => {
 
     res.json({ mensagem: 'Saldos fechados com sucesso!' });
   } catch (err) {
-    console.error("Erro ao fechar saldos:", err);
+    console.error("❌ ERRO ao fechar saldos:", err);
     res.status(500).json({ erro: 'Erro ao fechar saldos.' });
   }
 });
