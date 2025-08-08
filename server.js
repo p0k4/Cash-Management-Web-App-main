@@ -83,19 +83,21 @@ pool.query(
 );
 
 // sequencias_doc (guarda a sequência de numDoc por utilizador)
-pool.query(
-  `
+ pool.query(`
   CREATE TABLE IF NOT EXISTS sequencias_doc (
     utilizador TEXT PRIMARY KEY,
-    ultimo_numdoc INTEGER NOT NULL DEFAULT 0,
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    ultimo_numdoc INTEGER NOT NULL
   )
-`,
-  (err) => {
-    if (err) console.error("Erro ao criar tabela sequencias_doc:", err);
-    else console.log('✅ Tabela "sequencias_doc" pronta!');
-  }
-);
+`);
+
+// garante que a coluna updated_at existe
+pool.query(`
+  ALTER TABLE sequencias_doc
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT NOW();
+`, (err) => {
+  if (err) console.error("Erro ao garantir coluna updated_at:", err);
+});
+
 
 // =============================
 // MIDDLEWARES GLOBAIS
@@ -403,9 +405,29 @@ app.post("/api/registar", async (req, res) => {
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
+// ✅ Guardar numDoc atual
+app.post("/api/save-numdoc", verificarToken, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { ultimo_numdoc } = req.body;
 
-// Próximo numDoc
-app.get("/api/next-numdoc", async (req, res) => {
+    await pool.query(
+      `INSERT INTO sequencias_doc (utilizador, ultimo_numdoc, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (utilizador)
+       DO UPDATE SET ultimo_numdoc = $2, updated_at = NOW()`,
+      [username, ultimo_numdoc]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Erro ao salvar numDoc:", err);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+});
+
+// ✅ Obter próximo numDoc
+app.get("/api/next-numdoc", verificarToken, async (req, res) => {
   try {
     const username = req.user.username;
 
@@ -426,26 +448,6 @@ app.get("/api/next-numdoc", async (req, res) => {
   }
 });
 
-// Apagar registos (admin)
-app.delete("/api/registos", async (req, res) => {
-  const username = req.user.username;
-
-  try {
-    if (username !== "admin") {
-      return res
-        .status(403)
-        .json({ error: "Apenas o admin pode apagar todos os dados." });
-    }
-
-    await pool.query("DELETE FROM registos");
-    await pool.query("DELETE FROM sequencias_doc");
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Erro ao apagar registos:", err);
-    res.status(500).json({ error: "Erro no servidor" });
-  }
-});
 
 // Apagar um registo por ID
 app.delete("/api/registos/:id", async (req, res) => {
@@ -477,7 +479,7 @@ app.put("/api/registos/:id", async (req, res) => {
   }
 });
 
-// ✅ Ver saldos do dia (usado no dashboard)
+// ✅ Ver saldos do dia (reabre se houver registos depois do fecho)
 app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
   const username = req.user.username;
 
@@ -491,7 +493,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     }
     const userId = userQuery.rows[0].id;
 
-    // Último fecho de hoje
+    // último fecho de hoje
     const fechoRes = await pool.query(
       `SELECT dinheiro, multibanco, transferencia, total, created_at
        FROM saldos_diarios
@@ -501,7 +503,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       [userId]
     );
 
-    // Último registo de hoje
+    // último registo de hoje
     const registoRes = await pool.query(
       `SELECT created_at
          FROM registos
@@ -519,10 +521,8 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
       const tsFecho = new Date(fecho.created_at);
       const tsUltReg = temRegistosHoje ? new Date(registoRes.rows[0].created_at) : null;
 
-      // Registos depois do fecho => reabre
-      const reaberto = tsUltReg && tsUltReg > tsFecho;
-
-      if (!reaberto) {
+      // Se não houver registos após o fecho, mantém fechado e mostra o fecho
+      if (!tsUltReg || tsUltReg <= tsFecho) {
         return res.json({
           fechado: true,
           dinheiro: parseFloat(fecho.dinheiro),
@@ -531,10 +531,10 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
           total: parseFloat(fecho.total),
         });
       }
-      // senão, cai no cálculo em aberto
+      // Se houver registos depois do fecho → reabre (cai no cálculo abaixo)
     }
 
-    // Em aberto ou reaberto: soma registos do dia
+    // Em aberto (sem fecho) ou reaberto: somar registos do dia
     const somaRes = await pool.query(
       `SELECT pagamento, SUM(valor) AS total
          FROM registos
@@ -566,6 +566,7 @@ app.get("/api/saldos-hoje", verificarToken, async (req, res) => {
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
+
 
 // ✅ Fechar saldos do dia (guardar em saldos_diarios)
 app.post("/api/fechar-saldos", verificarToken, async (req, res) => {

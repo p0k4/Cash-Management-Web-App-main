@@ -761,33 +761,35 @@ const btnEditarDoc = document.getElementById("btnEditarDoc");
 const numDocInput = document.getElementById("num-doc");
 
 if (btnEditarDoc && numDocInput) {
-btnEditarDoc.addEventListener("click", async () => {
-  if (numDocInput.readOnly) {
-    numDocInput.readOnly = false;
-    numDocInput.focus();
-    btnEditarDoc.textContent = "Guardar";
-  } else {
-    const novoValor = parseInt(numDocInput.value);
-    if (isNaN(novoValor) || novoValor < 1) {
-      alert("Insira um número de documento válido!");
-      return;
+  btnEditarDoc.addEventListener("click", async () => {
+    if (numDocInput.readOnly) {
+      numDocInput.readOnly = false;
+      numDocInput.focus();
+      btnEditarDoc.textContent = "Guardar";
+    } else {
+      const novoValor = parseInt(numDocInput.value, 10);
+      if (isNaN(novoValor) || novoValor < 1) {
+        alert("Insira um número de documento válido!");
+        return;
+      }
+
+      contadorDoc = novoValor;
+
+      // (opcional) manter localmente
+      localStorage.setItem("contadorDoc", contadorDoc);
+      localStorage.setItem("contadorDocManual", "true");
+
+      // ✅ sincroniza com o servidor (guarda ultimo_numdoc = contadorDoc - 1)
+      await guardarNumDocNoServidor(contadorDoc - 1);
+
+      numDocInput.readOnly = true;
+      atualizarHintProximoDoc();
+      btnEditarDoc.textContent = "Editar";
+      alert(`Sequência de Nº DOC atualizada para começar em ${contadorDoc}`);
     }
-    contadorDoc = novoValor;
-
-    // 👉 mantém localStorage (se quiseres)
-    localStorage.setItem("contadorDoc", contadorDoc);
-    localStorage.setItem("contadorDocManual", "true");
-
-    // ✅ sincroniza o servidor: guarda ultimo_numdoc = contadorDoc - 1
-    await guardarNumDocNoServidor();
-
-    numDocInput.readOnly = true;
-    atualizarHintProximoDoc();
-    btnEditarDoc.textContent = "Editar";
-    alert(`Sequência de Nº DOC atualizada para começar em ${contadorDoc}`);
-  }
-});
+  });
 }
+
 
 async function carregarNumDocDoServidor() {
   try {
@@ -807,12 +809,12 @@ async function carregarNumDocDoServidor() {
   }
 }
 
-async function guardarNumDocNoServidor() {
+async function guardarNumDocNoServidor(ultimoNumDoc) {
   try {
     await fetchProtegido("/api/save-numdoc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ultimoNumDoc: contadorDoc - 1 }),
+      body: JSON.stringify({ ultimo_numdoc: ultimoNumDoc }), // SNAKE_CASE!
     });
   } catch (err) {
     console.error("Erro ao salvar numDoc no servidor:", err);
