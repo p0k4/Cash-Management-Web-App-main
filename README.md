@@ -1,183 +1,172 @@
+# 💰 Cash Management Web App
 
-# Cash Management Web App
+A full-featured **Cash Management Web Application** built with **HTML, CSS, JavaScript, Node.js, Express, and PostgreSQL**, designed to handle daily cash operations, track payments, and generate detailed reports.  
+The system includes authentication with JWT, role-based user management, daily balance closure, and export options for CSV/PDF.
 
-Sistema de gestão de caixa simples e interativo construído com HTML, CSS, JavaScript e Node.js. 
-Desenhado para gerir transações financeiras (entradas e saídas) para pequenos serviços, 
-como uma **caixa de piscina pública**.
+---
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-- ✅ Gestão de utilizadores com autenticação JWT
-- ✅ Registos financeiros (entradas/saídas)
-- ✅ Saldos diários automáticos
-- ✅ Sequência de documentos por utilizador
-- ✅ Interface web responsiva
-- ✅ Relatórios por período
-- ✅ Sistema de permissões (admin/utilizador)
+### 🔐 Authentication & Security
+- **JWT-based authentication** for secure access.
+- Role-based access:
+  - **Administrator** – Full access, user management, configuration.
+  - **User** – Can register transactions and view data.
+- Automatic **session expiration** and redirect to login.
+- Secure API routes with token validation.
 
-## 📋 Pré-requisitos
+### 📊 Dashboard
+- Real-time display of daily balances by payment method:
+  - 💵 Cash  
+  - 💳 Multibanco (with optional TPA reference)  
+  - 🔄 Bank Transfer
+- Automatic balance calculation after each operation.
+- **Close Balance** button to reset daily totals (values remain in history).
+- Persistent balance status after reload (shows last closure of the day).
 
-- Node.js (versão 16 ou superior)
-- PostgreSQL (versão 12 ou superior)
-- npm ou yarn
+### 🧾 Transactions (Tabela)
+- Register new operations with:
+  - Date
+  - Document number
+  - Payment method
+  - Value
+  - Optional **OP TPA** field for Multibanco payments
+- Edit and delete records inline.
+- Automatic **document sequence** management.
+- Export table data to **CSV** or **PDF**.
 
-## 🛠️ Instalação
+### 📜 History
+- Search operations by **date range**.
+- Filtered results update:
+  - Transaction table
+  - Balance summary
+- Export history to CSV/PDF.
+- Maintains original formatting for OP TPA.
 
-1. **Clone o repositório**
+### 👥 User Management (Admin only)
+- List all registered users with role badges.
+- Create new users.
+- Change passwords.
+- Delete users.
+- Admin role highlighted visually.
+
+### 📦 Data & Storage
+- All data stored in **PostgreSQL**.
+- Separate tables for:
+  - Transactions (`registos`)
+  - Daily balances (`saldos_diarios`)
+  - Users (`utilizadores`)
+- Backend built with **Express** and protected API routes.
+
+---
+
+## 📸 Screenshots
+
+### 🔑 Login
+![Login](docs/images/login.jpeg)
+
+### 📊 Dashboard
+![Dashboard](docs/images/dashboard.jpeg)
+
+### 📋 Transactions Table
+![Tabela](docs/images/Tabela.jpeg)
+
+### 📜 History Page
+![Historico](docs/images/Historico.jpeg)
+
+#### 📄 PDF Example – History
+![PDF Histórico](docs/images/historico_movimentos_2025-08-09_1.jpeg)
+
+#### 📄 PDF Example – Daily Summary
+![PDF Resumo](docs/images/resumo_caixa_2025-08-09_1.jpeg)
+
+### 👥 User Management
+![Utilizadores](docs/images/Utilizadores.jpeg)
+
+### ➕ Register New User
+![Registar Utilizador](docs/images/registar_utilizador.jpeg)
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **HTML5**, **CSS3**, **JavaScript**
+- Responsive design for desktop use
+- Client-side validation
+
+### Backend
+- **Node.js** with **Express**
+- **JWT Authentication**
+- RESTful API architecture
+
+### Database
+- **PostgreSQL**
+- Separate tables for transactions, daily balances, and users
+
+---
+
+## 📂 Project Structure
+
+private/
+├── index.html           # Dashboard
+├── tabela.html          # Transactions table
+├── historico.html       # History page
+├── utilizadores.html    # User management
+├── script.js            # Main dashboard logic
+├── script-tabela.js     # Table logic
+├── script-historico.js  # History page logic
+├── script-utilizadores.js # User management logic
+public/
+├── login.html           # Login page
+server.js                  # Backend API
+
+---
+
+## 📦 Installation
+
+1. **Clone the repository**
    ```bash
-   git clone <url-do-repositorio>
-   cd Cash-Management-Web-App-main
-   ```
+   git clone https://github.com/p0k4/Cash-Management-Web-App-main.git
+   cd cash-management-web-app
 
-2. **Instale as dependências**
-   ```bash
-   npm install
-   ```
+2.	Install dependencies
 
-3. **Configure as variáveis de ambiente**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edite o arquivo `.env` com as suas configurações:
-   ```env
-   # Configurações do Banco de Dados
-   DB_USER=seu_usuario
-   DB_PASSWORD=sua_senha
-   DB_NAME=nome_do_banco
-   DB_HOST=localhost
-   DB_PORT=5432
+npm install
 
-   # Configurações de Segurança
-   JWT_SECRET=seu_jwt_secret_muito_seguro_aqui
-   ADMIN_PASSWORD="sua_senha_admin_secreta"
+3.	Configure environment variables
+Create a .env file with:
 
-   # Configurações do Servidor
-   PORT=3000
-   ```
-
-4. **Configure o banco de dados**
-   ```bash
-   # Execute as migrações
-   psql -U seu_usuario -d nome_do_banco -f migrations.sql
-   ```
-
-5. **Inicie o servidor**
-   ```bash
-   # Desenvolvimento
-   npm run dev
-   
-   # Produção
-   npm start
-   ```
-
-## 🔐 Segurança
-
-### Melhorias Implementadas
-
-- ✅ **Senhas hasheadas** com bcrypt
-- ✅ **JWT tokens** seguros
-- ✅ **Validação de entrada** em todas as rotas
-- ✅ **Middleware de autenticação** robusto
-- ✅ **Tratamento de erros** consistente
-- ✅ **Logs de auditoria** básicos
-
-### Configurações Recomendadas
-
-1. **JWT_SECRET**: Use uma string aleatória de pelo menos 32 caracteres
-2. **ADMIN_PASSWORD**: Configure uma senha forte para administração (use aspas se contiver caracteres especiais)
-3. **HTTPS**: Use HTTPS em produção
-4. **Rate Limiting**: Considere implementar rate limiting
-5. **CORS**: Configure CORS adequadamente para produção
-
-## 📊 Estrutura do Banco de Dados
-
-### Tabelas Principais
-
-- **utilizadores**: Gestão de utilizadores do sistema
-- **registos**: Registos financeiros (entradas/saídas)
-- **saldos_diarios**: Saldos diários por utilizador
-- **sequencias_doc**: Sequências de documentos por utilizador
-
-### Índices
-
-- Índices otimizados para consultas frequentes
-- Constraints de integridade referencial
-- Validações de dados
-
-## 🎯 API Endpoints
-
-### Autenticação (Público)
-- `POST /api/login` - Login de utilizador
-- `POST /api/registar-utilizador` - Registar novo utilizador
-- `GET /api/utilizadores` - Listar utilizadores
-
-### Gestão de Utilizadores (Admin)
-- `GET /api/todos-utilizadores` - Listar todos os utilizadores
-- `POST /api/novo-utilizador` - Criar novo utilizador
-- `DELETE /api/utilizadores/:username` - Apagar utilizador
-- `PUT /api/utilizadores/:username` - Editar utilizador
-
-### Gestão de Registos
-- `GET /api/registos` - Listar registos
-- `GET /api/registos/intervalo` - Registos por período
-- `POST /api/registar` - Criar novo registo
-- `PUT /api/registos/:id` - Editar registo
-- `DELETE /api/registos/:id` - Apagar registo
-
-### Gestão de Saldos
-- `GET /api/saldos-hoje` - Saldos do dia atual
-- `POST /api/fechar-saldos` - Fechar saldos do dia
-
-### Sequências
-- `GET /api/next-numdoc` - Próximo número de documento
-- `POST /api/save-numdoc` - Guardar número de documento
-
-## 🐛 Troubleshooting
-
-### Problemas Comuns
-
-1. **Erro de conexão com banco**
-   - Verifique as credenciais no `.env`
-   - Certifique-se que o PostgreSQL está a correr
-
-2. **JWT_SECRET não configurado**
-   - Configure a variável JWT_SECRET no `.env`
-
-3. **Tabelas não criadas**
-   - Execute o script `migrations.sql`
-
-4. **Erro de permissões**
-   - Verifique se o utilizador tem permissões no banco
-
-## 📝 Logs
-
-O sistema inclui logs detalhados para:
-- Requisições HTTP
-- Erros de autenticação
-- Operações de banco de dados
-- Fechamento de saldos
-
-## 🔄 Atualizações
-
-Para atualizar o sistema:
-
-1. Faça backup do banco de dados
-2. Atualize o código
-3. Execute as novas migrações
-4. Reinicie o servidor
-
-## 📄 Licença
-
-ISC License
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para a feature
-3. Commit as alterações
-4. Push para a branch
-5. Abra um Pull Request
+PORT=3000
+JWT_SECRET=your_jwt_secret
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=POS_BD
 
 
+4.	Run migrations
+
+psql -U postgres -d POS_BD -f migrations.sql
+
+5.	Start the server
+
+npm start
+
+
+	6.	Access the app
+Open: http://localhost:3000
+
+⸻
+
+📜 API Documentation
+
+The full API reference is available in API.md.
+
+⸻
+
+📄 License
+
+This project is licensed under the MIT License.
 

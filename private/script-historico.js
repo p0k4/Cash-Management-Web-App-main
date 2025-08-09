@@ -1,9 +1,18 @@
+// ====================================
 // script-historico.js
+// Histórico de movimentos e saldos por intervalo de datas
+// ====================================
 
+// ====================================
+// Obter token do localStorage
+// ====================================
 function getToken() {
   return localStorage.getItem("token");
 }
 
+// ====================================
+// fetchProtegido - adiciona token JWT no header
+// ====================================
 async function fetchProtegido(url, options = {}) {
   const token = getToken();
   if (!token) {
@@ -16,6 +25,9 @@ async function fetchProtegido(url, options = {}) {
   return fetch(url, options);
 }
 
+// ====================================
+// Buscar registos por intervalo de datas
+// ====================================
 async function buscarPorIntervalo() {
   const inicio = document.getElementById("dataInicio").value;
   const fim = document.getElementById("dataFim").value;
@@ -38,6 +50,9 @@ async function buscarPorIntervalo() {
   }
 }
 
+// ====================================
+// Preencher tabela de histórico
+// ====================================
 function preencherTabela(registos) {
   const tbody = document.querySelector("#tabelaHistorico tbody");
   tbody.innerHTML = "";
@@ -48,11 +63,11 @@ function preencherTabela(registos) {
     const data = new Date(reg.data).toLocaleDateString("pt-PT");
     const pagamento = reg.pagamento + (reg.pagamento === "Multibanco" && reg.op_tpa ? ` (OP TPA: ${reg.op_tpa})` : "");
     const valor = parseFloat(reg.valor).toFixed(2) + " €";
-    const numDoc = reg.numdoc || ""; // Garante que mostra vazio se não existir
+    const numDoc = reg.numdoc || "";
 
     tr.innerHTML = `
       <td>${data}</td>
-      <td>${numDoc}</td> <!-- ALTERADO -->
+      <td>${numDoc}</td>
       <td>${pagamento}</td>
       <td>${valor}</td>
     `;
@@ -61,6 +76,9 @@ function preencherTabela(registos) {
   });
 }
 
+// ====================================
+// Atualizar saldos no histórico
+// ====================================
 function atualizarSaldos(registos) {
   let dinheiro = 0, mb = 0, transf = 0, total = 0;
 
@@ -80,16 +98,11 @@ function atualizarSaldos(registos) {
   document.getElementById("saldoTotal").textContent = total.toFixed(2) + " €";
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  // Opcionalmente carregar dados de hoje por defeito
-});
-
+// ====================================
+// Exportar histórico para PDF
+// ====================================
 function exportarPDFHistorico() {
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF ||
-    typeof window.jspdf.jsPDF !== "function"
-  ) {
+  if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
     return;
   }
@@ -106,17 +119,10 @@ function exportarPDFHistorico() {
     const dataCell = tds[0].textContent.trim();
     const numDocCell = tds[1].textContent.trim();
     const pagamentoCell = tds[2].textContent.trim();
-    let valorTexto = tds[3].textContent.trim().replace(" €", "");
-
-    const valorNum = parseFloat(valorTexto.replace(",", "."));
+    const valorNum = parseFloat(tds[3].textContent.trim().replace(" €", "").replace(",", "."));
     if (!isNaN(valorNum)) total += valorNum;
 
-    data.push([
-      dataCell,
-      numDocCell,
-      pagamentoCell,
-      valorNum.toFixed(2) + " €",
-    ]);
+    data.push([dataCell, numDocCell, pagamentoCell, valorNum.toFixed(2) + " €"]);
   });
 
   doc.setFont("helvetica", "bold");
@@ -138,58 +144,25 @@ function exportarPDFHistorico() {
       console.warn("Erro ao ler token para PDF:", e);
     }
   }
-
   doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
 
   doc.autoTable({
     head: [["Data", "Nº Documento", "Pagamento", "Valor"]],
     body: data,
     startY: 35,
-    styles: {
-      halign: "center",
-      fontSize: 10,
-    },
-    headStyles: {
-      fillColor: [13, 74, 99],
-      textColor: 255,
-      fontStyle: "bold",
-    },
+    styles: { halign: "center", fontSize: 10 },
+    headStyles: { fillColor: [13, 74, 99], textColor: 255, fontStyle: "bold" },
   });
 
   doc.setFont("helvetica", "bold");
-  doc.text(`Total: ${total.toFixed(2)} €`, 200, doc.lastAutoTable.finalY + 10, {
-    align: "right",
-  });
+  doc.text(`Total: ${total.toFixed(2)} €`, 200, doc.lastAutoTable.finalY + 10, { align: "right" });
 
   doc.save(`historico_movimentos_${new Date().toISOString().split("T")[0]}.pdf`);
 }
-function exportarCSVHistorico() {
-  let csvContent = "Data,Nº Doc,Pagamento,Valor\n";
 
-  document.querySelectorAll("#tabelaHistorico tbody tr").forEach((tr) => {
-    const linha = Array.from(tr.children)
-      .map(td => `"${td.textContent.trim()}"`)
-      .join(",");
-    csvContent += linha + "\n";
-  });
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-
-  const dataInicio = document.getElementById("dataInicio").value;
-  const dataFim = document.getElementById("dataFim").value;
-
-  const nomeFicheiro = `historico_${dataInicio}_a_${dataFim}.csv`;
-
-  link.setAttribute("href", URL.createObjectURL(blob));
-  link.setAttribute("download", nomeFicheiro);
-  link.style.display = "none";
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
+// ====================================
+// Exportar histórico para CSV (única versão)
+// ====================================
 function exportarCSVHistorico() {
   const tabela = document.getElementById("tabelaHistorico");
   let csv = "";
@@ -201,11 +174,8 @@ function exportarCSVHistorico() {
     let linhaCSV = [];
 
     celulas.forEach((celula, index) => {
-      let texto = celula.textContent.replace(/\n/g, "").trim();
-      texto = texto.replace(/;/g, ","); // evita problemas com separador
+      let texto = celula.textContent.replace(/\n/g, "").trim().replace(/;/g, ",");
       linhaCSV.push(`"${texto}"`);
-
-      // Soma valor da coluna Valor (última)
       if (idx > 0 && index === 3) {
         let valor = parseFloat(texto.replace("€", "").replace(",", "."));
         if (!isNaN(valor)) total += valor;
@@ -225,6 +195,9 @@ function exportarCSVHistorico() {
   link.click();
 }
 
+// ====================================
+// Logout do utilizador
+// ====================================
 function fazerLogout() {
   localStorage.removeItem("token");
   window.location.href = "/login.html";
@@ -232,25 +205,20 @@ function fazerLogout() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", fazerLogout);
-  }
+  if (btnLogout) btnLogout.addEventListener("click", fazerLogout);
 });
 
-
-
+// ====================================
+// Mostrar nome do utilizador logado
+// ====================================
 async function mostrarNomeUtilizador() {
   try {
     const response = await fetchProtegido("/api/utilizador");
     const dados = await response.json();
-
     const span = document.querySelector(".nome-utilizador");
-    if (span) {
-      span.textContent = dados.username;
-    }
+    if (span) span.textContent = dados.username;
   } catch (err) {
     console.error("Erro ao obter utilizador:", err);
   }
 }
-
 document.addEventListener("DOMContentLoaded", mostrarNomeUtilizador);

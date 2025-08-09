@@ -1,6 +1,29 @@
+/**
+ * ===============================================================
+ *  Ficheiro: private/script-tabela.js
+ *  Página: tabela.html
+ *  Descrição:
+ *    - Carrega registos do backend e renderiza na tabela.
+ *    - Permite filtrar localmente as linhas.
+ *    - Recalcula total visível (após filtro/edições).
+ *    - Suporta editar/apagar registos (via API protegida por JWT).
+ *
+ *  Dependências:
+ *    - JWT no localStorage (Bearer)
+ *    - Rotas backend /api/registos*, /api/utilizador
+ *
+ * 
+ * ===============================================================
+ */
+
 // ====================================
 // Helper para obter o token do localStorage
 // ====================================
+
+/**
+ * Lê o JWT guardado no browser.
+ * @returns {string|null}
+ */
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -8,6 +31,14 @@ function getToken() {
 // ====================================
 // fetchProtegido com Authorization
 // ====================================
+
+/**
+ * Faz fetch anexando o header Authorization: Bearer <token>.
+ * Redireciona para /login.html se não houver token.
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @returns {Promise<Response>|void}
+ */
 async function fetchProtegido(url, options = {}) {
   const token = getToken();
   if (!token) {
@@ -24,6 +55,14 @@ async function fetchProtegido(url, options = {}) {
 // ====================================
 // Carregar dados do servidor
 // ====================================
+
+/**
+ * Busca registos em /api/registos e preenche <tbody> da #tabelaRegistos.
+ * - Formata a data para pt-PT quando possível.
+ * - Acrescenta botões (editar/apagar) por linha.
+ * - Recalcula o total visível no fim.
+ * @returns {Promise<void>}
+ */
 async function carregarDadosDoServidor() {
   try {
     const response = await fetchProtegido("/api/registos");
@@ -37,8 +76,10 @@ async function carregarDadosDoServidor() {
       const novaLinha = tabela.insertRow();
       novaLinha.dataset.id = reg.id;
 
+      // Operação
       novaLinha.insertCell().textContent = reg.operacao;
 
+      // Data (normaliza para dd/mm/aaaa quando possível)
       let dataFormatada = reg.data;
       try {
         const dataObj = new Date(reg.data);
@@ -54,13 +95,17 @@ async function carregarDadosDoServidor() {
       }
       novaLinha.insertCell().textContent = dataFormatada;
 
+      // Nº doc (aceita numDoc ou numdoc vindos da API)
       novaLinha.insertCell().textContent = reg.numDoc ?? reg.numdoc;
 
+      // Pagamento (anexa OP TPA se existir)
       const pagamentoFinal = reg.pagamento + (reg.op_tpa ? ` (OP TPA: ${reg.op_tpa})` : "");
       novaLinha.insertCell().textContent = pagamentoFinal;
 
+      // Valor formatado
       novaLinha.insertCell().textContent = parseFloat(reg.valor).toFixed(2) + " €";
 
+      // Ações
       criarBotoesOpcoes(novaLinha);
     });
 
@@ -74,6 +119,12 @@ async function carregarDadosDoServidor() {
 // ====================================
 // Filtro local na tabela
 // ====================================
+
+/**
+ * Filtra as linhas da tabela localmente com base no texto do input #filtroTabela.
+ * Recalcula o total visível após aplicar o filtro.
+ * @returns {void}
+ */
 function filtrarTabela() {
   const input = document.getElementById("filtroTabela").value.toLowerCase();
   const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
@@ -90,6 +141,12 @@ function filtrarTabela() {
 // ====================================
 // Atualizar total
 // ====================================
+
+/**
+ * Soma os valores (coluna 5) das linhas visíveis da tabela
+ * e atualiza o elemento #totalTabela com o total formatado.
+ * @returns {void}
+ */
 function atualizarTotalTabela() {
   const linhas = document.querySelectorAll("#tabelaRegistos tbody tr");
   let total = 0;
@@ -108,6 +165,14 @@ function atualizarTotalTabela() {
 // ====================================
 // criarBotoesOpcoes COMPLETO COM JWT
 // ====================================
+
+/**
+ * Cria os botões de ação por linha (Editar/Apagar) e liga-os à API protegida.
+ * - DELETE /api/registos/:id → remove a linha se sucesso
+ * - PUT /api/registos/:id → atualiza a linha com valores editados
+ * @param {HTMLTableRowElement} linha
+ * @returns {void}
+ */
 function criarBotoesOpcoes(linha) {
   const cellOpcoes = linha.insertCell();
   cellOpcoes.classList.add("col-opcoes");
@@ -149,6 +214,7 @@ function criarBotoesOpcoes(linha) {
     const estaEditando = btnEditar.textContent.includes("Guardar");
 
     if (!estaEditando) {
+      // Ativa modo de edição: guarda originais e transforma células em inputs
       valoresOriginais = [];
       for (let i = 0; i <= 4; i++) {
         const cell = linha.cells[i];
@@ -157,6 +223,7 @@ function criarBotoesOpcoes(linha) {
         cell.textContent = "";
 
         if (i === 3) {
+          // Select de pagamento + campo OP TPA condicional
           const select = document.createElement("select");
           ["Dinheiro", "Multibanco", "Transferência Bancária"].forEach((opcao) => {
             const opt = document.createElement("option");
@@ -183,10 +250,11 @@ function criarBotoesOpcoes(linha) {
           cell.appendChild(select);
           cell.appendChild(opTPAInput);
         } else {
+          // Inputs para operação, data, numDoc, valor
           const input = document.createElement("input");
           input.type = i === 1 ? "date" : "text";
           if (i === 1) {
-            // valorOriginal no formato dd/mm/aaaa → normaliza sem UTC
+            // valorOriginal no formato dd/mm/aaaa → normaliza para yyyy-mm-dd sem UTC
             const [dd, mm, yyyy] = valorOriginal.split("/");
             input.value = `${yyyy}-${mm}-${dd}`;
           } else {
@@ -199,6 +267,7 @@ function criarBotoesOpcoes(linha) {
 
       btnEditar.innerHTML = '<i class="fas fa-check"></i> Guardar';
 
+      // Botão CANCELAR (só no modo de edição)
       const btnCancelar = document.createElement("button");
       btnCancelar.innerHTML = '<i class="fas fa-times"></i> Cancelar';
       btnCancelar.className = "btn-cancelar-linha";
@@ -214,6 +283,7 @@ function criarBotoesOpcoes(linha) {
 
       cellOpcoes.appendChild(btnCancelar);
     } else {
+      // Guarda edição: recolhe inputs, chama PUT e volta a desenhar a linha
       const operacao = linha.cells[0].querySelector("input").value;
       const data = linha.cells[1].querySelector("input").value;
       const numDoc = parseInt(linha.cells[2].querySelector("input").value);
@@ -260,9 +330,19 @@ function criarBotoesOpcoes(linha) {
 // ====================================
 // Inicializa ao carregar
 // ====================================
+
+/**
+ * No load: carrega os dados do servidor e mostra na tabela.
+ */
 window.addEventListener("DOMContentLoaded", carregarDadosDoServidor);
 
+// ====================================
 // Logout
+// ====================================
+
+/**
+ * Remove token e envia para a página de login.
+ */
 function fazerLogout() {
   localStorage.removeItem("token");
   window.location.href = "/login.html";
@@ -275,7 +355,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Nome do utilizador
+// ====================================
+// Nome do utilizador (UI header)
+// ====================================
+
+/**
+ * Obtém o utilizador atual e mostra o username na barra superior.
+ * @returns {Promise<void>}
+ */
 async function mostrarNomeUtilizador() {
   try {
     const response = await fetchProtegido("/api/utilizador");

@@ -1,3 +1,25 @@
+/**
+ * ===============================================================
+ *  Ficheiro: private/script.js
+ *  Página: index.html (Dashboard)
+ *  Descrição:
+ *    - Gere o dashboard (saldos do dia e registos).
+ *    - Permite inserir/editar/apagar operações.
+ *    - Faz o fecho de saldos (backend) e sincroniza a UI.
+ *    - Exporta CSV/PDF.
+ *    - Interage com o backend (rotas /api/*) via JWT.
+ *
+ *  Dependências: JWT no localStorage, backend Node/Express, jsPDF/autoTable (globais p/ PDF)
+ *  Expõe (para uso via HTML): window.registar, window.exportarRelatorio, window.exportarPDF, window.exportarResumoPDF
+ * ===============================================================
+ */
+
+/**
+ * Atualiza os elementos do DOM com os saldos do dia.
+ * Lê /api/saldos-hoje, respeitando fecho de saldos.
+ * @returns {Promise<void>}
+ */
+
 // ======================================
 // Proteção inicial - redireciona para login se não houver token
 // ======================================
@@ -27,6 +49,13 @@ if (!token) {
 // ======================================
 // fetchProtegido - todas as chamadas fetch usam Authorization
 // ======================================
+
+/**
+ * Faz fetch com cabeçalho Authorization (JWT guardado no localStorage).
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @returns {Promise<Response>}
+ */
 async function fetchProtegido(url, options = {}) {
   const headers = options.headers || {};
   headers["Authorization"] = `Bearer ${token}`;
@@ -34,7 +63,7 @@ async function fetchProtegido(url, options = {}) {
   return fetch(url, options);
 }
 
-// Função para parse seguro com fallback
+/** Parse inteiro “seguro” com fallback. */
 function parseIntSeguro(valor, fallback) {
   return valor !== null && !isNaN(parseInt(valor)) ? parseInt(valor) : fallback;
 }
@@ -88,6 +117,10 @@ function limparFormulario() {
   atualizarCampoOperacao();
 }
 
+/**
+ * Regista uma nova operação e atualiza a tabela do dashboard.
+ * @returns {Promise<void>}
+ */
 async function registar() {
   const valor = parseFloat(document.getElementById("valor").value);
   const pagamento = document.getElementById("pagamento").value;
@@ -174,6 +207,10 @@ async function registar() {
   }
 }
 
+/**
+ * Carrega registos do backend e preenche a tabela do dashboard.
+ * @returns {Promise<void>}
+ */
 async function carregarDadosDoServidor() {
   try {
     const response = await fetchProtegido("/api/registos");
@@ -268,6 +305,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   atualizarCampoOperacao();
 });
 
+/**
+ * Recalcula total e totais por método a partir da tabela visível.
+ * (Só na página da tabela e quando os saldos não estão fechados.)
+ * @returns {void}
+ */
 function atualizarTotalTabela() {
   // Só recalcula na página da TABELA e quando NÃO está fechado
   const isTabelaPage =
@@ -333,7 +375,10 @@ function atualizarTotalTabela() {
   }
 }
 
-
+/**
+ * Valida o formulário (campos obrigatórios simples).
+ * @returns {boolean}
+ */
 function validarFormulario() {
   const campos = {
     data: document.getElementById("data"),
@@ -484,6 +529,10 @@ function criarBotoesOpcoes(linha) {
   cellOpcoes.appendChild(btnApagar);
 }
 
+/**
+ * Exporta a tabela de registos (dashboard) para CSV.
+ * @returns {void}
+ */
 function exportarRelatorio() {
   const tabela = document.getElementById("tabelaRegistos");
   let csv = "";
@@ -520,6 +569,10 @@ function exportarRelatorio() {
   link.click();
 }
 
+/**
+ * Exporta a tabela de registos (dashboard) para PDF.
+ * @returns {void}
+ */
 function exportarPDF() {
   if (
     !window.jspdf ||
@@ -606,11 +659,15 @@ function exportarPDF() {
   doc.save(`relatorio_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
-document
-  .getElementById("btnFecharCaixa")
-  .addEventListener("click", function () {
-    exportarResumoPDF();
-  });
+// Botão “Fechar Caixa” — adiciona listener só se existir
+{
+  const btnFecharCaixa = document.getElementById("btnFecharCaixa");
+  if (btnFecharCaixa) {
+    btnFecharCaixa.addEventListener("click", function () {
+      exportarResumoPDF();
+    });
+  }
+}
 
 // Adiciona listeners para exportação se existirem os botões
 const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
@@ -646,6 +703,10 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+/**
+ * Exporta um resumo PDF dos saldos atuais (via /api/saldos-hoje).
+ * @returns {Promise<void>}
+ */
 async function exportarResumoPDF() {
   if (!window.jspdf || !window.jspdf.jsPDF) {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
@@ -802,7 +863,10 @@ if (btnEditarDoc && numDocInput) {
   });
 }
 
-
+/**
+ * Obtém do servidor o próximo número de documento e bloqueia input.
+ * @returns {Promise<void>}
+ */
 async function carregarNumDocDoServidor() {
   try {
     const response = await fetchProtegido("/api/next-numdoc");
@@ -821,6 +885,11 @@ async function carregarNumDocDoServidor() {
   }
 }
 
+/**
+ * Guarda no servidor o último número de documento emitido.
+ * @param {number} ultimoNumDoc
+ * @returns {Promise<void>}
+ */
 async function guardarNumDocNoServidor(ultimoNumDoc) {
   try {
     await fetchProtegido("/api/save-numdoc", {
@@ -836,6 +905,10 @@ async function guardarNumDocNoServidor(ultimoNumDoc) {
 // ==========================
 // PREPARAR SALDOS A ZERO
 // ==========================
+/**
+ * Preenche o painel com saldos a zero (UI).
+ * @returns {void}
+ */
 function prepararPainelSaldosVazio() {
   const div = document.getElementById("totaisPagamento");
   if (div) {
@@ -864,6 +937,10 @@ function prepararPainelSaldosVazio() {
 // ==========================
 let saldosFechadosHoje = false;
 
+/**
+ * Lê /api/saldos-hoje e atualiza o painel (respeita fecho).
+ * @returns {Promise<void>}
+ */
 async function carregarSaldosDoDia() {
   const token = localStorage.getItem("token");
 
@@ -922,6 +999,10 @@ async function carregarSaldosDoDia() {
 // ==========================
 // ZERAR SALDOS NO FRONTEND
 // ==========================
+/**
+ * Zera visualmente os saldos no painel.
+ * @returns {void}
+ */
 function resetarSaldosFrontend() {
   const valores = document.querySelectorAll(".valor-pagamento");
   valores.forEach((el) => (el.textContent = "0.00 €"));
@@ -1027,3 +1108,20 @@ function verificarSessaoAtiva() {
 
 // Verifica a cada 10 segundos
 setInterval(verificarSessaoAtiva, 10 * 1000);
+
+/* =========================================================
+ * Persistência local (stub) — o código chama esta função.
+ * Mantém-se como no-op para satisfazer ESLint sem mudar lógica.
+ * Substitui pelo que quiseres guardar (ex.: estado da tabela).
+ * =======================================================*/
+function salvarDadosLocal() {
+  // TODO: Implementar persistência local se necessário.
+}
+
+/* =========================================================
+ * Expor funções chamadas via HTML (quando aplicável)
+ * =======================================================*/
+window.registar = registar;
+window.exportarRelatorio = exportarRelatorio;
+window.exportarPDF = exportarPDF;
+window.exportarResumoPDF = exportarResumoPDF;
