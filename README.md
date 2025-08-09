@@ -63,28 +63,28 @@ The system includes authentication with JWT, role-based user management, daily b
 ## 📸 Screenshots
 
 ### 🔑 Login
-![Login](docs/images/login.jpeg)
+![Login](./docs/images/login.png)
 
 ### 📊 Dashboard
-![Dashboard](docs/images/dashboard.jpeg)
+![Dashboard](./docs/images/dashboard.png)
 
 ### 📋 Transactions Table
-![Tabela](docs/images/Tabela.jpeg)
+![Tabela](docs/images/Tabela.png)
 
 ### 📜 History Page
-![Historico](docs/images/Historico.jpeg)
+![Historico](docs/images/Historico.png)
 
 #### 📄 PDF Example – History
-![PDF Histórico](docs/images/historico_movimentos_2025-08-09_1.jpeg)
+![PDF Histórico](docs/images/historico_movimentos_2025-08-09_1.png)
 
 #### 📄 PDF Example – Daily Summary
-![PDF Resumo](docs/images/resumo_caixa_2025-08-09_1.jpeg)
+![PDF Resumo](docs/images/resumo_caixa_2025-08-09_1.png)
 
 ### 👥 User Management
-![Utilizadores](docs/images/Utilizadores.jpeg)
+![Utilizadores](docs/images/Utilizadores.png)
 
 ### ➕ Register New User
-![Registar Utilizador](docs/images/registar_utilizador.jpeg)
+![Registar Utilizador](docs/images/registar_utilizador.png)
 
 ---
 
@@ -108,18 +108,21 @@ The system includes authentication with JWT, role-based user management, daily b
 
 ## 📂 Project Structure
 
+```plaintext
 private/
-├── index.html           # Dashboard
-├── tabela.html          # Transactions table
-├── historico.html       # History page
-├── utilizadores.html    # User management
-├── script.js            # Main dashboard logic
-├── script-tabela.js     # Table logic
-├── script-historico.js  # History page logic
-├── script-utilizadores.js # User management logic
+├── index.html              # Dashboard
+├── tabela.html             # Transactions table
+├── historico.html          # History page
+├── utilizadores.html       # User management
+├── script.js               # Main dashboard logic
+├── script-tabela.js        # Table logic
+├── script-historico.js     # History page logic
+├── script-utilizadores.js  # User management logic
+
 public/
-├── login.html           # Login page
-server.js                  # Backend API
+├── login.html              # Login page
+
+server.js                   # Backend API
 
 ---
 
@@ -132,11 +135,13 @@ server.js                  # Backend API
 
 2.	Install dependencies
 
-npm install
+   npm install
 
 3.	Configure environment variables
-Create a .env file with:
 
+   Create a `.env` file with:
+
+```plaintext
 PORT=3000
 JWT_SECRET=your_jwt_secret
 DB_HOST=localhost
@@ -145,18 +150,18 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 DB_NAME=POS_BD
 
-
 4.	Run migrations
 
-psql -U postgres -d POS_BD -f migrations.sql
+   psql -U postgres -d POS_BD -f migrations.sql
 
 5.	Start the server
 
-npm start
+   npm start
 
 
-	6.	Access the app
-Open: http://localhost:3000
+6.	Access the app
+   
+   Open: http://localhost:3000
 
 ⸻
 
