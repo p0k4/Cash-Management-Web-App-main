@@ -185,7 +185,13 @@ function criarBotoesOpcoes(linha) {
         } else {
           const input = document.createElement("input");
           input.type = i === 1 ? "date" : "text";
-          input.value = i === 1 ? new Date(valorOriginal.split("/").reverse().join("-")).toISOString().split("T")[0] : valorOriginal;
+          if (i === 1) {
+            // valorOriginal no formato dd/mm/aaaa → normaliza sem UTC
+            const [dd, mm, yyyy] = valorOriginal.split("/");
+            input.value = `${yyyy}-${mm}-${dd}`;
+          } else {
+            input.value = valorOriginal;
+          }
           input.style.width = "100%";
           cell.appendChild(input);
         }

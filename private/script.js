@@ -46,10 +46,21 @@ let contadorOperacao = parseIntSeguro(
 );
 let contadorDoc = parseIntSeguro(localStorage.getItem("contadorDoc"), null);
 
+function obterHojeLisboaISO() {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Lisbon",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  // en-CA => YYYY-MM-DD
+  return formatter.format(new Date());
+}
+
 function setarDataAtual() {
   const dataInput = document.getElementById("data");
-  const hoje = new Date().toISOString().split("T")[0];
-  dataInput.value = hoje;
+  const hojeLisboa = obterHojeLisboaISO();
+  if (dataInput) dataInput.value = hojeLisboa;
 }
 
 function atualizarHintProximoDoc() {
