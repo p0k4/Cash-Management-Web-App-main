@@ -1,4 +1,3 @@
-
 # Node.js
 node_modules/
 npm-debug.log*
@@ -23,5 +22,9 @@ logs
 .vscode/
 .idea/
 
-
+# Documentos e notas internas
 notes.md
+CONFIGURACAO_SEGURA.md
+MELHORIAS_IMPLEMENTADAS.md
+API.md
+estrutura_base_dados_pos.md
