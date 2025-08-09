@@ -105,8 +105,8 @@ select:focus {
 /* Saldos */
 .caixa-total {
   background-color: transparent;
-  color: white;
-  padding: 20px;
+  color: inherit;
+  padding: 24px;
   margin-bottom: 15px;
   text-align: center;
   border-radius: 15px;
@@ -287,16 +287,17 @@ button:disabled {
   border: 2px solid #edeff0;
 }
 .total {
-  
-  padding: 5px;
-  padding-left: 100px;
-  padding-right: 100px;
+  padding: 12px 24px;
   background-color: transparent;
   color: #0d4a63;
-  font-size: 24px;
+  font-size: 32px;
+  line-height: 1.2;
   text-align: center;
-  border-radius: 15px;
+  border-radius: 12px;
   border: 2px solid #0d4a63;
+  font-family: monospace;
+  letter-spacing: 1px;
+  text-shadow: none;
 }
 
 
@@ -321,8 +322,12 @@ button:disabled {
 }
 
 .valor-pagamento {
-  color: green;
-  font-weight: bold;
+  color: #0d4a63;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 1px;
+  text-shadow: none;
+  font-size: 18px;
 }
 
 /* Campo de pesquisa */
@@ -741,8 +746,14 @@ th {
 }
 
 .menu-lateral h3 {
-  margin-top: 0;
+  margin: 0 0 10px 0;
   font-size: 18px;
+  color: #0d4a63;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #0d4a63;
+  padding-bottom: 6px;
 }
 
 .menu-lateral ul {
