@@ -62,6 +62,10 @@ The system includes authentication with JWT, role-based user management, daily b
 
 ## 📸 Screenshots
 
+
+### ➕ Register New User
+![Registar Utilizador](docs/images/registar_utilizador.png)
+
 ### 🔑 Login
 ![Login](./docs/images/login.png)
 
@@ -83,8 +87,6 @@ The system includes authentication with JWT, role-based user management, daily b
 ### 👥 User Management
 ![Utilizadores](docs/images/Utilizadores.png)
 
-### ➕ Register New User
-![Registar Utilizador](docs/images/registar_utilizador.png)
 
 ---
 
