@@ -109,40 +109,38 @@ The system includes authentication with JWT, role-based user management, daily b
 ---
 
 ## 📂 Project Structure
-
-```plaintext
+```
 private/
-├── index.html              # Dashboard
-├── tabela.html             # Transactions table
-├── historico.html          # History page
-├── utilizadores.html       # User management
-├── script.js               # Main dashboard logic
-├── script-tabela.js        # Table logic
-├── script-historico.js     # History page logic
-├── script-utilizadores.js  # User management logic
-
+├── index.html             # Dashboard
+├── tabela.html            # Transactions table
+├── historico.html         # History page
+├── utilizadores.html      # User management
+├── script.js              # Main dashboard logic
+├── script-tabela.js       # Table logic
+├── script-historico.js    # History page logic
+├── script-utilizadores.js # User management logic
 public/
-├── login.html              # Login page
-
-server.js                   # Backend API
+├── login.html             # Login page
+server.js                  # Backend API
+```
 
 ---
 
-## 📦 Installation
+## 🛠 Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/p0k4/Cash-Management-Web-App-main.git
-   cd cash-management-web-app
+**1. Clone the repository**
+```bash
+git clone https://github.com/p0k4/Cash-Management-Web-App-main.git
+cd cash-management-web-app
+```
 
-2.	Install dependencies
+**2. Install dependencies**
+```bash
+npm install
+```
 
-   npm install
-
-3.	Configure environment variables
-
-   Create a `.env` file with:
-
+**3. Configure environment variables**  
+Create a `.env` file with:
 ```plaintext
 PORT=3000
 JWT_SECRET=your_jwt_secret
@@ -151,29 +149,32 @@ DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=your_password
 DB_NAME=POS_BD
+```
 
-4.	Run migrations
+**4. Run migrations**
+```bash
+psql -U postgres -d POS_BD -f migrations.sql
+```
 
-   psql -U postgres -d POS_BD -f migrations.sql
+**5. Start the server**
+```bash
+npm start
+```
 
-5.	Start the server
+---
 
-   npm start
+## 🚀 Features
 
+- **User Authentication** with JWT  
+- **Role-based Access Control** (Admin / User)  
+- **Daily Balance Closure** with persistence in DB  
+- **Transaction Recording** with multiple payment methods  
+- **Export Data** to CSV and PDF  
+- **History Search** by date range  
+- **User Management** (add, edit password, delete)  
+- **Secure Backend API** with Express + PostgreSQL  
 
-6.	Access the app
-   
-   Open: http://localhost:3000
+---
 
-⸻
-
-📜 API Documentation
-
-The full API reference is available in API.md.
-
-⸻
-
-📄 License
-
+## 📜 License
 This project is licensed under the MIT License.
-
