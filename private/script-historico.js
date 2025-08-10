@@ -69,6 +69,7 @@ function preencherTabela(registos) {
       <td>${data}</td>
       <td>${numDoc}</td>
       <td>${pagamento}</td>
+      <td>${reg.utilizador || reg.user || ""}</td>
       <td>${valor}</td>
     `;
 
@@ -119,10 +120,11 @@ function exportarPDFHistorico() {
     const dataCell = tds[0].textContent.trim();
     const numDocCell = tds[1].textContent.trim();
     const pagamentoCell = tds[2].textContent.trim();
-    const valorNum = parseFloat(tds[3].textContent.trim().replace(" €", "").replace(",", "."));
+    const utilizadorCell = tds[3].textContent.trim();
+    const valorNum = parseFloat(tds[4].textContent.trim().replace(" €", "").replace(",", "."));
     if (!isNaN(valorNum)) total += valorNum;
 
-    data.push([dataCell, numDocCell, pagamentoCell, valorNum.toFixed(2) + " €"]);
+    data.push([dataCell, numDocCell, pagamentoCell, utilizadorCell, valorNum.toFixed(2) + " €"]);
   });
 
   doc.setFont("helvetica", "bold");
@@ -147,7 +149,7 @@ function exportarPDFHistorico() {
   doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
 
   doc.autoTable({
-    head: [["Data", "Nº Documento", "Pagamento", "Valor"]],
+    head: [["Data", "Nº Documento", "Pagamento", "Utilizador", "Valor"]],
     body: data,
     startY: 35,
     styles: { halign: "center", fontSize: 10 },
@@ -160,40 +162,45 @@ function exportarPDFHistorico() {
   doc.save(`historico_movimentos_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
-// ====================================
-// Exportar histórico para CSV (única versão)
-// ====================================
-function exportarCSVHistorico() {
-  const tabela = document.getElementById("tabelaHistorico");
-  let csv = "";
-  let total = 0;
-  const linhas = tabela.querySelectorAll("tr");
+ // ====================================
+ // Exportar histórico para CSV (única versão)
+ // ====================================
+ function exportarCSVHistorico() {
+   const tabela = document.getElementById("tabelaHistorico");
+   let csv = "";
+   let total = 0;
+   const linhas = tabela.querySelectorAll("tr");
 
-  linhas.forEach((linha, idx) => {
-    const celulas = linha.querySelectorAll("th, td");
-    let linhaCSV = [];
+   linhas.forEach((linha, idx) => {
+     const celulas = linha.querySelectorAll("th, td");
+     let linhaCSV = [];
 
-    celulas.forEach((celula, index) => {
-      let texto = celula.textContent.replace(/\n/g, "").trim().replace(/;/g, ",");
-      linhaCSV.push(`"${texto}"`);
-      if (idx > 0 && index === 3) {
-        let valor = parseFloat(texto.replace("€", "").replace(",", "."));
-        if (!isNaN(valor)) total += valor;
-      }
-    });
+     celulas.forEach((celula, index) => {
+       let texto = celula.textContent.replace(/\n/g, "").trim().replace(/;/g, ",");
+       linhaCSV.push(`"${texto}"`);
 
-    csv += linhaCSV.join(";") + "\n";
-  });
+       // Detecta a última coluna como sendo a coluna do Valor (funciona mesmo com colunas adicionais)
+       if (idx > 0 && index === celulas.length - 1) {
+         let valor = parseFloat(texto.replace("€", "").replace(",", "."));
+         if (!isNaN(valor)) total += valor;
+       }
+     });
 
-  csv += `\n;;;"Total: ${total.toFixed(2)} €"`;
+     csv += linhaCSV.join(";") + "\n";
+   });
 
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `historico_movimentos_${new Date().toISOString().split("T")[0]}.csv`;
-  link.click();
-}
+   // Adiciona total alinhado na última coluna (preenche colunas anteriores com vazio)
+   const headerCount = (tabela.querySelectorAll("thead th").length) || (tabela.querySelectorAll("tr")[0]?.querySelectorAll("th,td").length) || 4;
+   const empties = Array(Math.max(0, headerCount - 1)).fill('""').join(";");
+   csv += `${empties};"Total: ${total.toFixed(2)} €"\n`;
+
+   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+   const url = URL.createObjectURL(blob);
+   const link = document.createElement("a");
+   link.href = url;
+   link.download = `historico_movimentos_${new Date().toISOString().split("T")[0]}.csv`;
+   link.click();
+ }
 
 // ====================================
 // Logout do utilizador

@@ -340,7 +340,7 @@ app.get("/api/registos/intervalo", async (req, res) => {
 
   try {
     const sqlBase = `
-      SELECT data, numdoc, pagamento, valor, op_tpa
+      SELECT data, numdoc, pagamento, valor, op_tpa, utilizador
         FROM registos
        WHERE data BETWEEN $1 AND $2
     `;

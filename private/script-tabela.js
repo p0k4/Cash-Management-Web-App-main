@@ -105,6 +105,9 @@ async function carregarDadosDoServidor() {
       // Valor formatado
       novaLinha.insertCell().textContent = parseFloat(reg.valor).toFixed(2) + " €";
 
+      // Utilizador (quem fez o registo)
+      novaLinha.insertCell().textContent = reg.utilizador || reg.user || "";
+
       // Ações
       criarBotoesOpcoes(novaLinha);
     });
