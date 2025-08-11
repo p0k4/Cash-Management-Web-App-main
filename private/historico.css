@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 40px auto;
   background-color: #e9f0f5;
   border-radius: 20px;
@@ -20,25 +20,125 @@ h1 {
   margin-bottom: 30px;
 }
 
-/* Filtros */
+/* Filtros - tudo numa linha (compacto). Mantém fallback de scroll horizontal em ecrãs mais estreitos. */
 .filtros {
   display: flex;
-  gap: 20px;
-  justify-content: center;
+  flex-wrap: nowrap;               /* força uma linha */
+  gap: 16px;
   align-items: center;
-  margin-bottom: 25px;
+  justify-content: center;         /* centra os filtros horizontalmente */
+  margin-bottom: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  overflow-x: auto;                /* mostra scroll se não couber */
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Labels em linha: ícone + input (texto escondido). Espaçamento reduzido */
+.filtros label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.filtros label i {
+  font-size: 18px;
+  color: #073848;
+}
+
+/* Esconder texto das labels para poupar espaço (mostramos apenas ícone) */
+.filtros .label-text {
+  display: none;
+}
+
+/* Definir larguras compactas por tipo para caberem todos na mesma linha
+   (aumentado ligeiramente o campo de data para mostrar a data completa) */
 .filtros input[type="date"] {
-  padding: 8px;
+  width: 210px;
+  height: 36px;
+}
+.filtros input[type="text"] {
+  width: 110px;
+  height: 36px;
+}
+.filtros select {
+  width: 120px;
+  height: 36px;
+}
+
+/* Aparência uniforme dos campos */
+.filtros input[type="date"],
+.filtros input[type="text"],
+.filtros select {
+  padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-size: 13px;
+  color: #073848;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
+/* Botão de pesquisar na mesma linha, com tamanho fixo */
+.filtros button {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  height: 40px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background-color: #0a9153;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Estilo de foco idêntico ao dos inputs date */
+.filtros input[type="date"]:focus,
+.filtros input[type="text"]:focus,
+.filtros select:focus,
+.filtros button:focus {
+  outline: none;
+  border-color: #0d4a63;
+  box-shadow: 0 0 0 3px rgba(13,74,99,0.06);
+}
+
+/* Scrollbar discreto (opcional) */
+.filtros::-webkit-scrollbar { height: 8px; }
+.filtros::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 6px; }
+
+/* Responsivo: em larguras médias ainda mantém uma linha, mas reduz larguras dos campos */
+@media (max-width: 1100px) {
+  .filtros input[type="date"] { width: 190px; }
+  .filtros input[type="text"] { width: 110px; }
+  .filtros select { width: 120px; }
+  .filtros { gap: 10px; padding: 6px; }
+}
+
+/* Em ecrãs muito pequenos deixamos o comportamento com scroll horizontal */
+@media (max-width: 560px) {
+  .filtros input[type="date"] { width: 100px; }
+  .filtros input[type="text"] { width: 100px; }
+  .filtros select { width: 100px; }
+  .filtros button { padding: 8px 10px; }
+}
+
+/* Mantém estilos do botão */
 .filtros button {
   background-color: #0a9153;
   color: #fff;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border: none;
   border-radius: 8px;
   cursor: pointer;

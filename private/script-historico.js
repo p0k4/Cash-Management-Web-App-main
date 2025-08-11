@@ -31,14 +31,25 @@ async function fetchProtegido(url, options = {}) {
 async function buscarPorIntervalo() {
   const inicio = document.getElementById("dataInicio").value;
   const fim = document.getElementById("dataFim").value;
+  const utilizador = document.getElementById("filtroUtilizador").value.trim();
+  const numDoc = document.getElementById("filtroNumDoc").value.trim();
+  const pagamento = document.getElementById("filtroPagamento").value;
 
   if (!inicio || !fim) {
     alert("Seleciona datas válidas!");
     return;
   }
 
+  // Montar query string dinâmica
+  const params = new URLSearchParams();
+  params.append("inicio", inicio);
+  params.append("fim", fim);
+  if (utilizador) params.append("utilizador", utilizador);
+  if (numDoc) params.append("numdoc", numDoc);
+  if (pagamento) params.append("pagamento", pagamento);
+
   try {
-    const resposta = await fetchProtegido(`/api/registos/intervalo?inicio=${inicio}&fim=${fim}`);
+    const resposta = await fetchProtegido(`/api/registos/intervalo?${params.toString()}`);
     if (!resposta.ok) throw new Error("Erro ao buscar registos");
 
     const registos = await resposta.json();

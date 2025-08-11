@@ -331,7 +331,7 @@ app.get("/api/registos", async (req, res) => {
 
 // Lista registos por intervalo (com/sem filtro por utilizador)
 app.get("/api/registos/intervalo", async (req, res) => {
-  const { inicio, fim } = req.query;
+  const { inicio, fim, utilizador, numdoc, pagamento } = req.query;
   const username = req.user.username;
 
   if (!inicio || !fim) {
@@ -339,22 +339,34 @@ app.get("/api/registos/intervalo", async (req, res) => {
   }
 
   try {
-    const sqlBase = `
+    let sql = `
       SELECT data, numdoc, pagamento, valor, op_tpa, utilizador
         FROM registos
        WHERE data BETWEEN $1 AND $2
     `;
     const params = [inicio, fim];
+    let idx = 3;
 
-    let resultado;
-    if (username === "admin") {
-      resultado = await pool.query(sqlBase + " ORDER BY data ASC", params);
-    } else {
-      resultado = await pool.query(
-        sqlBase + " AND utilizador = $3 ORDER BY data ASC",
-        [...params, username]
-      );
+    // Filtros dinâmicos
+    if (username !== "admin") {
+      sql += ` AND utilizador = $${idx++}`;
+      params.push(username);
+    } else if (utilizador) {
+      sql += ` AND utilizador ILIKE $${idx++}`;
+      params.push(`%${utilizador}%`);
     }
+    if (numdoc) {
+      sql += ` AND CAST(numdoc AS TEXT) ILIKE $${idx++}`;
+      params.push(`%${numdoc}%`);
+    }
+    if (pagamento) {
+      sql += ` AND pagamento = $${idx++}`;
+      params.push(pagamento);
+    }
+
+    sql += " ORDER BY data ASC";
+
+    const resultado = await pool.query(sql, params);
 
     res.json(resultado.rows);
   } catch (err) {

@@ -38,9 +38,37 @@
     <h1>Histórico de Movimentos</h1>
 
     <div class="filtros">
-      <label>Data de início: <input type="date" id="dataInicio" /></label>
-      <label>Data de fim: <input type="date" id="dataFim" /></label>
-      <button onclick="buscarPorIntervalo()">Pesquisar</button>
+      <label title="Data de início">
+        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+        <span class="label-text">Início</span>
+        <input type="date" id="dataInicio" />
+      </label>
+      <label title="Data de fim">
+        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+        <span class="label-text">Fim</span>
+        <input type="date" id="dataFim" />
+      </label>
+      <label title="Utilizador">
+        <i class="fas fa-user" aria-hidden="true"></i>
+        <span class="label-text">User</span>
+        <input type="text" id="filtroUtilizador" placeholder="Utilizador" />
+      </label>
+      <label title="Número do documento">
+        <i class="fas fa-file-invoice" aria-hidden="true"></i>
+        <span class="label-text">Nº Doc</span>
+        <input type="text" id="filtroNumDoc" placeholder="Nº Doc" />
+      </label>
+      <label title="Tipo de Pagamento">
+        <i class="fas fa-credit-card" aria-hidden="true"></i>
+        <span class="label-text">Pagamento</span>
+        <select id="filtroPagamento">
+          <option value="">Todos</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Multibanco">Multibanco</option>
+          <option value="Transferência Bancária">Transferência Bancária</option>
+        </select>
+      </label>
+      <button onclick="buscarPorIntervalo()"><i class="fas fa-search" aria-hidden="true"></i> Pesquisar</button>
     </div>
 
     <div class="saldos">
