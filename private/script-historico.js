@@ -35,22 +35,33 @@ async function buscarPorIntervalo() {
   const numDoc = document.getElementById("filtroNumDoc").value.trim();
   const pagamento = document.getElementById("filtroPagamento").value;
 
-  if (!inicio || !fim) {
-    alert("Seleciona datas válidas!");
+  // Se nenhum campo de pesquisa estiver preenchido, avisar o utilizador
+  if (!inicio && !fim && !utilizador && !numDoc && !pagamento) {
+    alert("preencha um campo de pesquisa !");
     return;
   }
 
-  // Montar query string dinâmica
+  // Montar query string dinâmica (adicionar apenas campos preenchidos)
   const params = new URLSearchParams();
-  params.append("inicio", inicio);
-  params.append("fim", fim);
+  if (inicio) params.append("inicio", inicio);
+  if (fim) params.append("fim", fim);
   if (utilizador) params.append("utilizador", utilizador);
   if (numDoc) params.append("numdoc", numDoc);
   if (pagamento) params.append("pagamento", pagamento);
 
   try {
     const resposta = await fetchProtegido(`/api/registos/intervalo?${params.toString()}`);
-    if (!resposta.ok) throw new Error("Erro ao buscar registos");
+    if (!resposta.ok) {
+      // Tentar ler mensagem do servidor quando disponível
+      let msg = "Erro ao buscar registos";
+      try {
+        const errBody = await resposta.json();
+        if (errBody && errBody.error) msg = errBody.error;
+      } catch (e) {
+        // ignorar
+      }
+      throw new Error(msg);
+    }
 
     const registos = await resposta.json();
     preencherTabela(registos);
@@ -213,30 +224,63 @@ function exportarPDFHistorico() {
    link.click();
  }
 
-// ====================================
-// Logout do utilizador
-// ====================================
-function fazerLogout() {
-  localStorage.removeItem("token");
-  window.location.href = "/login.html";
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) btnLogout.addEventListener("click", fazerLogout);
-});
-
-// ====================================
-// Mostrar nome do utilizador logado
-// ====================================
-async function mostrarNomeUtilizador() {
-  try {
-    const response = await fetchProtegido("/api/utilizador");
-    const dados = await response.json();
-    const span = document.querySelector(".nome-utilizador");
-    if (span) span.textContent = dados.username;
-  } catch (err) {
-    console.error("Erro ao obter utilizador:", err);
-  }
-}
-document.addEventListener("DOMContentLoaded", mostrarNomeUtilizador);
+ // ====================================
+ // Logout do utilizador
+ // ====================================
+ function fazerLogout() {
+   localStorage.removeItem("token");
+   window.location.href = "/login.html";
+ }
+ 
+ document.addEventListener("DOMContentLoaded", () => {
+   const btnLogout = document.getElementById("btnLogout");
+   if (btnLogout) {
+     btnLogout.addEventListener("click", () => {
+       if (confirm("Deseja Sair ?")) {
+         fazerLogout();
+       }
+     });
+   }
+ });
+ 
+ // ====================================
+ // Mostrar nome do utilizador logado
+ // ====================================
+ async function mostrarNomeUtilizador() {
+   try {
+     const response = await fetchProtegido("/api/utilizador");
+     const dados = await response.json();
+     const span = document.querySelector(".nome-utilizador");
+     if (span) span.textContent = dados.username;
+   } catch (err) {
+     console.error("Erro ao obter utilizador:", err);
+   }
+ }
+ 
+ // ====================================
+ // Carregar lista de utilizadores para o filtro (dropdown)
+ // ====================================
+ async function carregarUtilizadores() {
+   try {
+     const resposta = await fetch("/api/utilizadores");
+     if (!resposta.ok) throw new Error("Não foi possível obter a lista de utilizadores");
+     const users = await resposta.json();
+     const select = document.getElementById("filtroUtilizador");
+     if (!select) return;
+     // limpar e adicionar opção padrão
+     select.innerHTML = '<option value="">Todos</option>';
+     users.forEach((u) => {
+       const opt = document.createElement("option");
+       opt.value = u;
+       opt.textContent = u;
+       select.appendChild(opt);
+     });
+   } catch (err) {
+     console.error("Erro ao carregar utilizadores:", err);
+   }
+ }
+ 
+ document.addEventListener("DOMContentLoaded", () => {
+   mostrarNomeUtilizador();
+   carregarUtilizadores();
+ });

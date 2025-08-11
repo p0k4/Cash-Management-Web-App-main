@@ -824,8 +824,7 @@ async function exportarResumoPDF() {
 }
 
 document.getElementById("btnLogout").addEventListener("click", function () {
-  const confirmar = confirm("Tem a certeza que deseja terminar sessão?");
-  if (!confirmar) return;
+  if (!confirm("Deseja Sair ?")) return;
   localStorage.removeItem("token");
   window.location.href = "/login.html";
 });

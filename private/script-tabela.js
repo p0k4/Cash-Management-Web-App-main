@@ -339,24 +339,28 @@ function criarBotoesOpcoes(linha) {
  */
 window.addEventListener("DOMContentLoaded", carregarDadosDoServidor);
 
-// ====================================
-// Logout
-// ====================================
-
-/**
- * Remove token e envia para a página de login.
- */
-function fazerLogout() {
-  localStorage.removeItem("token");
-  window.location.href = "/login.html";
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", fazerLogout);
-  }
-});
+ // ====================================
+ // Logout
+ // ====================================
+ 
+ /**
+  * Remove token e envia para a página de login.
+  */
+ function fazerLogout() {
+   localStorage.removeItem("token");
+   window.location.href = "/login.html";
+ }
+ 
+ document.addEventListener("DOMContentLoaded", () => {
+   const btnLogout = document.getElementById("btnLogout");
+   if (btnLogout) {
+     btnLogout.addEventListener("click", () => {
+       if (confirm("Deseja Sair ?")) {
+         fazerLogout();
+       }
+     });
+   }
+ });
 
 // ====================================
 // Nome do utilizador (UI header)

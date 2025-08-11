@@ -30,7 +30,7 @@
     <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
     <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
     <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Movimentos (pesquisa)</a></li>
-    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    <li><a class="btn-menu btn-logout" id="btnLogout" onclick="if(!confirm('Deseja Sair ?')) return; localStorage.removeItem('token'); window.location.href='/login.html';"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
   </ul>
 </div>
 <body>
@@ -51,7 +51,9 @@
       <label title="Utilizador">
         <i class="fas fa-user" aria-hidden="true"></i>
         <span class="label-text">User</span>
-        <input type="text" id="filtroUtilizador" placeholder="Utilizador" />
+        <select id="filtroUtilizador">
+          <option value="">Todos</option>
+        </select>
       </label>
       <label title="Número do documento">
         <i class="fas fa-file-invoice" aria-hidden="true"></i>

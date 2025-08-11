@@ -116,10 +116,11 @@ document.getElementById("btnNovo").addEventListener("click", () => {
   window.location.href = "/register.html";
 });
 
-// ====================================
-// Botão Logout → remove token e volta ao login
-// ====================================
+ // ====================================
+ // Botão Logout → remove token e volta ao login
+ // ====================================
 document.getElementById("btnLogout")?.addEventListener("click", () => {
+  if (!confirm("Deseja Sair ?")) return;
   localStorage.removeItem("token");
   window.location.href = "/login.html";
 });

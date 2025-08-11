@@ -334,27 +334,35 @@ app.get("/api/registos/intervalo", async (req, res) => {
   const { inicio, fim, utilizador, numdoc, pagamento } = req.query;
   const username = req.user.username;
 
-  if (!inicio || !fim) {
-    return res.status(400).json({ error: "Datas inválidas." });
-  }
-
   try {
+    // Construir query dinamicamente; permitir pesquisas sem datas
     let sql = `
       SELECT data, numdoc, pagamento, valor, op_tpa, utilizador
         FROM registos
-       WHERE data BETWEEN $1 AND $2
+       WHERE 1=1
     `;
-    const params = [inicio, fim];
-    let idx = 3;
+    const params = [];
+    let idx = 1;
+
+    // Filtro por datas (apenas se ambas as datas foram fornecidas)
+    if (inicio && fim) {
+      sql += ` AND data BETWEEN $${idx++} AND $${idx++}`;
+      params.push(inicio, fim);
+    } else if ((inicio && !fim) || (!inicio && fim)) {
+      // Se apenas uma das datas for fornecida, pedir ambos (evita confusão)
+      return res.status(400).json({ error: "Ambas as datas (inicio e fim) devem ser fornecidas para filtrar por intervalo." });
+    }
 
     // Filtros dinâmicos
     if (username !== "admin") {
+      // utilizador não-admin vê apenas os seus registos
       sql += ` AND utilizador = $${idx++}`;
       params.push(username);
     } else if (utilizador) {
       sql += ` AND utilizador ILIKE $${idx++}`;
       params.push(`%${utilizador}%`);
     }
+
     if (numdoc) {
       sql += ` AND CAST(numdoc AS TEXT) ILIKE $${idx++}`;
       params.push(`%${numdoc}%`);
