@@ -263,8 +263,14 @@ tbody tr:hover {
 }
 
 .menu-lateral h3 {
-  margin-top: 0;
+  margin: 0 0 10px 0;
   font-size: 18px;
+  color: #0d4a63;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #0d4a63;
+  padding-bottom: 6px;
 }
 
 .menu-lateral ul {
