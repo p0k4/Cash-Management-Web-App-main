@@ -96,6 +96,33 @@ select {
   transition: box-shadow .18s ease, transform .1s ease;
 }
 
+/* Input with currency symbol positioned near the center of the balão,
+   slightly shifted to the left as requested. Keeps same dashboard blue color. */
+.input-com-symbol {
+  position: relative;
+  display: inline-block;
+  width: 180px; /* matches .input-pequeno by default */
+}
+.input-com-symbol .currency {
+  position: absolute;
+  right: 12px; /* moved a bit closer to the right edge (not on the border) */
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0d4a63; /* same blue as dashboard */
+  font-weight: 800;
+  font-size: 20px;
+  pointer-events: none;
+  line-height: 1;
+  text-align: center;
+  width: 28px;
+}
+/* Make the input inside have space so the symbol doesn't overlap the text */
+.input-com-symbol input,
+.input-com-symbol input[type="number"] {
+  padding-right: 48px !important; /* adjusted for the symbol closer to the edge */
+  box-sizing: border-box;
+}
+
 input:focus,
 select:focus {
   outline: none;
