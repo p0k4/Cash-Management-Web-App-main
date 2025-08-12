@@ -185,27 +185,27 @@ input[type=number] {
   display: none !important;
 }
 
-/* Icon buttons styling (small, neutral, fits the form) */
+/* Icon buttons styling (small, neutral, slightly larger per request) */
 .pay-mode-btn {
   background: transparent;
   border: 2px solid rgba(13,74,99,0.06);
   color: #0d4a63;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 18px;
+  padding: 12px 14px; /* slightly larger click area */
+  border-radius: 14px;
+  font-size: 20px; /* increased icon size */
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
-  box-shadow: 0 6px 14px rgba(13,74,99,0.04);
+  box-shadow: 0 8px 18px rgba(13,74,99,0.06);
 }
 
 /* Slight hover effect */
 .pay-mode-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(13,74,99,0.06);
-  background: rgba(13,74,99,0.04);
+  box-shadow: 0 12px 28px rgba(13,74,99,0.08);
+  background: rgba(13,74,99,0.06);
 }
 
 /* Visual selected state */
