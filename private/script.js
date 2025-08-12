@@ -856,7 +856,7 @@ if (btnEditarDoc && numDocInput) {
 
       numDocInput.readOnly = true;
       atualizarHintProximoDoc();
-      btnEditarDoc.textContent = "Editar";
+      btnEditarDoc.textContent = "INICIAR";
       alert(`Sequência de Nº DOC atualizada para começar em ${contadorDoc}`);
     }
   });

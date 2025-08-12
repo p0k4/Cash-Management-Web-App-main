@@ -64,7 +64,7 @@
           <div class="num-doc-wrapper">
             <input type="number" id="num-doc" placeholder="Nº DOC" name="num-doc" class="input-pequeno" required
               readonly />
-            <button type="button" id="btnEditarDoc" class="btn-editar-doc">Editar</button>
+            <button type="button" id="btnEditarDoc" class="btn-editar-doc"><i class="fas fa-play"></i> INICIAR</button>
           </div>
           <small id="proximo-doc" style="color: gray; font-style: italic"></small>
 
@@ -102,19 +102,17 @@
             <span class="title-opcoes">OPÇÕES</span>
             </br></br>
             <div class="acao-botoes">
-              <button id="btnRegistar" class="btn-registar" onclick="registar()">
-                <i class="fas fa-save"></i> REGISTAR
+              <button id="btnRegistar" class="btn-registar btn-modern" onclick="registar()">
+                <i class="fas fa-play"></i> REGISTAR
               </button>
               <button type="button" id="btnFecharCaixa" class="btn-exportar btn-modern"
                 title="Exportar resumo do caixa (PDF)">
                 <i class="fas fa-file-pdf"></i> RESUMO CAIXA
               </button>
-
-              <button type="button" id="btnFecharSaldos" class="btn-reiniciar-pos"
-                title="Exportar resumo do caixa (PDF)">
+              <button type="button" id="btnFecharSaldos" class="btn-reiniciar-pos btn-modern"
+                title="Fechar caixa">
                 <i class="fas fa-sync-alt"></i> FECHO CAIXA
               </button>
-              
             </div>
             <div class="acao-botoes" style="justify-content: center; display: flex; margin-top: 10px;">
               <a href="/dashboard/tabela">
