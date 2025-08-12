@@ -494,6 +494,41 @@ table {
   border: 1px solid #b3d7ef;
 }
 
+/* Editable row inputs (only affect inputs/selects inserted into table rows).
+   Limits width and font-size so edit fields are compact — does NOT affect
+   dashboard "baloes" or global form inputs because selector targets table rows. */
+#tabelaRegistos tbody tr input,
+#tabelaRegistos tbody tr select,
+.tabela-utilizadores tbody tr input,
+.tabela-utilizadores tbody tr select {
+  width: auto !important;
+  max-width: 140px !important;
+  padding: 6px 10px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important;
+  border: 1px solid rgba(13,74,99,0.12) !important;
+  height: 36px !important;
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+}
+
+/* If an input/select was previously set to display:block/full-width inline,
+   ensure it sits nicely inside the table cell and doesn't force the layout. */
+#tabelaRegistos tbody tr td input,
+#tabelaRegistos tbody tr td select,
+.tabela-utilizadores tbody tr td input,
+.tabela-utilizadores tbody tr td select {
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Small helper: OP TPA input used inside table editing can be slightly narrower */
+#tabelaRegistos tbody tr input[placeholder="OP TPA"],
+.tabela-utilizadores tbody tr input[placeholder="OP TPA"] {
+  max-width: 100px !important;
+}
+
 th,
 td {
   padding: 12px 15px;
