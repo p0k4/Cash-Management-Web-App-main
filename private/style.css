@@ -464,17 +464,21 @@ button:disabled {
 }
 
 .label-pagamento {
-  font-weight: bold;
+  font-weight: 800;
   color: #0d4a63;
+  font-size: 22px; /* reduzido um pouco conforme pedido */
+  margin-right: 12px;
 }
 
 .valor-pagamento {
   color: #0d4a63;
-  font-weight: 700;
+  font-weight: 800;
   font-family: monospace;
   letter-spacing: 1px;
   text-shadow: none;
-  font-size: 18px;
+  font-size: 24px; /* reduzido um pouco conforme pedido */
+  min-width: 140px;
+  text-align: right;
 }
 
 /* Campo de pesquisa */
