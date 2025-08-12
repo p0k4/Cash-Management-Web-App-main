@@ -689,6 +689,56 @@ document.getElementById("pagamento").addEventListener("change", function () {
   }
 });
 
+/* Payment mode icon buttons: clicking an icon sets the selected mode via the hidden select,
+   shows the OP TPA "balão" only when Multibanco is active, and highlights the chosen icon. */
+(function wirePaymentIcons() {
+  const payBtns = Array.from(document.querySelectorAll(".pay-mode-btn"));
+  const pagamentoSelect = document.getElementById("pagamento");
+  const campoTPA = document.getElementById("campo-tpa");
+  const opTPA = document.getElementById("op-tpa");
+
+  if (!payBtns.length) return;
+
+  function setActive(mode) {
+    payBtns.forEach((b) => {
+      if (b.dataset.pay === mode) b.classList.add("active");
+      else b.classList.remove("active");
+    });
+
+    // show/hide the OP TPA balão
+    if (campoTPA) {
+      if (mode === "Multibanco") {
+        campoTPA.style.display = "block";
+        if (opTPA) opTPA.focus();
+      } else {
+        campoTPA.style.display = "none";
+        if (opTPA) opTPA.value = "";
+      }
+    }
+  }
+
+  // Click on icon -> set select value, dispatch change and update active state
+  payBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.pay;
+      if (pagamentoSelect) {
+        pagamentoSelect.value = mode;
+        pagamentoSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      setActive(mode);
+    });
+  });
+
+  // If select changes (kept hidden for accessibility), update active icons and campoTPA
+  if (pagamentoSelect) {
+    pagamentoSelect.addEventListener("change", function () {
+      setActive(this.value);
+    });
+    // initialize active state from current select value (or none)
+    setActive(pagamentoSelect.value || "");
+  }
+})();
+
 // Salva o contador antes de sair ou recarregar
 window.addEventListener("beforeunload", () => {
   localStorage.setItem("contadorOperacao", contadorOperacao);

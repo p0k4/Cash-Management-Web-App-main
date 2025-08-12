@@ -68,9 +68,21 @@
           </div>
           <small id="proximo-doc" style="color: gray; font-style: italic"></small>
 
-          <div style="display: flex; align-items: flex-end; gap: 10px;">
+            <div style="display: flex; align-items: flex-end; gap: 10px;">
             <div>
-              <label for="pagamento">PAGAMENTO</label>
+              <label for="pagamento">PAGAMENTO</label><br>
+              <!-- payment mode icons: click an icon to select mode (Dinheiro, Multibanco, Transferência) -->
+              <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                <button type="button" class="pay-mode-btn" data-pay="Dinheiro" title="Dinheiro">
+                  <i class="fas fa-coins"></i>
+                </button>
+                <button type="button" class="pay-mode-btn" data-pay="Multibanco" title="Multibanco (OP TPA)">
+                  <i class="fas fa-credit-card"></i>
+                </button>
+                <button type="button" class="pay-mode-btn" data-pay="Transferência Bancária" title="Transferência Bancária">
+                  <i class="fas fa-university"></i>
+                </button>
+              </div>
               <select id="pagamento" name="pagamento" class="input-medio">
                 <option value="" disabled selected>-- Modo pagamento --</option>
                 <option value="Dinheiro">Dinheiro</option>

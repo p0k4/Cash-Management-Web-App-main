@@ -151,6 +151,44 @@ input[type=number] {
   flex-wrap: wrap;
 }
 
+/* Payment icons: use icons instead of showing the select by default.
+   The select #pagamento stays in the DOM for accessibility but is hidden;
+   only the OP TPA "balão" (#campo-tpa) appears when Multibanco is selected. */
+#pagamento {
+  display: none !important;
+}
+
+/* Icon buttons styling (small, neutral, fits the form) */
+.pay-mode-btn {
+  background: transparent;
+  border: 2px solid rgba(13,74,99,0.06);
+  color: #0d4a63;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+  box-shadow: 0 6px 14px rgba(13,74,99,0.04);
+}
+
+/* Slight hover effect */
+.pay-mode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(13,74,99,0.06);
+  background: rgba(13,74,99,0.04);
+}
+
+/* Visual selected state */
+.pay-mode-btn.active {
+  background: linear-gradient(180deg,#0d4a63 0%, #0b3a4f 100%);
+  color: #fff;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 18px 40px rgba(13,74,99,0.12);
+}
+
 button {
   -webkit-font-smoothing: antialiased;
   background: linear-gradient(180deg,#0d4a63 0%, #0b3a4f 100%);
