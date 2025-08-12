@@ -36,7 +36,7 @@ async function carregarUtilizadores() {
           <button class="btn-editar" data-user="${u.username}">
             <i class="fa-solid fa-key"></i> Alterar senha
           </button>
-          <button class="btn-apagar" data-user="${u.username}">
+          <button class="btn-apagar" data-user="${u.username}" style="background: linear-gradient(180deg,#dc3545 0%, #b02a37 100%) !important; color: #fff !important; border: 2px solid #b02a37 !important;">
             <i class="fa-solid fa-user-xmark"></i> Apagar
           </button>
         </td>
