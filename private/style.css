@@ -127,48 +127,139 @@ input[type=number] {
 }
 
 
-/* Botões */
-.acao-botoes {
-  justify-content: center;
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+/* Botões - estilo moderno */
+:root {
+  --btn-radius: 12px;
+  --btn-padding-y: 10px;
+  --btn-padding-x: 18px;
+  --shadow-small: 0 6px 18px rgba(13,74,99,0.12);
+  --shadow-hover: 0 10px 24px rgba(13,74,99,0.16);
 }
+
+.acao-botoes,
 .export-botoes {
   justify-content: center;
   display: flex;
-  gap: 10px;
-  padding-top: 15px;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
+
 button {
-  background-color: #0d4a63;
-  color: white;
-  padding: 10px 18px;
+  -webkit-font-smoothing: antialiased;
+  background: linear-gradient(180deg,#0d4a63 0%, #0b3a4f 100%);
+  color: #fff;
+  padding: var(--btn-padding-y) var(--btn-padding-x);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--btn-radius);
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 700;
   font-size: 14px;
-  transition: background-color 0.3s ease;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  box-shadow: var(--shadow-small);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  backface-visibility: hidden;
 }
 
 button:hover {
-  background-color: #146283;
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  opacity: 0.98;
+}
+
+button:active {
+  transform: translateY(-1px) scale(.995);
 }
 
 button:disabled {
-  background-color: #ccc;
+  background: #dcdcdc;
+  color: #888;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.7;
+}
+
+/* Variantes úteis */
+.btn-modern { /* utilitária; aplica-se a qualquer botão para aparência moderna */
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  border-radius: var(--btn-radius);
 }
 
 .btn-apagar-linha {
-  background-color: #dc3545; /* Vermelho */
+  background: linear-gradient(180deg,#dc3545 0%, #b02a37 100%);
   color: white;
-  border: none;
   margin-top: 5px;
-  padding: 5px 10px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 10px;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgba(220,53,69,0.2);
+  border: none;
+}
+
+.btn-apagar-linha:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(176,42,55,0.25); }
+
+/* Variantes por propósito (uso nas classes existentes) */
+.btn-registar {
+  background: linear-gradient(180deg,#34c759 0%, #28a745 100%);
+  color: #fff;
+  padding: 10px 18px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(40,167,69,0.18);
+  transition: transform .12s ease, box-shadow .12s ease;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-registar:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(40,167,69,0.22); }
+
+/* Exportar - warning */
+.btn-exportar {
+  background: linear-gradient(180deg,#ffbf3b 0%, #ffc107 100%);
+  color: #102027;
+  font-weight: 700;
+  padding: 10px 18px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(255,193,7,0.16);
+  transition: transform .12s ease, box-shadow .12s ease;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.btn-exportar:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(255,193,7,0.22); }
+
+/* Reiniciar / Ações secundárias */
+.btn-reiniciar-pos {
+  background: linear-gradient(180deg,#0b6bb0 0%, #083975 100%);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(8,57,117,0.14);
+}
+
+.btn-reiniciar-pos:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(8,57,117,0.18); }
+
+/* Ghost / outline variant (e.g., options ghost) */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(13,74,99,0.12);
+  color: #0d4a63;
+  box-shadow: none;
 }
 
 /* Botões da tabela de utilizadores */
@@ -417,7 +508,7 @@ th {
   box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
     border-radius: 15px;
-  border: 2px solid #0d4a63
+  border: 2px solid #1e7e34;
 }
 
 .btn-registar:hover {
@@ -432,22 +523,25 @@ th {
   box-shadow: none;
 }
 
-/* Estilo base para exportar */
+/* Estilo base para exportar (tonalidade ajustada) */
 .btn-exportar {
-  background-color: #ffc107; /* amarelo */
-  color: #212529;
-  font-weight: bold;
+  background: linear-gradient(180deg,#ff9f3b 0%, #e25813 100%);
+  color: #ffffff;
+  font-weight: 700;
   padding: 10px 18px;
   border: none;
-  box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 15px;
-  border: 2px solid #0d4a63
+  box-shadow: 0 8px 22px rgba(226,88,19,0.18);
+  transition: transform .12s ease, box-shadow .12s ease;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
 }
 
 .btn-exportar:hover {
-  background-color: #e0a800;
-  box-shadow: 0 6px 14px rgba(255, 193, 7, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(226,88,19,0.24);
 }
 
 .btn-voltar {
