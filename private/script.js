@@ -117,6 +117,49 @@ function limparFormulario() {
   atualizarCampoOperacao();
 }
 
+function showSuccess(message) {
+  // cria (ou reutiliza) um toast de sucesso maior e mais visível no body
+  let el = document.getElementById("reg-success");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "reg-success";
+    el.className = "success-message";
+    // estilos inline para garantir visibilidade consistente
+    el.style.display = "none";
+    el.style.position = "fixed";
+    el.style.top = "12px";
+    el.style.left = "50%";
+    el.style.transform = "translateX(-50%)";
+    el.style.zIndex = "9999";
+    el.style.padding = "24px 36px";
+    el.style.borderRadius = "14px";
+    el.style.background = "#d4edda";
+    el.style.color = "#155724";
+    el.style.border = "1px solid #c3e6cb";
+    el.style.boxShadow = "0 12px 40px rgba(0,0,0,0.18)";
+    el.style.fontSize = "28px";
+    el.style.fontWeight = "900";
+    el.style.letterSpacing = "0.5px";
+    el.style.lineHeight = "1.05";
+    el.style.maxWidth = "800px";
+    el.style.textAlign = "center";
+    el.style.whiteSpace = "normal";
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.style.display = "block";
+  el.style.opacity = "1";
+  el.style.transition = "opacity 0.25s ease";
+  // garante que só um timeout existe
+  clearTimeout(window._regSuccessTimeout);
+  window._regSuccessTimeout = setTimeout(() => {
+    el.style.opacity = "0";
+    setTimeout(() => {
+      el.style.display = "none";
+    }, 300);
+  }, 6000);
+}
+
 /**
  * Regista uma nova operação e atualiza a tabela do dashboard.
  * @returns {Promise<void>}
@@ -186,6 +229,13 @@ async function registar() {
         contadorOperacao++;
         limparFormulario();
         atualizarTotalTabela();
+
+        // Mostrar mensagem de sucesso ao utilizador
+        try {
+          showSuccess("Registado com sucesso ✅");
+        } catch (e) {
+          console.warn("showSuccess não disponível:", e);
+        }
 
         // 🔓 Reabrir saldos se já estavam fechados
         if (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje) {
