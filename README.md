@@ -47,16 +47,15 @@ The system includes authentication with JWT, role-based user management, daily b
 - Export history to CSV/PDF.
 - Maintains original formatting for OP TPA.
 
-### 🧮 Closures (Fechos)
-
-•	View all daily cash closures made by users.
-•	Each entry includes:
-• Date and time of closure
-• User who performed it
-• Total amount at the time of closure
-• Amount of the period (difference from previous closure)
-• Filter by date range and user
-• Admin can delete closure entries if needed
+🧾 Closures (Fechos)
+	-	View all daily cash closures made by users.
+	-	Each entry includes:
+	-	Date and time of closure
+	-	User who performed it
+	-	Total amount at the time of closure
+	-	Amount of the period (difference from previous closure)
+	-	Filter by date range and user
+	-	Admin can delete closure entries if needed
 
 ### 👥 User Management (Admin only)
 
