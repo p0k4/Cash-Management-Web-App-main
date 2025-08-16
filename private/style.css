@@ -1183,3 +1183,19 @@ button.btn-apagar:hover,
 tr.linha-selecionada {
   background-color: #d1eaff !important;
 }
+
+.btn-novo {
+  background: linear-gradient(180deg,#34c759 0%, #28a745 100%);
+  color: #fff;
+  font-weight: 800;
+  padding: 11px 22px;
+  font-size: 20px;
+  border: none;
+  box-shadow: 0 22px 56px rgba(40,167,69,0.22);
+  transition: transform .12s ease, box-shadow .12s ease;
+  border-radius: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  border: 2px solid rgba(#ffffff);
+}

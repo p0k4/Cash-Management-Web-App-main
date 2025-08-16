@@ -5,197 +5,13 @@
   <meta charset="UTF-8" />
   <title>Registar Utilizador - POS Cash Management</title>
   <link rel="stylesheet" href="/assets/login.css" />
-  <style>
-    /* Extensões específicas para a página de registro */
-    .register-form {
-      display: block;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    
-    .form-group {
-      margin-bottom: 1.5rem;
-      text-align: left;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #ffffff;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-    
-    .form-group input {
-      width: 100%;
-      padding: 0.8rem;
-      border: none;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      box-sizing: border-box;
-      background-color: #ffffff;
-      color: #333;
-    }
 
-    .form-group input:focus {
-      outline: none;
-      box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
-      border: 2px solid #28a745;
-    }
-    
-    .buttons-container {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-      justify-content: center;
-    }
-    
-    .btn-primary {
-      background-color: #28a745;
-      color: white;
-      padding: 0.8rem 2rem;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-size: 1.1rem;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      flex: 1;
-      max-width: 200px;
-    }
-    
-    .btn-secondary {
-      background-color: #6c757d;
-      color: white;
-      padding: 0.8rem 2rem;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-size: 1.1rem;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      flex: 1;
-      max-width: 200px;
-    }
-    
-    .btn-primary:hover {
-      background-color: #218838;
-      filter: brightness(1.1);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    .btn-secondary:hover {
-      background-color: #5a6268;
-      filter: brightness(1.1);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    .success-message {
-      background-color: #d4edda;
-      color: #155724;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1.5rem;
-      display: none;
-      font-size: 1rem;
-      border: 1px solid #c3e6cb;
-    }
-
-    .error-message {
-      background-color: #f8d7da;
-      color: #721c24;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1.5rem;
-      display: none;
-      font-size: 1rem;
-      border: 1px solid #f5c6cb;
-    }
-
-    .register-subtitle {
-      color: #bcd2df;
-      font-size: 1.2rem;
-      margin-bottom: 2rem;
-      font-weight: normal;
-    }
-
-    .password-hint {
-      background-color: rgba(188, 210, 223, 0.1);
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #bcd2df;
-      border: 1px solid rgba(188, 210, 223, 0.3);
-    }
-
-    .password-hint strong {
-      color: #ffffff;
-    }
-
-    /* Ícones para os inputs */
-    .input-container {
-      position: relative;
-    }
-
-    .input-container::before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      background-size: contain;
-      z-index: 1;
-    }
-
-    .input-container.username::before {
-      content: '👤';
-      font-size: 16px;
-    }
-
-    .input-container.password::before {
-      content: '🔒';
-      font-size: 16px;
-    }
-
-    .input-container.admin::before {
-      content: '🔑';
-      font-size: 16px;
-    }
-
-    .input-container input {
-      padding-left: 2.5rem;
-    }
-
-    .form-actions {
-      text-align: center;
-      margin-top: 2rem;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 1.5rem;
-      color: #bcd2df;
-      text-decoration: none;
-      font-size: 1rem;
-      transition: color 0.3s ease;
-    }
-
-    .back-link:hover {
-      color: #ffffff;
-      text-decoration: underline;
-    }
-  </style>
 </head>
 
 <body>
   <div class="login-container">
     <div class="login-card">
-      <h1>Registar <span>Novo Utilizador</span></h1>
+      <h1>Registar</h1>
       <p class="register-subtitle">Adicione um novo utilizador ao sistema</p>
 
       <div id="success" class="success-message"></div>
@@ -224,9 +40,9 @@
         </div>
       </form>
 
-      <div class="form-actions">
+      <!-- <div class="form-actions">
         <a href="/login.html" class="back-link">← Voltar ao Login</a>
-      </div>
+      </div> -->
     </div>
   </div>
 
