@@ -644,26 +644,77 @@ app.post("/api/fechar-saldos", async (req, res) => {
     }
     const total = dinheiro + multibanco + transferencia;
 
-    // UPSERT na tabela de saldos_diarios (por data + user_id)
-    const upsert = await pool.query(
-      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, user_id)
-       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5)
-       ON CONFLICT (data, user_id)
-       DO UPDATE SET
-         dinheiro = EXCLUDED.dinheiro,
-         multibanco = EXCLUDED.multibanco,
-         transferencia = EXCLUDED.transferencia,
-         total = EXCLUDED.total,
-         created_at = NOW()
-       RETURNING *`,
-      [dinheiro, multibanco, transferencia, total, userId]
+    // 🧮 Calcular montante do período comparando com último fecho (qualquer dia)
+    const { rows: ultimoFecho } = await pool.query(
+      `SELECT total FROM saldos_diarios
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [userId]
     );
 
-    console.log("✅ Fecho guardado:", upsert.rows[0]);
-    res.json({ mensagem: "Saldos fechados com sucesso!", fecho: upsert.rows[0] });
+    let montantePeriodo = total;
+    if (ultimoFecho.length > 0) {
+      const totalAnterior = parseFloat(ultimoFecho[0].total || 0);
+      montantePeriodo = total - totalAnterior;
+    }
+
+    // 💾 Inserir novo fecho com montante_periodo
+    const insert = await pool.query(
+      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, montante_periodo, user_id)
+       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [dinheiro, multibanco, transferencia, total, montantePeriodo, userId]
+    );
+
+    console.log("✅ Fecho guardado:", insert.rows[0]);
+    res.json({ mensagem: "Saldos fechados com sucesso!", fecho: insert.rows[0] });
   } catch (err) {
     console.error("💥 ERRO /api/fechar-saldos:", err);
     res.status(500).json({ erro: "Erro ao fechar saldos.", detalhe: String(err?.message || err) });
+  }
+});
+
+/**
+ * Lista de fechos (admin apenas) - lê de saldos_diarios
+ * Não altera a BD; só leitura.
+ */
+app.get("/api/fechos", verificarAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT sd.id, sd.data, sd.created_at, sd.total, sd.montante_periodo, u.username
+         FROM saldos_diarios sd
+         JOIN utilizadores u ON u.id = sd.user_id
+        ORDER BY sd.created_at DESC`
+    );
+
+    const payload = rows.map((r) => ({
+      id: r.id,
+      data: r.data,
+      created_at: r.created_at,
+      utilizador: r.username,
+      total: parseFloat(r.total || 0),
+      montante_periodo: parseFloat(r.montante_periodo || 0),
+    }));
+
+    res.json(payload);
+  } catch (err) {
+    console.error("Erro ao listar fechos:", err);
+    res.status(500).json({ error: "Erro ao listar fechos" });
+  }
+});
+
+// Apaga um fecho por ID (admin apenas)
+app.delete("/api/fechos/:id", verificarAdmin, async (req, res) => {
+  const { id } = req.params;
+  if (!id || isNaN(id)) return res.status(400).json({ error: "ID inválido" });
+  try {
+    const result = await pool.query("DELETE FROM saldos_diarios WHERE id = $1", [id]);
+    if (result.rowCount === 0) return res.status(404).json({ error: "Fecho não encontrado" });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Erro ao apagar fecho:", err);
+    res.status(500).json({ error: "Erro ao apagar fecho" });
   }
 });
 
@@ -680,6 +731,10 @@ app.get("/dashboard/tabela", (req, res) => {
 
 app.get("/dashboard/historico", (req, res) => {
   res.sendFile(path.join(__dirname, "private", "historico.html"));
+});
+
+app.get("/dashboard/fechos", (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "fechos.html"));
 });
 
 // ============================================

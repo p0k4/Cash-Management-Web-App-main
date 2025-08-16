@@ -1134,7 +1134,7 @@ th {
 /* For the users table: force the "Apagar" buttons to the red style (high specificity)
    This ensures they appear red even if other button rules are applied elsewhere. */
 .tabela-utilizadores .btn-apagar,
-.container .tabela-utilizadores .btn-apagar,
+.container .tabela-utilizadores .tabelaRegistos .btn-apagar,
 button.btn-apagar,
 .tabela-utilizadores td > button.btn-apagar {
   background: linear-gradient(180deg,#dc3545 0%, #b02a37 100%) !important;
@@ -1149,11 +1149,19 @@ button.btn-apagar,
 
 /* Hover / active states */
 .tabela-utilizadores .btn-apagar:hover,
-.container .tabela-utilizadores .btn-apagar:hover,
+.container .tabela-utilizadores .tabelaRegistos .btn-apagar:hover,
 button.btn-apagar:hover,
 .tabela-utilizadores td > button.btn-apagar:hover {
   background: linear-gradient(180deg,#b02a37 0%, #922526 100%) !important;
   background-color: #b02a37 !important;
   box-shadow: 0 10px 20px rgba(176,42,55,0.25) !important;
   transform: translateY(-2px) !important;
+}
+
+#tabelaRegistos tbody tr:hover {
+  background-color: #f0f9ff;
+}
+
+tr.linha-selecionada {
+  background-color: #d1eaff !important;
 }

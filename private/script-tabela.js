@@ -384,3 +384,22 @@ async function mostrarNomeUtilizador() {
 }
 
 document.addEventListener("DOMContentLoaded", mostrarNomeUtilizador);
+
+// ====================================
+// Seleção visual de linha (fundo azul)
+// ====================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tabela = document.getElementById("tabelaRegistos");
+  if (!tabela) return;
+
+  tabela.addEventListener("click", function (e) {
+    const linha = e.target.closest("tr");
+    if (!linha || !linha.parentNode || linha.parentNode.tagName !== "TBODY") return;
+
+    const selecionada = tabela.querySelector("tr.linha-selecionada");
+    if (selecionada) selecionada.classList.remove("linha-selecionada");
+
+    linha.classList.add("linha-selecionada");
+  });
+});

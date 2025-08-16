@@ -7,20 +7,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         const menu = document.getElementById("menuLateral");
         if (!menu) return;
 
-        // Criar novo botão de menu
-        const li = document.createElement("li");
-        li.innerHTML = `
+        const logoutLi = document.getElementById("btnLogout")?.closest("li");
+
+        // Botão de utilizadores
+        const liUsers = document.createElement("li");
+        liUsers.innerHTML = `
           <a class="btn-menu" href="/private/utilizadores.html">
             <i class="fas fa-users"></i> Utilizadores
           </a>
         `;
-
-        // Inserir antes do botão de logout
-        const logoutLi = document.getElementById("btnLogout")?.closest("li");
         if (logoutLi) {
-          menu.insertBefore(li, logoutLi);
+          menu.insertBefore(liUsers, logoutLi);
         } else {
-          menu.appendChild(li); // fallback
+          menu.appendChild(liUsers);
+        }
+
+        // Botão de fechos
+        const liFechos = document.createElement("li");
+        liFechos.innerHTML = `
+          <a class="btn-menu" href="/dashboard/fechos">
+            <i class="fas fa-clock"></i> Fechos
+          </a>
+        `;
+        if (logoutLi) {
+          menu.insertBefore(liFechos, logoutLi);
+        } else {
+          menu.appendChild(liFechos);
         }
       }
     } catch (e) {
