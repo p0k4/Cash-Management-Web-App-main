@@ -43,6 +43,16 @@ The system includes authentication with JWT, role-based user management, daily b
 - Export history to CSV/PDF.
 - Maintains original formatting for OP TPA.
 
+### 🧮 Closures (Fechos)
+	-	View all daily cash closures made by users.
+	-	Each entry includes:
+	-	Date and time of closure
+	-	User who performed it
+	-	Total amount at the time of closure
+	-	Amount of the period (difference from previous closure)
+	-	Filter by date range and user.
+	-	Admin can delete closure entries if needed.
+
 ### 👥 User Management (Admin only)
 - List all registered users with role badges.
 - Create new users.
@@ -87,6 +97,8 @@ The system includes authentication with JWT, role-based user management, daily b
 ### 👥 User Management
 ![Utilizadores](docs/images/Utilizadores.png)
 
+### 🧮 Closures (Fechos)
+![closures](docs/images/fechos.png)
 
 ---
 
@@ -115,10 +127,12 @@ private/
 ├── tabela.html            # Transactions table
 ├── historico.html         # History page
 ├── utilizadores.html      # User management
+├── fechos.html            # Daily closures page (admin only) 
 ├── script.js              # Main dashboard logic
 ├── script-tabela.js       # Table logic
 ├── script-historico.js    # History page logic
 ├── script-utilizadores.js # User management logic
+├── script-fechos.js       # Closures page logic 
 public/
 ├── login.html             # Login page
 server.js                  # Backend API
