@@ -904,22 +904,40 @@ th {
   background-color: #a00000;
 }
 .caixa-utilizador-ativo {
-  border: 3px solid #0d4a63;
-  border-radius: 10px;
-  padding: 0px 5px;
-  margin-top: 0px;
-  width: fit-content;
+  background: linear-gradient(145deg, #f0f9fb, #dbe9f0);
+  border: 2px solid #0d4a63;
+  padding: 12px 0;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
   color: #0d4a63;
-  font-weight: bold;
-  background-color: #e6f4f8;
-  
-  /* Alinhamento central */
-  margin-left: auto;
-  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 180px;
+  margin: 0 auto 24px auto;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
-.nome-utilizador {
-  color: green;
+
+.label-utilizador {
+  margin: 0;
   font-weight: bold;
+  color: #0d4a63;
+  font-size: 18px;
+}
+
+.nome-utilizador {
+  background-color: #d8f8e1;
+  color: #198754;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 18px;
+  border: 1px solid #b3e5c5;
 }
 .num-doc-wrapper {
   display: flex;
