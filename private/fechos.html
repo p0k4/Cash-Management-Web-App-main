@@ -8,22 +8,43 @@
   <link rel="stylesheet" href="/private/style.css" />
   <link rel="stylesheet" href="/private/historico.css" />
 </head>
-<div class="menu-lateral">
-  <div class="caixa-utilizador-ativo">
-    <p id="utilizadorAtivo">Utilizador:<span class="nome-utilizador">admin</span></p>
-  </div>
-  <br>
-  <h3>Menu</h3>
-  <ul id="menuLateral">
-    <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
-    <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
-    <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Movimentos (pesquisa)</a></li>
-    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-  </ul>
-</div>
+
 <body>
+  <div class="menu-lateral">
+    <div class="caixa-utilizador-ativo">
+      <p id="utilizadorAtivo">Utilizador:<span class="nome-utilizador">admin</span></p>
+    </div>
+    <br>
+    <h3>Menu</h3>
+    <ul id="menuLateral">
+      <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
+      <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Movimentos (pesquisa)</a></li>
+      <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
   <div class="container">
     <h1>Mapa de Fechos</h1>
+
+    <div class="filtros filtros-fechos">
+      <label>
+        <i class="fas fa-calendar-alt"></i>
+        <input type="date" id="filtroDataInicio" />
+      </label>
+      <label>
+        <i class="fas fa-calendar-alt"></i>
+        <input type="date" id="filtroDataFim" />
+      </label>
+      <label>
+        <i class="fas fa-user"></i>
+        <select id="filtroUtilizadorFecho">
+          <option value="">Todos</option>
+        </select>
+      </label>
+      <button id="btnPesquisar"><i class="fas fa-search"></i> Pesquisar</button>
+    </div>
+
     <table id="tabelaFechos">
       <thead>
         <tr>
@@ -36,6 +57,7 @@
       <tbody></tbody>
     </table>
   </div>
+
   <script src="/private/script-fechos.js"></script>
   <script src="/menu-admin.js"></script>
 </body>

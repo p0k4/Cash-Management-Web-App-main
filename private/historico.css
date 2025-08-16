@@ -325,3 +325,12 @@ tbody tr:hover {
 .menu-lateral .btn-logout:hover {
   background-color: #a00000;
 }
+/* Só aplica à página de Fechos */
+.filtros-fechos label i {
+  position: relative;
+  top: 2px; /* Alinha os ícones com os inputs */
+}
+
+.filtros-fechos button {
+  margin-top: 2px; /* Desce ligeiramente o botão */
+}

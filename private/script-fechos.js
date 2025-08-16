@@ -41,11 +41,52 @@ async function carregarFechos() {
   }
 }
 
-// Preenche tabela de fechamentos mostrando apenas o valor do período entre fechamentos
+async function carregarUtilizadoresFecho() {
+  try {
+    const resposta = await fetch("/api/utilizadores");
+    const utilizadores = await resposta.json();
+    const select = document.getElementById("filtroUtilizadorFecho");
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Todos</option>';
+    utilizadores.forEach((u) => {
+      const opt = document.createElement("option");
+      opt.value = u;
+      opt.textContent = u;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Erro ao carregar utilizadores:", err);
+  }
+}
+
+// Buscar fechos filtrados por data/utilizador
+async function buscarFechosFiltrados() {
+  const inicio = document.getElementById("filtroDataInicio").value;
+  const fim = document.getElementById("filtroDataFim").value;
+  const utilizador = document.getElementById("filtroUtilizadorFecho").value;
+
+  const params = new URLSearchParams();
+  if (inicio) params.append("inicio", inicio);
+  if (fim) params.append("fim", fim);
+  if (utilizador) params.append("utilizador", utilizador);
+
+  try {
+    const resposta = await fetchProtegido(`/api/fechos/intervalo?${params.toString()}`);
+    if (!resposta.ok) throw new Error("Erro ao buscar fechos");
+    const fechos = await resposta.json();
+    preencherTabelaFechos(fechos);
+  } catch (err) {
+    console.error("Erro ao buscar fechos:", err);
+    alert("Erro ao buscar fechos.");
+  }
+}
+
+// Preenche tabela de fechamentos
 function preencherTabelaFechos(items) {
   const tbody = document.querySelector("#tabelaFechos tbody");
   tbody.innerHTML = "";
-  items.forEach((f, i) => {
+  items.forEach((f) => {
     const periodValue = f.montante_periodo ?? f.total;
     const dt = new Date(f.created_at).toLocaleString("pt-PT");
     const tr = document.createElement("tr");
@@ -66,7 +107,6 @@ function criarBotoesOpcoes(linha) {
 
   const id = linha.dataset.id;
 
-  // Botão APAGAR
   const btnApagar = document.createElement("button");
   btnApagar.innerHTML = '<i class="fas fa-trash"></i> Apagar';
   btnApagar.className = "btn-apagar-linha";
@@ -109,4 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
   mostrarNomeUtilizador();
   carregarFechos();
   configurarLogout();
+  carregarUtilizadoresFecho();
+
+  const btnPesquisar = document.getElementById("btnPesquisar");
+  if (btnPesquisar) {
+    btnPesquisar.addEventListener("click", buscarFechosFiltrados);
+  }
 });

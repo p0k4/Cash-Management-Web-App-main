@@ -704,6 +704,52 @@ app.get("/api/fechos", verificarAdmin, async (req, res) => {
   }
 });
 
+// Nova rota para filtrar fechos por intervalo e utilizador (admin apenas)
+app.get("/api/fechos/intervalo", verificarAdmin, async (req, res) => {
+  const { inicio, fim, utilizador } = req.query;
+
+  try {
+    let sql = `
+      SELECT sd.id, sd.data, sd.created_at, sd.total, sd.montante_periodo, u.username
+        FROM saldos_diarios sd
+        JOIN utilizadores u ON u.id = sd.user_id
+       WHERE 1=1
+    `;
+    const params = [];
+    let idx = 1;
+
+    if (inicio && fim) {
+      sql += ` AND sd.data BETWEEN $${idx++} AND $${idx++}`;
+      params.push(inicio, fim);
+    } else if ((inicio && !fim) || (!inicio && fim)) {
+      return res.status(400).json({ error: "Ambas as datas (inicio e fim) devem ser fornecidas para filtrar por intervalo." });
+    }
+
+    if (utilizador) {
+      sql += ` AND u.username ILIKE $${idx++}`;
+      params.push(`%${utilizador}%`);
+    }
+
+    sql += " ORDER BY sd.created_at DESC";
+
+    const { rows } = await pool.query(sql, params);
+
+    const payload = rows.map((r) => ({
+      id: r.id,
+      data: r.data,
+      created_at: r.created_at,
+      utilizador: r.username,
+      total: parseFloat(r.total || 0),
+      montante_periodo: parseFloat(r.montante_periodo || 0),
+    }));
+
+    res.json(payload);
+  } catch (err) {
+    console.error("Erro ao filtrar fechos:", err);
+    res.status(500).json({ error: "Erro ao filtrar fechos" });
+  }
+});
+
 // Apaga um fecho por ID (admin apenas)
 app.delete("/api/fechos/:id", verificarAdmin, async (req, res) => {
   const { id } = req.params;
