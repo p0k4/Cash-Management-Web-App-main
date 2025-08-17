@@ -305,7 +305,27 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  if (username !== "admin") {
+  // ✅ Adiciona botão "Fechos" ao menu, se ainda não existir
+  const menu = document.getElementById("menuLateral");
+  const jaExisteFechos = [...document.querySelectorAll("#menuLateral a")].some(
+    (el) => el.href.includes("/dashboard/fechos")
+  );
+
+  if (menu && !jaExisteFechos) {
+    const fechosItem = document.createElement("li");
+    fechosItem.innerHTML = `<a class="btn-menu" href="/dashboard/fechos"><i class="fas fa-clock"></i> Fechos</a>`;
+
+    const logoutBtn = document.getElementById("btnLogout");
+    if (logoutBtn && logoutBtn.parentElement) {
+      menu.insertBefore(fechosItem, logoutBtn.parentElement); // Insere antes do Logout
+    } else {
+      menu.appendChild(fechosItem);
+    }
+  }
+
+  // ✅ Apenas o admin vê o botão de reset de saldos (ambiente de teste)
+  if (username === "admin") {
+  } else {
     const btnApagar = document.getElementById("btnApagarTudo");
     if (btnApagar) btnApagar.style.display = "none";
   }
@@ -1224,3 +1244,4 @@ window.registar = registar;
 window.exportarRelatorio = exportarRelatorio;
 window.exportarPDF = exportarPDF;
 window.exportarResumoPDF = exportarResumoPDF;
+

@@ -5,6 +5,8 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
+let eAdmin = false;
+
 async function fetchProtegido(url, options = {}) {
   const token = getToken();
   if (!token) {
@@ -18,20 +20,25 @@ async function fetchProtegido(url, options = {}) {
   return fetch(url, options);
 }
 
+
 async function mostrarNomeUtilizador() {
   try {
     const resp = await fetchProtegido("/api/utilizador");
     const data = await resp.json();
     const span = document.querySelector(".nome-utilizador");
     if (span) span.textContent = data.username;
+    utilizadorAtual = data.username;
+
+    // Atualiza a flag global
+    eAdmin = (utilizadorAtual === "admin");
   } catch (e) {
     console.error("Erro ao obter utilizador:", e);
   }
 }
-
 async function carregarFechos() {
   try {
-    const resp = await fetchProtegido("/api/fechos");
+    const endpoint = eAdmin ? "/api/fechos" : "/api/fechos-user";
+    const resp = await fetchProtegido(endpoint);
     if (!resp.ok) throw new Error("Erro ao carregar fechos");
     const fechamentos = await resp.json();
     preencherTabelaFechos(fechamentos);
@@ -64,15 +71,19 @@ async function carregarUtilizadoresFecho() {
 async function buscarFechosFiltrados() {
   const inicio = document.getElementById("filtroDataInicio").value;
   const fim = document.getElementById("filtroDataFim").value;
-  const utilizador = document.getElementById("filtroUtilizadorFecho").value;
+  const utilizador = document.getElementById("filtroUtilizadorFecho")?.value;
 
   const params = new URLSearchParams();
   if (inicio) params.append("inicio", inicio);
   if (fim) params.append("fim", fim);
-  if (utilizador) params.append("utilizador", utilizador);
+  if (eAdmin && utilizador) params.append("utilizador", utilizador); // apenas admin
+
+  const endpoint = eAdmin
+    ? `/api/fechos/intervalo?${params.toString()}`
+    : `/api/fechos/intervalo-user?${params.toString()}`;
 
   try {
-    const resposta = await fetchProtegido(`/api/fechos/intervalo?${params.toString()}`);
+    const resposta = await fetchProtegido(endpoint);
     if (!resposta.ok) throw new Error("Erro ao buscar fechos");
     const fechos = await resposta.json();
     preencherTabelaFechos(fechos);
@@ -120,7 +131,7 @@ function criarBotoesOpcoes(linha) {
   btnResumo.onclick = async function () {
     try {
       // Chamar a tua função de emitir resumo (podes adaptar)
-      exportarResumoPDF(id); // ← ajusta se usares outro nome
+      exportarResumoPDF(id); 
     } catch (err) {
       console.error("Erro ao emitir resumo:", err);
       alert("Erro ao emitir resumo.");
@@ -128,6 +139,7 @@ function criarBotoesOpcoes(linha) {
   };
 
   // Botão Apagar
+  if (eAdmin) {
   const btnApagar = document.createElement("button");
   btnApagar.innerHTML = '<i class="fas fa-trash"></i> Apagar';
   btnApagar.className = "btn-apagar-linha";
@@ -153,6 +165,7 @@ function criarBotoesOpcoes(linha) {
     }
   };
 }
+}
 
 function configurarLogout() {
   const btn = document.getElementById("btnLogout");
@@ -166,19 +179,41 @@ function configurarLogout() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  mostrarNomeUtilizador();
-  carregarFechos();
+let utilizadorAtual = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await mostrarNomeUtilizador();
   configurarLogout();
-  carregarUtilizadoresFecho();
+
+  const filtros = document.querySelector(".filtros-fechos");
+
+  if (utilizadorAtual === "admin") {
+    eAdmin = true;
+    if (filtros) filtros.style.display = "flex"; // Mostrar filtros para admin
+    carregarUtilizadoresFecho(); // dropdown visível
+  } else {
+    eAdmin = false;
+    if (filtros) {
+      filtros.style.display = "flex"; // Mostrar filtros também para não admin
+
+      // Esconder apenas o dropdown de utilizadores
+      const selectUser = document.getElementById("filtroUtilizadorFecho");
+      if (selectUser) selectUser.style.display = "none";
+
+      // Esconder o ícone da silhueta
+      const iconeUser = document.querySelector(".icone-utilizador-fecho");
+      if (iconeUser) iconeUser.style.display = "none";
+    }
+  }
 
   const btnPesquisar = document.getElementById("btnPesquisar");
   if (btnPesquisar) {
     btnPesquisar.addEventListener("click", buscarFechosFiltrados);
   }
-});
 
-async function exportarResumoPDF() {
+  carregarFechos();
+});
+async function exportarResumoPDF(id) {
   if (!window.jspdf || !window.jspdf.jsPDF) {
     alert("jsPDF ou AutoTable não está carregado corretamente.");
     return;
@@ -190,57 +225,37 @@ async function exportarResumoPDF() {
     return;
   }
 
-  // 1) Buscar os totais atuais ao backend (respeita fecho / reabertura)
-  let dinheiro = 0, multibanco = 0, transferencia = 0, total = 0;
-
+  // 🔁 Buscar dados do fecho específico
+  let dados;
   try {
-    const resp = await fetch("/api/saldos-hoje", {
+    const resp = await fetch(`/api/fechos/${id}`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}`, "Cache-Control": "no-store" }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Cache-Control": "no-store"
+      }
     });
-
-    const dados = await resp.json();
-    if (!resp.ok) throw new Error(dados.erro || "Erro ao obter saldos");
-
-    // Quando está fechado, o backend devolve os valores do fecho (podem ser 0).
-    // Quando há registos depois do fecho, devolve só o período ativo.
-    dinheiro = parseFloat(dados.dinheiro || 0);
-    multibanco = parseFloat(dados.multibanco || 0);
-    transferencia = parseFloat(dados.transferencia || 0);
-    total = parseFloat(dados.total || (dinheiro + multibanco + transferencia));
+    dados = await resp.json();
+    if (!resp.ok || !dados || !dados.total) throw new Error("Erro ao obter fecho.");
   } catch (e) {
-    console.error("Erro ao obter saldos para o PDF:", e);
-    alert("Não foi possível gerar o resumo. Verifique a ligação ao servidor.");
+    console.error("Erro ao buscar fecho para PDF:", e);
+    alert("Erro ao gerar PDF. Verifique a ligação.");
     return;
   }
 
-  console.log("exportarResumoPDF - saldosFechadosHoje:", typeof saldosFechadosHoje !== "undefined" ? saldosFechadosHoje : "undefined");
-  console.log("exportarResumoPDF - dinheiro:", dinheiro, "multibanco:", multibanco, "transferencia:", transferencia);
-
-  // Bloqueia exportação se saldos do dashboard estiverem a zero ou fechados
-  // if (
-  //   (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje && dinheiro === 0 && multibanco === 0 && transferencia === 0) ||
-  //   (Number.isFinite(dinheiro) && Number.isFinite(multibanco) && Number.isFinite(transferencia) &&
-  //     dinheiro === 0 && multibanco === 0 && transferencia === 0)
-  // ) {
-  //   alert("Não existem valores a exportar.");
-  //   return;
-  // }
-
-  // 2) Gerar PDF com jsPDF
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const dataHora = new Date().toLocaleString("pt-PT");
+  const dataHora = new Date(dados.created_at).toLocaleString("pt-PT");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(13, 74, 99);
-  doc.text("Resumo de Caixa", 105, 20, { align: "center" });
+  doc.text("Resumo de Fecho de Caixa", 105, 20, { align: "center" });
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(50);
-  doc.text(`Exportado em: ${dataHora}`, 105, 28, { align: "center" });
+  doc.text(`Data/Hora: ${dataHora}`, 105, 28, { align: "center" });
 
   doc.setDrawColor(13, 74, 99);
   doc.line(20, 32, 190, 32);
@@ -261,15 +276,15 @@ async function exportarResumoPDF() {
   doc.setFontSize(12);
 
   doc.text(`Dinheiro`, 30, y);
-  doc.text(`${dinheiro.toFixed(2)} €`, 160, y, { align: "right" });
+  doc.text(`${dados.dinheiro.toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 8;
   doc.text(`Multibanco`, 30, y);
-  doc.text(`${multibanco.toFixed(2)} €`, 160, y, { align: "right" });
+  doc.text(`${dados.multibanco.toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 8;
   doc.text(`Transferência Bancária`, 30, y);
-  doc.text(`${transferencia.toFixed(2)} €`, 160, y, { align: "right" });
+  doc.text(`${dados.transferencia.toFixed(2)} €`, 160, y, { align: "right" });
 
   y += 12;
   doc.setDrawColor(13, 74, 99);
@@ -279,20 +294,22 @@ async function exportarResumoPDF() {
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(0, 102, 51);
-  doc.text(`TOTAL GERAL: ${total.toFixed(2)} €`, 105, y, { align: "center" });
+  doc.text(`TOTAL: ${dados.total.toFixed(2)} €`, 105, y, { align: "center" });
+
+  y += 12;
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(0);
+  doc.text(`Montante do Período: ${dados.montante_periodo.toFixed(2)} €`, 105, y, { align: "center" });
 
   y += 20;
   doc.setFontSize(9);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
-  doc.text("Documento gerado pelo Sistema POS", 105, y, { align: "center" });
+  doc.text("Documento gerado pelo sistema POS", 105, y, { align: "center" });
 
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const username = payload.username || "Desconhecido";
-    y += 8;
-    doc.text(`Emitido por: ${username}`, 105, y, { align: "center" });
-  } catch {}
+  y += 8;
+  doc.text(`Emitido por: ${dados.utilizador}`, 105, y, { align: "center" });
 
-  doc.save(`resumo_caixa_${new Date().toISOString().split("T")[0]}.pdf`);
+  doc.save(`fecho_caixa_${dados.utilizador}_${id}.pdf`);
 }

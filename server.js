@@ -499,6 +499,44 @@ app.put("/api/registos/:id", validarRegisto, async (req, res) => {
 // 💰 Gestão de saldos do dia
 // ============================================
 
+// Devolve um fecho específico por ID (para gerar PDF)
+app.get("/api/fechos/:id", verificarToken, async (req, res) => {
+  const { id } = req.params;
+  if (!id || isNaN(id)) return res.status(400).json({ error: "ID inválido" });
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT sd.id, sd.created_at, sd.dinheiro, sd.multibanco, sd.transferencia,
+              sd.total, sd.montante_periodo, u.username
+         FROM saldos_diarios sd
+         JOIN utilizadores u ON u.id = sd.user_id
+        WHERE sd.id = $1
+        LIMIT 1`,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Fecho não encontrado" });
+    }
+
+    const r = rows[0];
+    res.json({
+      id: r.id,
+      created_at: r.created_at,
+      utilizador: r.username,
+      dinheiro: parseFloat(r.dinheiro || 0),
+      multibanco: parseFloat(r.multibanco || 0),
+      transferencia: parseFloat(r.transferencia || 0),
+      total: parseFloat(r.total || 0),
+      montante_periodo: parseFloat(r.montante_periodo || 0),
+    });
+  } catch (err) {
+    console.error("Erro ao obter fecho:", err);
+    res.status(500).json({ error: "Erro ao obter fecho" });
+  }
+});
+
+
 // Calcula e devolve saldos do dia, respeitando “fecho”
 app.get("/api/saldos-hoje", async (req, res) => {
   const username = req.user.username;
@@ -609,13 +647,15 @@ app.get("/api/saldos-hoje", async (req, res) => {
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
-
+//_____________________________________________________________________
 // Regista/atualiza o fecho de saldos do dia
+
 app.post("/api/fechar-saldos", async (req, res) => {
   const username = req.user.username;
   console.log("🧾 [/api/fechar-saldos] user =", username);
 
   try {
+    // Obter o user_id
     const userQuery = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
@@ -625,7 +665,7 @@ app.post("/api/fechar-saldos", async (req, res) => {
     }
     const userId = userQuery.rows[0].id;
 
-    // Soma do dia por método
+    // Soma atual por método
     const { rows } = await pool.query(
       `SELECT pagamento, SUM(valor) AS total
          FROM registos
@@ -642,29 +682,46 @@ app.post("/api/fechar-saldos", async (req, res) => {
       else if (p.includes("multibanco")) multibanco += tot;
       else if (p.includes("transferência")) transferencia += tot;
     }
-    const total = dinheiro + multibanco + transferencia;
 
-    // 🧮 Calcular montante do período comparando com último fecho (qualquer dia)
+    // Valores do total atual (antes de subtrair o fecho anterior)
+    let dinheiroPeriodo = dinheiro;
+    let multibancoPeriodo = multibanco;
+    let transferenciaPeriodo = transferencia;
+
+    // Buscar último fecho (de qualquer data)
     const { rows: ultimoFecho } = await pool.query(
-      `SELECT total FROM saldos_diarios
-       WHERE user_id = $1
-       ORDER BY created_at DESC
-       LIMIT 1`,
+      `SELECT dinheiro, multibanco, transferencia
+         FROM saldos_diarios
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1`,
       [userId]
     );
 
-    let montantePeriodo = total;
+    // Subtrair valores do último fecho para obter só o período
     if (ultimoFecho.length > 0) {
-      const totalAnterior = parseFloat(ultimoFecho[0].total || 0);
-      montantePeriodo = total - totalAnterior;
+      const prev = ultimoFecho[0];
+      dinheiroPeriodo -= parseFloat(prev.dinheiro || 0);
+      multibancoPeriodo -= parseFloat(prev.multibanco || 0);
+      transferenciaPeriodo -= parseFloat(prev.transferencia || 0);
     }
 
-    // 💾 Inserir novo fecho com montante_periodo
+    const totalPeriodo = dinheiroPeriodo + multibancoPeriodo + transferenciaPeriodo;
+
+    // Inserir o fecho com os valores do PERÍODO (não acumulado)
     const insert = await pool.query(
-      `INSERT INTO saldos_diarios (data, dinheiro, multibanco, transferencia, total, montante_periodo, user_id)
+      `INSERT INTO saldos_diarios 
+       (data, dinheiro, multibanco, transferencia, total, montante_periodo, user_id)
        VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [dinheiro, multibanco, transferencia, total, montantePeriodo, userId]
+      [
+        dinheiroPeriodo,
+        multibancoPeriodo,
+        transferenciaPeriodo,
+        totalPeriodo,
+        totalPeriodo,
+        userId,
+      ]
     );
 
     console.log("✅ Fecho guardado:", insert.rows[0]);
@@ -753,17 +810,62 @@ app.get("/api/fechos/intervalo", verificarAdmin, async (req, res) => {
 // Apaga um fecho por ID (admin apenas)
 app.delete("/api/fechos/:id", verificarAdmin, async (req, res) => {
   const { id } = req.params;
+  
   if (!id || isNaN(id)) return res.status(400).json({ error: "ID inválido" });
+
+  // 🛡️ Proteger em produção
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({ error: "Não é permitido apagar fechos em produção." });
+  }
+
   try {
     const result = await pool.query("DELETE FROM saldos_diarios WHERE id = $1", [id]);
-    if (result.rowCount === 0) return res.status(404).json({ error: "Fecho não encontrado" });
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: "Fecho não encontrado" });
     res.json({ success: true });
   } catch (err) {
     console.error("Erro ao apagar fecho:", err);
     res.status(500).json({ error: "Erro ao apagar fecho" });
   }
 });
+// 🔒 Lista os fechos do próprio utilizador (sem precisar de admin)
+app.get("/api/fechos-user", async (req, res) => {
+  const username = req.user.username;
 
+  try {
+    const { rows: userRows } = await pool.query(
+      "SELECT id FROM utilizadores WHERE username = $1",
+      [username]
+    );
+    if (!userRows.length) {
+      return res.status(404).json({ error: "Utilizador não encontrado" });
+    }
+
+    const userId = userRows[0].id;
+
+    const { rows } = await pool.query(
+      `SELECT id, data, created_at, total, montante_periodo
+         FROM saldos_diarios
+        WHERE user_id = $1
+        ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    res.json(
+      rows.map((r) => ({
+        id: r.id,
+        data: r.data,
+        created_at: r.created_at,
+        total: parseFloat(r.total || 0),
+        montante_periodo: parseFloat(r.montante_periodo || 0),
+        utilizador: username,
+      }))
+    );
+  } catch (err) {
+    console.error("Erro ao listar fechos do utilizador:", err);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+});
 // ============================================
 // 🧭 Rotas de páginas privadas (HTML)
 // ============================================
