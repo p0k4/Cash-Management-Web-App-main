@@ -300,7 +300,7 @@ async function exportarResumoPDF(id) {
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(0);
-  doc.text(`Montante do Período: ${dados.montante_periodo.toFixed(2)} €`, 105, y, { align: "center" });
+  
 
   y += 20;
   doc.setFontSize(9);

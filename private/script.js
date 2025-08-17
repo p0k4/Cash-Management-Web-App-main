@@ -204,7 +204,7 @@ async function registar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          operacao, // Envia para o backend!
+          operacao,
           data,
           numDoc,
           pagamento: pagamentoFinal,
@@ -212,6 +212,7 @@ async function registar() {
           op_tpa: opTPA,
         }),
       });
+
       const result = await response.json();
 
       if (response.ok && !result.error) {
@@ -230,17 +231,18 @@ async function registar() {
         limparFormulario();
         atualizarTotalTabela();
 
-        // Mostrar mensagem de sucesso ao utilizador
         try {
           showSuccess("Registado com sucesso ✅");
         } catch (e) {
           console.warn("showSuccess não disponível:", e);
         }
 
-        // 🔓 Reabrir saldos se já estavam fechados
+        // ✅ Atualiza saldos do dashboard sem reload
+        await carregarSaldosDoDia();
+
+        // Se estava fechado, reabre para efeitos visuais
         if (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje) {
           saldosFechadosHoje = false;
-          await carregarSaldosDoDia();
         }
       } else {
         alert("Erro ao registar: " + (result.error || "desconhecido"));
@@ -403,7 +405,9 @@ function atualizarTotalTabela() {
 
   linhas.forEach((linha) => {
     if (linha.style.display !== "none") {
-      const valorTexto = (linha.cells[4]?.textContent || "").replace("€", "").trim();
+      const valorTexto = (linha.cells[4]?.textContent || "")
+        .replace("€", "")
+        .trim();
       const pagamento = (linha.cells[3]?.textContent || "").trim();
       const metodoBase = pagamento.split(" (OP TPA")[0].trim();
       const valor = parseFloat(valorTexto.replace(",", "."));
@@ -431,15 +435,21 @@ function atualizarTotalTabela() {
     divTotaisPorPagamento.innerHTML = `
       <div class="linha-pagamento">
         <span class="label-pagamento">Dinheiro</span>
-        <span class="valor-pagamento">${totaisPorPagamento["Dinheiro"].toFixed(2)} €</span>
+        <span class="valor-pagamento">${totaisPorPagamento["Dinheiro"].toFixed(
+          2
+        )} €</span>
       </div>
       <div class="linha-pagamento">
         <span class="label-pagamento">Multibanco</span>
-        <span class="valor-pagamento">${totaisPorPagamento["Multibanco"].toFixed(2)} €</span>
+        <span class="valor-pagamento">${totaisPorPagamento[
+          "Multibanco"
+        ].toFixed(2)} €</span>
       </div>
       <div class="linha-pagamento">
         <span class="label-pagamento">Transferência Bancária</span>
-        <span class="valor-pagamento">${totaisPorPagamento["Transferência Bancária"].toFixed(2)} €</span>
+        <span class="valor-pagamento">${totaisPorPagamento[
+          "Transferência Bancária"
+        ].toFixed(2)} €</span>
       </div>
     `;
   }
@@ -840,12 +850,18 @@ async function exportarResumoPDF() {
   }
 
   // 1) Buscar os totais atuais ao backend (respeita fecho / reabertura)
-  let dinheiro = 0, multibanco = 0, transferencia = 0, total = 0;
+  let dinheiro = 0,
+    multibanco = 0,
+    transferencia = 0,
+    total = 0;
 
   try {
     const resp = await fetch("/api/saldos-hoje", {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}`, "Cache-Control": "no-store" }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Cache-Control": "no-store",
+      },
     });
 
     const dados = await resp.json();
@@ -856,7 +872,7 @@ async function exportarResumoPDF() {
     dinheiro = parseFloat(dados.dinheiro || 0);
     multibanco = parseFloat(dados.multibanco || 0);
     transferencia = parseFloat(dados.transferencia || 0);
-    total = parseFloat(dados.total || (dinheiro + multibanco + transferencia));
+    total = parseFloat(dados.total || dinheiro + multibanco + transferencia);
   } catch (e) {
     console.error("Erro ao obter saldos para o PDF:", e);
     alert("Não foi possível gerar o resumo. Verifique a ligação ao servidor.");
@@ -866,8 +882,12 @@ async function exportarResumoPDF() {
   // Bloqueia exportação se saldos do dashboard estiverem a zero ou fechados
   if (
     (typeof saldosFechadosHoje !== "undefined" && saldosFechadosHoje) ||
-    (Number.isFinite(dinheiro) && Number.isFinite(multibanco) && Number.isFinite(transferencia) &&
-      dinheiro === 0 && multibanco === 0 && transferencia === 0)
+    (Number.isFinite(dinheiro) &&
+      Number.isFinite(multibanco) &&
+      Number.isFinite(transferencia) &&
+      dinheiro === 0 &&
+      multibanco === 0 &&
+      transferencia === 0)
   ) {
     alert("Não existem valores a exportar.");
     return;
@@ -1244,4 +1264,3 @@ window.registar = registar;
 window.exportarRelatorio = exportarRelatorio;
 window.exportarPDF = exportarPDF;
 window.exportarResumoPDF = exportarResumoPDF;
-
