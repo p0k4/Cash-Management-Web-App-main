@@ -885,6 +885,10 @@ app.get("/dashboard/fechos", (req, res) => {
   res.sendFile(path.join(__dirname, "private", "fechos.html"));
 });
 
+app.get("/dashboard/analise", (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "analise.html"));
+});
+
 // ============================================
 // 🧯 Tratamento de erros (fallbacks)
 // ============================================

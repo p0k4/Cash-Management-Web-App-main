@@ -1,0 +1,84 @@
+/* Estilo geral da página analítica */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #dce3e9;
+  margin: 0;
+  padding: 0;
+  color: #0a2d3c;
+}
+
+/* Cabeçalho */
+h1 {
+  text-align: center;
+  padding: 20px;
+  font-size: 28px;
+  color: #0a3d5e;
+}
+
+/* Nome do utilizador */
+.nome-utilizador {
+  font-weight: bold;
+  color: #0a3d5e;
+  margin-left: 30px;
+}
+
+/* Container principal do conteúdo */
+.container-analise {
+  background: #f4f7f9;
+  margin: 30px auto;
+  padding: 30px;
+  max-width: 1000px;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Filtros de datas */
+.filtros {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.filtros label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0a3d5e;
+}
+
+.filtros input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+}
+
+/* Botão de pesquisar */
+#btnPesquisar {
+  background-color: #0d4a63;
+  color: white;
+  padding: 10px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#btnPesquisar:hover {
+  background-color: #0a3d5e;
+}
+
+/* Gráfico */
+#graficoPagamentos {
+  max-width: 100%;
+  height: 400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
