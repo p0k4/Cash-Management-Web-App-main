@@ -67,7 +67,11 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({ username, password }),
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Credenciais inválidas!");
+        if (!res.ok) {
+          errorDiv.textContent = "Credenciais inválidas!";
+          errorDiv.style.display = "block";
+          throw new Error("Credenciais inválidas!");
+        }
         return res.json();
       })
       .then((data) => {
@@ -76,7 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((err) => {
         console.error(err);
-        errorDiv.textContent = err.message || "Erro ao conectar com o servidor.";
+        if (!errorDiv.textContent) {
+          errorDiv.textContent = err.message || "Erro ao conectar com o servidor.";
+          errorDiv.style.display = "block";
+        }
       });
   }
 
