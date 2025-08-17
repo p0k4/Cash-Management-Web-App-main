@@ -16,6 +16,8 @@ body {
   padding: 30px;
   border-radius: 48px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+
+  
 }
 /* Cabeçalho da página de utilizadores */
 .users-header {
@@ -934,7 +936,7 @@ th {
   background-color: #d8f8e1;
   color: #198754;
   font-weight: bold;
-  padding: 4px 12px;
+  padding: 8px 16px;
   border-radius: 999px;
   font-size: 18px;
   border: 1px solid #b3e5c5;
@@ -1188,8 +1190,8 @@ tr.linha-selecionada {
   background: linear-gradient(180deg,#34c759 0%, #28a745 100%);
   color: #fff;
   font-weight: 800;
-  padding: 11px 22px;
-  font-size: 20px;
+  padding: 15px 15px;
+  font-size: 16px;
   border: none;
   box-shadow: 0 22px 56px rgba(40,167,69,0.22);
   transition: transform .12s ease, box-shadow .12s ease;
