@@ -636,7 +636,7 @@ th {
   color: #fff;
   padding: 18px 34px;
   font-weight: 800;
-  font-size: 24px; /* maior que os outros dois */
+  font-size: 60px; /* maior que os outros dois */
   border: none;
   cursor: pointer;
   box-shadow: 0 18px 44px rgba(40,167,69,0.20);
@@ -1112,7 +1112,7 @@ th {
 .btn-reiniciar-pos,
 .btn-modern {
   padding: 10px 12px !important;
-  font-size: 10px !important;
+  font-size: 40px !important;
   border-radius: 20px !important;
   box-shadow: 0 18px 40px rgba(0,0,0,0.14) !important;
   align-items: center;
@@ -1232,5 +1232,5 @@ td.celula-opcoes {
 /* Aumentar tamanho dos botões principais na index */
 #btnRegistar, #btnFecharSaldos {
   padding: 22px 30px !important;
-  font-size: 15px !important;
+  font-size: 18px !important;
 }
