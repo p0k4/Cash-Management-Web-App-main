@@ -19,20 +19,25 @@
       <li><a class="btn-menu" href="/dashboard"><i class="fa-solid fa-house"></i> Dashboard</a></li>
       <li><a class="btn-menu" href="/dashboard/tabela"><i class="fa-solid fa-table"></i> Movimentos</a></li>
       <li><a class="btn-menu" href="/dashboard/historico"><i class="fa-solid fa-magnifying-glass"></i> Movimentos (pesquisa)</a></li>
-      <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+      <li><a class="btn-menu" href="/private/utilizadores.html"><i class="fas fa-users"></i> Utilizadores</a></li>
+    <li><a class="btn-menu" href="/dashboard/fechos"><i class="fas fa-clock"></i> Fechos</a></li>
+    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    
     </ul>
   </div>
   <div class="container">
-    <div class="users-header">
-      <h1>Gestão de Utilizadores</h1>
-      <button id="btnNovo" class="btn-novo"><i class="fa-solid fa-user-plus"></i> Novo Utilizador</button>
-    </div>
+    <header>
+      <h1 class="titulo-branco">Gestão de Utilizadores</h1>
+      <div class="users-header">
+        <button id="btnNovo" class="btn-novo"><i class="fa-solid fa-user-plus"></i> Novo Utilizador</button>
+      </div>
+    </header>
     <table class="tabela-utilizadores">
       <thead>
         <tr>
-          <th>Username</th>
-          <th>Função</th>
-          <th>Ações</th>
+          <th>UTILIZADORES</th>
+          <th>CARGO</th>
+          <th class="col-opcoes">OPÇÕES</th>
         </tr>
       </thead>
       <tbody id="tabelaUtilizadores"></tbody>

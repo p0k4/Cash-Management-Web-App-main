@@ -1197,5 +1197,23 @@ tr.linha-selecionada {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  border: 2px solid rgba(#ffffff);
+border: 2px solid #ffffff;
+}
+
+th.col-opcoes {
+  text-align: center;
+  vertical-align: middle;
+  width: 220px; /* ou ajusta ao tamanho desejado */
+}
+
+td.celula-opcoes {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.acoes-utilizador {
+  display: flex;
+  justify-content: center; /* ou flex-end se quiseres à direita */
+  align-items: center;
+  gap: 12px;
 }
