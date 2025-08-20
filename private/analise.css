@@ -31,14 +31,11 @@ main.conteudo-analise {
   margin: 10px;
 }
 
-
-
-
 .grafico-area {
   background: white;
   border-radius: 16px;
   padding: 20px;
-  max-width: 900px;
+  max-width: 1200px; /* Aumentado para expandir o container */
   max-height: 350px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   border: 2px solid #0d4a63;
@@ -52,7 +49,7 @@ main.conteudo-analise {
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
   margin: 0 auto 40px auto;
   border: 2px solid #0d4a63;
-  max-width: 900px;
+  max-width: 1200px; /* Aumentado para expandir o container */
 }
 
 .tabela-resumo h2 {
@@ -115,7 +112,7 @@ main.conteudo-analise {
   border: 2px solid #0d4a63;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   justify-content: flex-start;
-  max-width: 960px;
+  max-width: 1200px; /* Aumentado para expandir o container */
   box-sizing: border-box;
 }
 
