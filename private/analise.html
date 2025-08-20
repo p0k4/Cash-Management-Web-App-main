@@ -2,58 +2,95 @@
 <html lang="pt-PT">
 <head>
   <meta charset="UTF-8" />
-  <title>Análise de Pagamentos</title>
+  <title>Dashboard Analítica</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/private/analise.css" />
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="/private/style.css" />
+  <link rel="stylesheet" href="/private/analise.css" />
+
+  <!-- FontAwesome e Chart.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-  <div class="container">
-  <header>
-    <h1>Dashboard Analítica</h1>
-   
-  </header>
-  </div>
+  <aside class="menu-lateral">
+    <div class="caixa-utilizador-ativo">
+      <p class="label-utilizador"></p>
+      <span class="nome-utilizador">admin</span>
+    </div>
+    <h3>Menu</h3>
+    <ul id="menuLateral">
+      <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
+      <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Pesquisa</a></li>
+      <li><a class="btn-menu active" href="/dashboard/analise"><i class="fas fa-chart-bar"></i> Análise</a></li>
+      <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </aside>
 
-  <div class="menu-lateral">
-<div class="caixa-utilizador-ativo">
-  <p class="label-utilizador"></p>
-  <span class="nome-utilizador">admin</span>
-</div>
-  <br>
-  <h3>Menu</h3>
-  <ul id="menuLateral">
-    <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
-    <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
-    <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Pesquisa</a></li>
-    <li><a class="btn-menu active" href="/dashboard/analise"><i class="fas fa-chart-bar"></i> Análise</a></li>
-    <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-  </ul>
-</div>
-
-  <main>
-    <section id="filtros">
-      <div>
-        <label for="dataInicio">Data Início</label><br />
-        <input type="date" id="dataInicio" required />
-      </div>
-      <div>
-        <label for="dataFim">Data Fim</label><br />
-        <input type="date" id="dataFim" required />
-      </div>
-      <div>
-        <button id="btnPesquisar">Pesquisar</button>
-      </div>
+  <main class="dashboard-analitica">
+    <!-- Filtros superiores -->
+    <section class="filtros filtros-fechos">
+      <label>
+        <i class="fas fa-calendar-alt"></i>
+        <select id="filtroPeriodo">
+          <option value="dia">Dia</option>
+          <option value="semana">Semana</option>
+          <option value="mes" selected>Mês</option>
+          <option value="personalizado">Personalizado</option>
+        </select>
+      </label>
+      <label><i class="fas fa-calendar-day"></i><input type="date" id="dataInicio"></label>
+      <label><i class="fas fa-calendar-day"></i><input type="date" id="dataFim"></label>
+      <label><i class="fas fa-user"></i>
+        <select id="filtroUtilizador">
+          <option value="todos">Todos</option>
+          <!-- JS carrega dinamicamente utilizadores -->
+        </select>
+      </label>
+      <label><i class="fas fa-credit-card"></i>
+        <select id="filtroPagamento">
+          <option value="todos">Todos</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Multibanco">Multibanco</option>
+          <option value="Transferência Bancária">Transferência</option>
+        </select>
+      </label>
+      <button id="btnPesquisar"><i class="fas fa-search"></i> Aplicar Filtro</button>
     </section>
 
-    <section id="grafico">
-    <canvas id="graficoPagamentos" width="400" height="300"></canvas>
+    <!-- Gráfico -->
+    <section class="grafico-area">
+      <canvas id="graficoEvolucao" height="160"></canvas>
     </section>
-    <section id="grafico-barras" style="background: #fff; border-radius: 8px; padding: 2rem; box-shadow: 0 0 12px rgba(0,0,0,0.1); margin-top: 2rem;">
-  <canvas id="graficoTotaisDiarios" width="600" height="300"></canvas>
-</section>
+
+    <!-- Tabela -->
+    <section class="tabela-resumo">
+      <h2>Totais por Utilizador</h2>
+      <table>
+<thead>
+  <tr>
+    <th>Utilizador</th>
+    <th>Vendas c/IVA</th>
+    <th>Vendas</th>
+    <th>Custos</th>
+    <th>Resultado</th>
+    <th>Nº Vendas</th>
+  </tr>
+</thead>
+        <tbody id="tabelaResumoBody">
+          <!-- Populado via JS -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Botões -->
+    <section class="export-botoes">
+      <button class="btn-exportar-pdf"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+      <button class="btn-exportar-csv"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+    </section>
   </main>
 
   <script src="/private/script-analise.js"></script>

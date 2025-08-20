@@ -866,6 +866,83 @@ app.get("/api/fechos-user", async (req, res) => {
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
+
+app.get("/api/analise", verificarToken, async (req, res) => {
+  const { inicio, fim, utilizador, pagamento } = req.query;
+
+  if (!inicio || !fim) {
+    return res.status(400).json({ error: "Datas obrigatórias." });
+  }
+
+  const params = [inicio, fim];
+  let query = `
+    SELECT data, utilizador, valor, pagamento
+    FROM registos
+    WHERE data BETWEEN $1 AND $2
+  `;
+
+  if (utilizador && utilizador !== "todos") {
+    params.push(utilizador);
+    query += ` AND utilizador = $${params.length}`;
+  }
+
+  if (pagamento && pagamento !== "todos") {
+    params.push(pagamento);
+    query += ` AND pagamento ILIKE $${params.length}`;
+  }
+
+  try {
+    const resultado = await pool.query(query, params);
+    const registos = resultado.rows;
+
+    // === 1. Agrupado por data para gráfico ===
+    const agrupadoPorData = {};
+    registos.forEach(r => {
+      const dia = (r.data instanceof Date ? r.data : new Date(r.data)).toISOString().slice(0, 10);
+      if (!agrupadoPorData[dia]) {
+        agrupadoPorData[dia] = { total: 0 };
+      }
+      agrupadoPorData[dia].total += parseFloat(r.valor || 0);
+    });
+
+    // === 2. Resumo por utilizador ===
+    const resumoPorUtilizador = {};
+    registos.forEach(r => {
+      const user = r.utilizador || "Desconhecido";
+      if (!resumoPorUtilizador[user]) {
+        resumoPorUtilizador[user] = {
+          utilizador: user,
+          vendas_com_iva: 0,
+          vendas: 0,
+          custos: 0,
+          resultado: 0,
+          numero_vendas: 0,
+          retificacoes: 0,
+        };
+      }
+
+      const valor = parseFloat(r.valor || 0);
+
+      // Lógica de cálculo simples (podes ajustar depois)
+      resumoPorUtilizador[user].vendas_com_iva += valor;
+      resumoPorUtilizador[user].vendas += valor * 0.85; // Supondo 15% IVA
+      resumoPorUtilizador[user].custos += valor * 0.10; // Exemplo
+      resumoPorUtilizador[user].resultado += valor * 0.75; // Exemplo
+      resumoPorUtilizador[user].numero_vendas += 1;
+
+      // Removida a lógica que dependia de tipo_doc
+    });
+
+    res.json({
+      agrupadoPorData,
+      resumoPorUtilizador: Object.values(resumoPorUtilizador),
+      total: registos.length,
+    });
+  } catch (err) {
+    console.error("Erro na rota /api/analise:", err.stack || err.message || err);
+    res.status(500).json({ error: "Erro ao gerar análise." });
+  }
+});
 // ============================================
 // 🧭 Rotas de páginas privadas (HTML)
 // ============================================

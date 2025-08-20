@@ -1,5 +1,3 @@
-// script-analise.js (corrigido: filtros, destruição de gráficos, robustez)
-
 const token = localStorage.getItem("token");
 let username = "Desconhecido";
 
@@ -25,212 +23,138 @@ async function fetchProtegido(url, options = {}) {
   return fetch(url, options);
 }
 
-let chartDonut = null;
-let chartBar = null;
+let chartEvolucao = null;
 
-async function carregarTotaisPorPagamento() {
+async function carregarAnalise() {
   const inicio = document.getElementById("dataInicio").value;
   const fim = document.getElementById("dataFim").value;
+  const utilizador = document.getElementById("filtroUtilizador").value;
+  const pagamento = document.getElementById("filtroPagamento").value;
 
   if (!inicio || !fim) {
-    alert("Por favor, selecione o intervalo de datas.");
+    alert("Por favor, selecione as datas.");
     return;
   }
 
-  const params = new URLSearchParams();
-  params.append("inicio", inicio);
-  params.append("fim", fim);
+  const params = new URLSearchParams({
+    inicio,
+    fim,
+    utilizador,
+    pagamento,
+  });
 
   try {
-    const res = await fetchProtegido(`/api/registos/intervalo?${params.toString()}`);
-
+    const res = await fetchProtegido(`/api/analise?${params.toString()}`);
     if (res.status === 401) {
       alert("Sessão expirada. Faça login novamente.");
       window.location.href = "/login.html";
       return;
     }
 
-    if (!res.ok) {
-      alert("Erro ao carregar totais. Código: " + res.status);
+    const dados = await res.json();
+
+    if (!dados || typeof dados.agrupadoPorData !== "object" || !Array.isArray(dados.resumoPorUtilizador)) {
+      console.warn("Resposta inesperada:", dados);
+      alert("Erro ao carregar dados de análise.");
       return;
     }
 
-    const registos = await res.json();
+    desenharGrafico(dados.agrupadoPorData);
+    preencherTabela(dados.resumoPorUtilizador);
 
-    if (!Array.isArray(registos)) {
-      alert("Resposta inesperada do servidor.");
-      console.error("Resposta inesperada:", registos);
-      return;
-    }
+  } catch (err) {
+    console.error("Erro ao carregar análise:", err);
+    alert("Erro ao carregar análise.");
+  }
+}
 
-    // Totais para donut
-    const totais = {
-      Dinheiro: 0,
-      Multibanco: 0,
-      "Transferência Bancária": 0,
-    };
+function desenharGrafico(agrupado) {
+  const ctx = document.getElementById("graficoEvolucao").getContext("2d");
+  if (chartEvolucao) chartEvolucao.destroy();
 
-    // Totais diários para barras
-    const totaisPorDia = {};
+  const labels = Object.keys(agrupado);
+  const valores = labels.map(data => agrupado[data].total);
 
-    registos.forEach((r) => {
-      let metodoRaw = (r.pagamento || "").trim().toLowerCase();
-      const valor = parseFloat(r.valor || 0);
-      const data = r.data;
-
-      console.log("Método pagamento recebido:", r.pagamento);
-
-      if (!isNaN(valor)) {
-        // Normalizar método para as chaves do objeto totais
-        let metodo = null;
-        if (metodoRaw.includes("dinheiro")) {
-          metodo = "Dinheiro";
-        } else if (metodoRaw.includes("multibanco")) {
-          metodo = "Multibanco";
-        } else if (metodoRaw.includes("transferência")) {
-          metodo = "Transferência Bancária";
-        } else {
-          console.warn("Método de pagamento não reconhecido:", r.pagamento);
-        }
-
-        if (metodo) {
-          // Donut
-          if (totais.hasOwnProperty(metodo)) {
-            totais[metodo] += valor;
-          }
-
-          // Barras
-          if (!totaisPorDia[data]) {
-            totaisPorDia[data] = {
-              Dinheiro: 0,
-              Multibanco: 0,
-              "Transferência Bancária": 0,
-            };
-          }
-          if (totaisPorDia[data][metodo] !== undefined) {
-            totaisPorDia[data][metodo] += valor;
+  chartEvolucao = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Total € por dia",
+        data: valores,
+        backgroundColor: "rgba(0, 123, 255, 0.3)",
+        borderColor: "#007bff",
+        borderWidth: 2,
+        tension: 0.3,
+        pointRadius: 4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: valor => `${valor.toFixed(2)} €`
           }
         }
       }
-    });
-
-    desenharGraficoDonut(totais);
-    desenharGraficoBarras(totaisPorDia);
-  } catch (err) {
-    console.error("Erro ao carregar totais:", err);
-    alert("Erro ao carregar totais.");
-  }
-}
-
-function desenharGraficoDonut(totais) {
-  const canvas = document.getElementById("graficoPagamentos");
-  if (!canvas) {
-    console.error("Canvas do gráfico não encontrado!");
-    return;
-  }
-  const ctx = canvas.getContext("2d");
-
-  if (chartDonut) {
-    chartDonut.destroy();
-  }
-
-  chartDonut = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: Object.keys(totais),
-      datasets: [
-        {
-          label: "Totais por pagamento",
-          data: Object.values(totais),
-          backgroundColor: [
-            "#4caf50", // Dinheiro
-            "#2196f3", // Multibanco
-            "#ff9800", // Transferência
-          ],
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom",
-        },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const valor = context.raw.toFixed(2);
-              return `${context.label}: ${valor} €`;
-            },
-          },
-        },
-      },
-    },
+    }
   });
 }
 
-function desenharGraficoBarras(totaisPorDia) {
-  const canvas = document.getElementById("graficoTotaisDiarios");
-  if (!canvas) {
-    console.error("Canvas do gráfico de barras não encontrado!");
-    return;
-  }
-  const ctx = canvas.getContext("2d");
+function preencherTabela(dados) {
+  const tbody = document.getElementById("tabelaResumoBody");
+  tbody.innerHTML = "";
 
-  if (chartBar) {
-    chartBar.destroy();
-  }
+  let totalLinha = {
+    vendas_com_iva: 0,
+    vendas: 0,
+    custos: 0,
+    resultado: 0,
+    numero_vendas: 0,
+    retificacoes: 0
+  };
 
-  const labels = Object.keys(totaisPorDia).sort();
-  const dadosDinheiro = labels.map((d) => totaisPorDia[d].Dinheiro);
-  const dadosMB = labels.map((d) => totaisPorDia[d].Multibanco);
-  const dadosTransf = labels.map((d) => totaisPorDia[d]["Transferência Bancária"]);
+  dados.forEach(u => {
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td>${u.utilizador}</td>
+      <td>${u.vendas_com_iva.toFixed(2)} €</td>
+      <td>${u.vendas.toFixed(2)} €</td>
+      <td>${u.custos.toFixed(2)} €</td>
+      <td>${u.resultado.toFixed(2)} €</td>
+      <td>${u.numero_vendas}</td>
+    `;
+    tbody.appendChild(linha);
 
-  chartBar = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Dinheiro",
-          data: dadosDinheiro,
-          backgroundColor: "#4caf50",
-        },
-        {
-          label: "Multibanco",
-          data: dadosMB,
-          backgroundColor: "#2196f3",
-        },
-        {
-          label: "Transferência Bancária",
-          data: dadosTransf,
-          backgroundColor: "#ff9800",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "top",
-        },
-      },
-      scales: {
-        x: {
-          stacked: true,
-        },
-        y: {
-          stacked: true,
-          beginAtZero: true,
-        },
-      },
-    },
+    totalLinha.vendas_com_iva += u.vendas_com_iva;
+    totalLinha.vendas += u.vendas;
+    totalLinha.custos += u.custos;
+    totalLinha.resultado += u.resultado;
+    totalLinha.numero_vendas += u.numero_vendas;
   });
+
+  // Linha TOTAL
+  const linhaTotal = document.createElement("tr");
+  linhaTotal.style.fontWeight = "bold";
+  linhaTotal.innerHTML = `
+    <td>TOTAL</td>
+    <td>${totalLinha.vendas_com_iva.toFixed(2)} €</td>
+    <td>${totalLinha.vendas.toFixed(2)} €</td>
+    <td>${totalLinha.custos.toFixed(2)} €</td>
+    <td>${totalLinha.resultado.toFixed(2)} €</td>
+    <td>${totalLinha.numero_vendas}</td>
+  `;
+  tbody.appendChild(linhaTotal);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Preencher datas padrão (últimos 7 dias)
   const hoje = new Date();
   const seteDiasAtras = new Date();
   seteDiasAtras.setDate(hoje.getDate() - 6);
@@ -238,9 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("dataFim").value = hoje.toISOString().slice(0, 10);
   document.getElementById("dataInicio").value = seteDiasAtras.toISOString().slice(0, 10);
 
-  carregarTotaisPorPagamento();
+  carregarAnalise();
 
-  document.getElementById("btnPesquisar").addEventListener("click", () => {
-    carregarTotaisPorPagamento();
-  });
+  document.getElementById("btnPesquisar").addEventListener("click", carregarAnalise);
 });
