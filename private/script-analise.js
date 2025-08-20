@@ -153,30 +153,29 @@ function preencherTabela(dados) {
 
   let totalLinha = {
     vendas_com_iva: 0,
-    vendas: 0,
-    custos: 0,
-    resultado: 0,
     numero_vendas: 0,
-    retificacoes: 0,
+    dinheiro: 0,
+    multibanco: 0,
+    transferencia: 0
   };
 
-  dados.forEach((u) => {
+  dados.forEach(u => {
     const linha = document.createElement("tr");
     linha.innerHTML = `
-      <td>${u.utilizador}</td>
-      <td>${u.vendas_com_iva.toFixed(2)} €</td>
-      <td>${u.vendas.toFixed(2)} €</td>
-      <td>${u.custos.toFixed(2)} €</td>
-      <td>${u.resultado.toFixed(2)} €</td>
-      <td>${u.numero_vendas}</td>
+      <td>${u.utilizador || ''}</td>
+      <td>${(u.dinheiro || 0).toFixed(2)} €</td>
+      <td>${(u.multibanco || 0).toFixed(2)} €</td>
+      <td>${(u.transferencia || 0).toFixed(2)} €</td>
+      <td>${u.numero_vendas || 0}</td>
+      <td>${(u.vendas_com_iva || 0).toFixed(2)} €</td>
     `;
     tbody.appendChild(linha);
 
-    totalLinha.vendas_com_iva += u.vendas_com_iva;
-    totalLinha.vendas += u.vendas;
-    totalLinha.custos += u.custos;
-    totalLinha.resultado += u.resultado;
-    totalLinha.numero_vendas += u.numero_vendas;
+    totalLinha.vendas_com_iva += u.vendas_com_iva || 0;
+    totalLinha.numero_vendas += u.numero_vendas || 0;
+    totalLinha.dinheiro += u.dinheiro || 0;
+    totalLinha.multibanco += u.multibanco || 0;
+    totalLinha.transferencia += u.transferencia || 0;
   });
 
   // Linha TOTAL
@@ -184,11 +183,11 @@ function preencherTabela(dados) {
   linhaTotal.style.fontWeight = "bold";
   linhaTotal.innerHTML = `
     <td>TOTAL</td>
-    <td>${totalLinha.vendas_com_iva.toFixed(2)} €</td>
-    <td>${totalLinha.vendas.toFixed(2)} €</td>
-    <td>${totalLinha.custos.toFixed(2)} €</td>
-    <td>${totalLinha.resultado.toFixed(2)} €</td>
+    <td>${totalLinha.dinheiro.toFixed(2)} €</td>
+    <td>${totalLinha.multibanco.toFixed(2)} €</td>
+    <td>${totalLinha.transferencia.toFixed(2)} €</td>
     <td>${totalLinha.numero_vendas}</td>
+    <td>${totalLinha.vendas_com_iva.toFixed(2)} €</td>
   `;
   tbody.appendChild(linhaTotal);
 }
@@ -208,4 +207,96 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("btnPesquisar")
     .addEventListener("click", carregarAnalise);
+
+  // Adicionar listener para botão exportar PDF
+  const btnExportarPDF = document.querySelector(".btn-exportar-pdf");
+  if (btnExportarPDF) {
+    btnExportarPDF.addEventListener("click", exportarPDFResumo);
+  }
 });
+
+  async function exportarPDFResumo() {
+    if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
+      alert("jsPDF ou AutoTable não está carregado corretamente.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const data = [];
+    let total = 0;
+    let totalLinhaNumeroVendas = 0;
+    let totalLinhaDinheiro = 0;
+    let totalLinhaMultibanco = 0;
+    let totalLinhaTransferencia = 0;
+
+    const linhas = document.querySelectorAll("#tabelaResumoBody tr");
+
+    linhas.forEach((linha) => {
+      const tds = linha.querySelectorAll("td");
+      const utilizadorCell = tds[0].textContent.trim();
+      const dinheiroCell = tds[1].textContent.trim();
+      const multibancoCell = tds[2].textContent.trim();
+      const transferenciaCell = tds[3].textContent.trim();
+      const numeroVendasCell = tds[4].textContent.trim();
+      const totalVendasCell = tds[5].textContent.trim();
+
+      const dinheiroNum = parseFloat(dinheiroCell.replace(" €", "").replace(",", "."));
+      const multibancoNum = parseFloat(multibancoCell.replace(" €", "").replace(",", "."));
+      const transferenciaNum = parseFloat(transferenciaCell.replace(" €", "").replace(",", "."));
+      const totalVendasNum = parseFloat(totalVendasCell.replace(" €", "").replace(",", "."));
+      const numeroVendasNum = parseInt(numeroVendasCell) || 0;
+
+      total += totalVendasNum;
+      totalLinhaNumeroVendas += numeroVendasNum;
+      totalLinhaDinheiro += dinheiroNum;
+      totalLinhaMultibanco += multibancoNum;
+      totalLinhaTransferencia += transferenciaNum;
+
+      data.push([
+        utilizadorCell,
+        dinheiroCell,
+        multibancoCell,
+        transferenciaCell,
+        numeroVendasCell,
+        totalVendasCell,
+      ]);
+    });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Totais por Utilizador", 105, 15, { align: "center" });
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const dataHora = new Date().toLocaleString("pt-PT");
+    doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
+
+    const token = localStorage.getItem("token");
+    let username = "Desconhecido";
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        username = payload.username || "Desconhecido";
+      } catch (e) {
+        console.warn("Erro ao ler token para PDF:", e);
+      }
+    }
+    doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
+
+  doc.autoTable({
+    head: [["Utilizador", "Dinheiro", "Multibanco", "Transferência", "Nº Vendas", "Total Vendas"]],
+    body: data,
+    startY: 35,
+    styles: { halign: "center", fontSize: 10 },
+    headStyles: { fillColor: [13, 74, 99], textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [240, 240, 240] },
+    columnStyles: {
+      0: { fontStyle: 'bold' }
+    }
+  });
+
+
+
+    doc.save(`totais_utilizador_${new Date().toISOString().split("T")[0]}.pdf`);
+  }

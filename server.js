@@ -917,11 +917,14 @@ app.get("/api/analise", verificarToken, async (req, res) => {
           custos: 0,
           resultado: 0,
           numero_vendas: 0,
-          retificacoes: 0,
+          dinheiro: 0,
+          multibanco: 0,
+          transferencia: 0,
         };
       }
 
       const valor = parseFloat(r.valor || 0);
+      const pagamento = (r.pagamento || "").toLowerCase();
 
       // Lógica de cálculo simples (podes ajustar depois)
       resumoPorUtilizador[user].vendas_com_iva += valor;
@@ -930,7 +933,13 @@ app.get("/api/analise", verificarToken, async (req, res) => {
       resumoPorUtilizador[user].resultado += valor * 0.75; // Exemplo
       resumoPorUtilizador[user].numero_vendas += 1;
 
-      // Removida a lógica que dependia de tipo_doc
+      if (pagamento.includes("dinheiro")) {
+        resumoPorUtilizador[user].dinheiro += valor;
+      } else if (pagamento.includes("multibanco")) {
+        resumoPorUtilizador[user].multibanco += valor;
+      } else if (pagamento.includes("transfer")) {
+        resumoPorUtilizador[user].transferencia += valor;
+      }
     });
 
     res.json({
