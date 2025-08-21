@@ -138,6 +138,7 @@ main.conteudo-analise {
   gap: 10px;
   margin-left: auto;
   margin-top: 15px;
+  margin-right: 20px;
 }
 
 .filtros-fechos button:hover {
