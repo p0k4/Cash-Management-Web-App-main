@@ -34,8 +34,8 @@ main.conteudo-analise {
 .grafico-area {
   background: white;
   border-radius: 16px;
-  padding: 80px;
-  max-width: 1280px; /* Aumentado para expandir o container */
+  padding: 20px;
+  max-width: 1400px; /* Aumentado para expandir o container */
   max-height: 350px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   border: 2px solid #0d4a63;
@@ -52,6 +52,7 @@ main.conteudo-analise {
   border: 2px solid #0d4a63;
   max-width: 1400px; /* Aumentado para expandir o container */
   margin-left: 300px;
+  margin-top: 10px;
 }
 
 .tabela-resumo h2 {
