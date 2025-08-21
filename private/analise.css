@@ -34,12 +34,13 @@ main.conteudo-analise {
 .grafico-area {
   background: white;
   border-radius: 16px;
-  padding: 20px;
-  max-width: 1200px; /* Aumentado para expandir o container */
+  padding: 80px;
+  max-width: 1280px; /* Aumentado para expandir o container */
   max-height: 350px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   border: 2px solid #0d4a63;
   margin: 20px auto;
+  margin-left: 300px;
 }
 
 .tabela-resumo {
@@ -49,7 +50,8 @@ main.conteudo-analise {
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
   margin: 0 auto 40px auto;
   border: 2px solid #0d4a63;
-  max-width: 1200px; /* Aumentado para expandir o container */
+  max-width: 1400px; /* Aumentado para expandir o container */
+  margin-left: 300px;
 }
 
 .tabela-resumo h2 {
@@ -76,29 +78,8 @@ main.conteudo-analise {
   color: white;
 }
 
-.botoes-exportar {
-  display: flex;
-  gap: 15px;
-  justify-content: flex-end;
-  margin-bottom: 60px;
-}
 
-.botoes-exportar button {
-  background-color: #07c5ff;
-  color: #212529;
-  font-weight: bold;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 15px;
-  border: 2px solid #0d4a63;
-  box-shadow: 0 4px 10px rgba(7, 114, 255, 0.3);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
 
-.botoes-exportar button:hover {
-  background-color: #0086e0;
-  box-shadow: 0 6px 14px rgba(7, 230, 255, 0.5);
-}
 
 .filtros-fechos {
   display: flex;
@@ -109,10 +90,11 @@ main.conteudo-analise {
   padding: 18px;
   border-radius: 14px;
   margin: 30px auto;
+  margin-left: 450px;
   border: 2px solid #0d4a63;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   justify-content: flex-start;
-  max-width: 1200px; /* Aumentado para expandir o container */
+  max-width: 1100px; /* Aumentado para expandir o container */
   box-sizing: border-box;
 }
 
@@ -142,7 +124,7 @@ main.conteudo-analise {
 .filtros-fechos button {
   background-color: #0d4a63;
   color: white;
-  padding: 8px 14px;
+  padding: 10px 14px;
   font-weight: bold;
   border: none;
   border-radius: 8px;
@@ -157,4 +139,35 @@ main.conteudo-analise {
 
 .filtros-fechos button:hover {
   background-color: #083c53;
+}
+
+.cabecalho-analise {
+  background-color: #0f4c64;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 4px solid #fafbfb;
+  margin: 20px;
+  margin-left: 260px;
+}
+
+
+.titulo-analise h1 {
+  font-size: 4em;
+  font-weight: bold;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.export-botoes {
+  justify-content: center;
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  margin-left: 260px;
 }

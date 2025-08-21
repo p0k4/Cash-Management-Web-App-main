@@ -25,15 +25,19 @@
     </div>
     <h3>Menu</h3>
     <ul id="menuLateral">
-      <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a class="btn-menu" href="/dashboard"><i class="fas fa-home"></i> POS</a></li>
       <li><a class="btn-menu" href="/dashboard/tabela"><i class="fas fa-table"></i> Movimentos</a></li>
       <li><a class="btn-menu" href="/dashboard/historico"><i class="fas fa-search"></i> Pesquisa</a></li>
-      <li><a class="btn-menu active" href="/dashboard/analise"><i class="fas fa-chart-bar"></i> Análise</a></li>
+      <li><a class="btn-menu active" href="/dashboard/analise"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
       <li><a class="btn-menu btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
     </ul>
   </aside>
-
   <main class="dashboard-analitica">
+   
+      <div class="cabecalho-analise">
+        <h1 class="titulo-analise">Dashboard</h1>
+      </div>
+
     <!-- Filtros superiores -->
     <section class="filtros filtros-fechos">
       <label>
@@ -61,7 +65,7 @@
           <option value="Transferência Bancária">Transferência</option>
         </select>
       </label>
-      <button id="btnPesquisar"><i class="fas fa-search"></i> Aplicar Filtro</button>
+      <button id="btnPesquisar">Aplicar Filtro</button>
     </section>
 
     <!-- Gráfico -->
