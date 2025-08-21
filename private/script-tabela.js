@@ -169,16 +169,11 @@ function atualizarTotalTabela() {
 // criarBotoesOpcoes COMPLETO COM JWT
 // ====================================
 
-/**
- * Cria os botões de ação por linha (Editar/Apagar) e liga-os à API protegida.
- * - DELETE /api/registos/:id → remove a linha se sucesso
- * - PUT /api/registos/:id → atualiza a linha com valores editados
- * @param {HTMLTableRowElement} linha
- * @returns {void}
- */
 function criarBotoesOpcoes(linha) {
   const cellOpcoes = linha.insertCell();
-  cellOpcoes.classList.add("col-opcoes");
+  cellOpcoes.classList.add("celula-opcoes"); // importante para centralizar
+  const acoesDiv = document.createElement("div");
+  acoesDiv.className = "acoes-utilizador";
 
   const id = linha.dataset.id;
 
@@ -189,7 +184,6 @@ function criarBotoesOpcoes(linha) {
   btnApagar.onclick = async function () {
     const confirmar = confirm("Tem certeza que deseja apagar esta linha?");
     if (!confirmar) return;
-
     try {
       const response = await fetchProtegido(`/api/registos/${id}`, {
         method: "DELETE",
@@ -217,7 +211,6 @@ function criarBotoesOpcoes(linha) {
     const estaEditando = btnEditar.textContent.includes("Guardar");
 
     if (!estaEditando) {
-      // Ativa modo de edição: guarda originais e transforma células em inputs
       valoresOriginais = [];
       for (let i = 0; i <= 4; i++) {
         const cell = linha.cells[i];
@@ -226,7 +219,6 @@ function criarBotoesOpcoes(linha) {
         cell.textContent = "";
 
         if (i === 3) {
-          // Select de pagamento + campo OP TPA condicional
           const select = document.createElement("select");
           ["Dinheiro", "Multibanco", "Transferência Bancária"].forEach((opcao) => {
             const opt = document.createElement("option");
@@ -253,11 +245,9 @@ function criarBotoesOpcoes(linha) {
           cell.appendChild(select);
           cell.appendChild(opTPAInput);
         } else {
-          // Inputs para operação, data, numDoc, valor
           const input = document.createElement("input");
           input.type = i === 1 ? "date" : "text";
           if (i === 1) {
-            // valorOriginal no formato dd/mm/aaaa → normaliza para yyyy-mm-dd sem UTC
             const [dd, mm, yyyy] = valorOriginal.split("/");
             input.value = `${yyyy}-${mm}-${dd}`;
           } else {
@@ -270,7 +260,6 @@ function criarBotoesOpcoes(linha) {
 
       btnEditar.innerHTML = '<i class="fas fa-check"></i> Guardar';
 
-      // Botão CANCELAR (só no modo de edição)
       const btnCancelar = document.createElement("button");
       btnCancelar.innerHTML = '<i class="fas fa-times"></i> Cancelar';
       btnCancelar.className = "btn-cancelar-linha";
@@ -284,9 +273,8 @@ function criarBotoesOpcoes(linha) {
         atualizarTotalTabela();
       };
 
-      cellOpcoes.appendChild(btnCancelar);
+      acoesDiv.appendChild(btnCancelar);
     } else {
-      // Guarda edição: recolhe inputs, chama PUT e volta a desenhar a linha
       const operacao = linha.cells[0].querySelector("input").value;
       const data = linha.cells[1].querySelector("input").value;
       const numDoc = parseInt(linha.cells[2].querySelector("input").value);
@@ -312,7 +300,7 @@ function criarBotoesOpcoes(linha) {
           linha.cells[3].textContent = pagamentoFinal;
           linha.cells[4].textContent = valor.toFixed(2) + " €";
           btnEditar.innerHTML = '<i class="fas fa-edit"></i> Editar';
-          const cancelarBtn = cellOpcoes.querySelector(".btn-cancelar-linha");
+          const cancelarBtn = acoesDiv.querySelector(".btn-cancelar-linha");
           if (cancelarBtn) cancelarBtn.remove();
           atualizarTotalTabela();
         } else {
@@ -325,9 +313,11 @@ function criarBotoesOpcoes(linha) {
     }
   };
 
+  // Aplica margem e adiciona os botões ao container
   btnEditar.style.marginRight = "5px";
-  cellOpcoes.appendChild(btnEditar);
-  cellOpcoes.appendChild(btnApagar);
+  acoesDiv.appendChild(btnEditar);
+  acoesDiv.appendChild(btnApagar);
+  cellOpcoes.appendChild(acoesDiv);
 }
 
 // ====================================

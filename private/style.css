@@ -265,7 +265,7 @@ button:disabled {
 .btn-apagar-linha {
   background: linear-gradient(180deg,#dc3545 0%, #b02a37 100%);
   color: white;
-  margin-top: 5px;
+  margin-top: -3px;
   padding: 6px 12px;
   border-radius: 10px;
   cursor: pointer;
@@ -275,7 +275,7 @@ button:disabled {
 .btn-emitir-linha {
   background: linear-gradient(180deg,#e07008 0%, #b02a37 100%);
   color: white;
-  margin-top: 5px;
+  margin-top: -3px;
   padding: 6px 20px;
   border-radius: 10px;
   cursor: pointer;
@@ -412,12 +412,12 @@ button:disabled {
   padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: -3px;
 }
 
 .btn-editar-linha i,
 .btn-apagar-linha i {
-  margin-right: 8px;
+  margin-right: 4px;
 }
 
 /* Botão apagar tudo */
@@ -462,7 +462,7 @@ button:disabled {
 
 
 .title-opcoes {
-  padding: 10px;
+    padding: 10px;
   margin-top: 20px;
   padding: 10px;
   padding-left: 180px;
@@ -761,7 +761,7 @@ th {
   border-radius: 15px;
   padding: 10px 15px;
   border: 2px solid #0d4a63;
-  width: 1200px;
+  width: 1400px;
 }
 
 .filtro-data button {
@@ -1216,6 +1216,7 @@ th.col-opcoes {
   text-align: center;
   vertical-align: middle;
   width: 220px; /* ou ajusta ao tamanho desejado */
+  
 }
 
 td.celula-opcoes {
