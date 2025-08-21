@@ -10,8 +10,9 @@ body {
 /* Container principal */
 .container {
   position: relative;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 50px auto;
+  margin-left: 260px;
   background: #e2edf4;
   padding: 30px;
   border-radius: 48px;
