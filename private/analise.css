@@ -8,8 +8,9 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 40px auto;
+  margin-left: 260px;
   background-color: #e9f0f5;
   border-radius: 20px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
@@ -27,8 +28,8 @@ header.header-analise {
 }
 
 main.conteudo-analise {
-  max-width: 500px;
-  margin: 10px;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
 .grafico-area {
@@ -40,7 +41,7 @@ main.conteudo-analise {
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   border: 2px solid #0d4a63;
   margin: 20px auto;
-  margin-left: 300px;
+
 }
 
 .tabela-resumo {
@@ -51,7 +52,7 @@ main.conteudo-analise {
   margin: 0 auto 40px auto;
   border: 2px solid #0d4a63;
   max-width: 1400px; /* Aumentado para expandir o container */
-  margin-left: 300px;
+
   margin-top: 10px;
 }
 
@@ -91,11 +92,10 @@ main.conteudo-analise {
   padding: 18px;
   border-radius: 14px;
   margin: 30px auto;
-  margin-left: 450px;
   border: 2px solid #0d4a63;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   justify-content: flex-start;
-  max-width: 1150px; /* Aumentado para expandir o container */
+  max-width: 1200px; /* Aumentado para expandir o container */
   box-sizing: border-box;
 }
 
@@ -104,7 +104,7 @@ main.conteudo-analise {
   flex-direction: row;
   align-items: center;
   gap: 16px;
-  font-weight: 600;
+  font-weight: 600px;
   font-size: 20px;
   color: #073848;
   white-space: nowrap;
@@ -131,11 +131,11 @@ main.conteudo-analise {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
-  height: 36px;
+  font-size: 16px;
+  height: 44px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   margin-left: auto;
   margin-top: 15px;
 }
@@ -145,17 +145,24 @@ main.conteudo-analise {
 }
 
 .cabecalho-analise {
-  background-color: #0f4c64;
-  border-radius: 16px;
-  padding: 20px;
+  background-color: #0d4a63;
+  border-radius: 20px;
+  padding: 30px 40px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 4px solid #fafbfb;
-  margin: 20px;
-  margin-left: 260px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border: 3px solid #0a3a4f;
+  margin: 20px 300px 10px 300px;
+}
+
+.cabecalho-analise h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: 1.2px;
+  text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -172,5 +179,5 @@ main.conteudo-analise {
   gap: 12px;
   margin-top: 10px;
   flex-wrap: wrap;
-  margin-left: 260px;
+  margin: 0 auto; /* centraliza */
 }
