@@ -95,7 +95,7 @@ main.conteudo-analise {
   border: 2px solid #0d4a63;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   justify-content: flex-start;
-  max-width: 1100px; /* Aumentado para expandir o container */
+  max-width: 1150px; /* Aumentado para expandir o container */
   box-sizing: border-box;
 }
 
@@ -103,16 +103,16 @@ main.conteudo-analise {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 20px;
   color: #073848;
   white-space: nowrap;
 }
 
 .filtros-fechos select,
 .filtros-fechos input[type="date"] {
-  height: 36px;
+  height: 44px;
   width: 140px;
   padding: 6px 10px;
   border-radius: 8px;
@@ -120,6 +120,7 @@ main.conteudo-analise {
   font-size: 13px;
   background-color: #fff;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+  margin-bottom: 15px;
 }
 
 .filtros-fechos button {
@@ -136,6 +137,7 @@ main.conteudo-analise {
   align-items: center;
   gap: 6px;
   margin-left: auto;
+  margin-top: 15px;
 }
 
 .filtros-fechos button:hover {
