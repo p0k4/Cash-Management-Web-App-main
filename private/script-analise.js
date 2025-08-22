@@ -52,7 +52,7 @@ async function carregarAnalise() {
     }
 
     const dados = await res.json();
-
+    console.log("📦 API /analise agrupadoPorData:", dados.agrupadoPorData);
     if (
       !dados ||
       typeof dados.agrupadoPorData !== "object" ||
@@ -75,75 +75,72 @@ function desenharGrafico(agrupado) {
   const ctx = document.getElementById("graficoEvolucao").getContext("2d");
   if (chartEvolucao) chartEvolucao.destroy();
 
-  const labels = Object.keys(agrupado);
-  const valores = labels.map(data => agrupado[data].total);
+  const inicio = new Date(document.getElementById("dataInicio").value);
+  const fim = new Date(document.getElementById("dataFim").value);
 
-  // 👇 Se só existir um ponto, duplica-o com um dia antes só para formar linha
-  if (labels.length === 1) {
-    const unicaData = labels[0];
-    const valorUnico = valores[0];
+  const labels = [];
+  const valores = [];
 
-    const dataAnterior = new Date(unicaData);
-    dataAnterior.setDate(dataAnterior.getDate() - 1);
-    const dataFake = dataAnterior.toISOString().slice(0, 10);
-
-    labels.unshift(dataFake);
-    valores.unshift(0); // ou repetir o mesmo valor, mas melhor 0
+  for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
+    const dataStr = d.toISOString().slice(0, 10);
+    labels.push(dataStr);
+    valores.push(agrupado[dataStr]?.total || 0); // ou null se quiseres buracos no gráfico
   }
 
   chartEvolucao = new Chart(ctx, {
     type: "line",
     data: {
       labels,
-      datasets: [{
-        label: "Total € por dia",
-        data: valores,
-        backgroundColor: "rgba(0, 123, 255, 0.3)",
-        borderColor: "#007bff",
-        borderWidth: 2,
-        tension: 0.3,
-        pointRadius: 4,
-        fill: true
-      }]
+      datasets: [
+        {
+          label: "Total € por dia",
+          data: valores,
+          backgroundColor: "rgba(0, 123, 255, 0.3)",
+          borderColor: "#007bff",
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 4,
+          fill: true,
+        },
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       animation: {
         duration: 1500,
-        easing: 'easeOutQuart'
+        easing: "easeOutQuart",
       },
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
       },
       scales: {
         x: {
-          type: 'time',
+          type: "time",
           time: {
-            unit: 'day',
-            tooltipFormat: 'yyyy-MM-dd',
+            unit: "day",
+            tooltipFormat: "yyyy-MM-dd",
             displayFormats: {
-              day: 'yyyy-MM-dd'
+              day: "yyyy-MM-dd",
             },
-            round: 'day'
           },
           ticks: {
             maxRotation: 0,
             autoSkip: true,
-            maxTicksLimit: 10
-          }
+            maxTicksLimit: 10,
+          },
         },
         y: {
           beginAtZero: true,
           min: 0,
           max: Math.max(20, Math.max(...valores) * 1.1),
           ticks: {
-            callback: valor => `${valor.toFixed(2)} €`
+            callback: (valor) => `${valor.toFixed(2)} €`,
           },
-          grace: '5%',
-        }
-      }
-    }
+          grace: "5%",
+        },
+      },
+    },
   });
 }
 
@@ -156,13 +153,13 @@ function preencherTabela(dados) {
     numero_vendas: 0,
     dinheiro: 0,
     multibanco: 0,
-    transferencia: 0
+    transferencia: 0,
   };
 
-  dados.forEach(u => {
+  dados.forEach((u) => {
     const linha = document.createElement("tr");
     linha.innerHTML = `
-      <td>${u.utilizador || ''}</td>
+      <td>${u.utilizador || ""}</td>
       <td>${(u.dinheiro || 0).toFixed(2)} €</td>
       <td>${(u.multibanco || 0).toFixed(2)} €</td>
       <td>${(u.transferencia || 0).toFixed(2)} €</td>
@@ -215,88 +212,107 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-  async function exportarPDFResumo() {
-    if (!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF !== "function") {
-      alert("jsPDF ou AutoTable não está carregado corretamente.");
-      return;
+async function exportarPDFResumo() {
+  if (
+    !window.jspdf ||
+    !window.jspdf.jsPDF ||
+    typeof window.jspdf.jsPDF !== "function"
+  ) {
+    alert("jsPDF ou AutoTable não está carregado corretamente.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = [];
+  let total = 0;
+  let totalLinhaNumeroVendas = 0;
+  let totalLinhaDinheiro = 0;
+  let totalLinhaMultibanco = 0;
+  let totalLinhaTransferencia = 0;
+
+  const linhas = document.querySelectorAll("#tabelaResumoBody tr");
+
+  linhas.forEach((linha) => {
+    const tds = linha.querySelectorAll("td");
+    const utilizadorCell = tds[0].textContent.trim();
+    const dinheiroCell = tds[1].textContent.trim();
+    const multibancoCell = tds[2].textContent.trim();
+    const transferenciaCell = tds[3].textContent.trim();
+    const numeroVendasCell = tds[4].textContent.trim();
+    const totalVendasCell = tds[5].textContent.trim();
+
+    const dinheiroNum = parseFloat(
+      dinheiroCell.replace(" €", "").replace(",", ".")
+    );
+    const multibancoNum = parseFloat(
+      multibancoCell.replace(" €", "").replace(",", ".")
+    );
+    const transferenciaNum = parseFloat(
+      transferenciaCell.replace(" €", "").replace(",", ".")
+    );
+    const totalVendasNum = parseFloat(
+      totalVendasCell.replace(" €", "").replace(",", ".")
+    );
+    const numeroVendasNum = parseInt(numeroVendasCell) || 0;
+
+    total += totalVendasNum;
+    totalLinhaNumeroVendas += numeroVendasNum;
+    totalLinhaDinheiro += dinheiroNum;
+    totalLinhaMultibanco += multibancoNum;
+    totalLinhaTransferencia += transferenciaNum;
+
+    data.push([
+      utilizadorCell,
+      dinheiroCell,
+      multibancoCell,
+      transferenciaCell,
+      numeroVendasCell,
+      totalVendasCell,
+    ]);
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Totais por Utilizador", 105, 15, { align: "center" });
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const dataHora = new Date().toLocaleString("pt-PT");
+  doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
+
+  const token = localStorage.getItem("token");
+  let username = "Desconhecido";
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      username = payload.username || "Desconhecido";
+    } catch (e) {
+      console.warn("Erro ao ler token para PDF:", e);
     }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const data = [];
-    let total = 0;
-    let totalLinhaNumeroVendas = 0;
-    let totalLinhaDinheiro = 0;
-    let totalLinhaMultibanco = 0;
-    let totalLinhaTransferencia = 0;
-
-    const linhas = document.querySelectorAll("#tabelaResumoBody tr");
-
-    linhas.forEach((linha) => {
-      const tds = linha.querySelectorAll("td");
-      const utilizadorCell = tds[0].textContent.trim();
-      const dinheiroCell = tds[1].textContent.trim();
-      const multibancoCell = tds[2].textContent.trim();
-      const transferenciaCell = tds[3].textContent.trim();
-      const numeroVendasCell = tds[4].textContent.trim();
-      const totalVendasCell = tds[5].textContent.trim();
-
-      const dinheiroNum = parseFloat(dinheiroCell.replace(" €", "").replace(",", "."));
-      const multibancoNum = parseFloat(multibancoCell.replace(" €", "").replace(",", "."));
-      const transferenciaNum = parseFloat(transferenciaCell.replace(" €", "").replace(",", "."));
-      const totalVendasNum = parseFloat(totalVendasCell.replace(" €", "").replace(",", "."));
-      const numeroVendasNum = parseInt(numeroVendasCell) || 0;
-
-      total += totalVendasNum;
-      totalLinhaNumeroVendas += numeroVendasNum;
-      totalLinhaDinheiro += dinheiroNum;
-      totalLinhaMultibanco += multibancoNum;
-      totalLinhaTransferencia += transferenciaNum;
-
-      data.push([
-        utilizadorCell,
-        dinheiroCell,
-        multibancoCell,
-        transferenciaCell,
-        numeroVendasCell,
-        totalVendasCell,
-      ]);
-    });
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("Totais por Utilizador", 105, 15, { align: "center" });
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const dataHora = new Date().toLocaleString("pt-PT");
-    doc.text(`Exportado em: ${dataHora}`, 105, 22, { align: "center" });
-
-    const token = localStorage.getItem("token");
-    let username = "Desconhecido";
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        username = payload.username || "Desconhecido";
-      } catch (e) {
-        console.warn("Erro ao ler token para PDF:", e);
-      }
-    }
-    doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
+  }
+  doc.text(`Emitido por: ${username}`, 105, 28, { align: "center" });
 
   doc.autoTable({
-    head: [["Utilizador", "Dinheiro", "Multibanco", "Transferência", "Nº Vendas", "Total Vendas"]],
+    head: [
+      [
+        "Utilizador",
+        "Dinheiro",
+        "Multibanco",
+        "Transferência",
+        "Nº Vendas",
+        "Total Vendas",
+      ],
+    ],
     body: data,
     startY: 35,
     styles: { halign: "center", fontSize: 10 },
     headStyles: { fillColor: [13, 74, 99], textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [240, 240, 240] },
     columnStyles: {
-      0: { fontStyle: 'bold' }
-    }
+      0: { fontStyle: "bold" },
+    },
   });
 
-
-
-    doc.save(`totais_utilizador_${new Date().toISOString().split("T")[0]}.pdf`);
-  }
+  doc.save(`totais_utilizador_${new Date().toISOString().split("T")[0]}.pdf`);
+}

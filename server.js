@@ -37,15 +37,15 @@ const pool = new Pool({
 });
 
 // Monitoriza erros inesperados do pool
-pool.on('error', (err) => {
-  console.error('❌ Erro inesperado no pool:', err);
+pool.on("error", (err) => {
+  console.error("❌ Erro inesperado no pool:", err);
   process.exit(-1);
 });
 
 // ============================================
 // 🌐 Middlewares globais
 // ============================================
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Log de cada pedido
@@ -61,13 +61,16 @@ app.use((req, res, next) => {
 // Verifica e decodifica o token JWT
 function verificarToken(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: "Token não fornecido" });
+  if (!authHeader)
+    return res.status(401).json({ error: "Token não fornecido" });
 
   const token = authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Formato de token inválido" });
+  if (!token)
+    return res.status(401).json({ error: "Formato de token inválido" });
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ error: "Token inválido ou expirado" });
+    if (err)
+      return res.status(401).json({ error: "Token inválido ou expirado" });
     req.user = decoded; // { username, id }
     next();
   });
@@ -94,7 +97,9 @@ function validarRegisto(req, res, next) {
     return res.status(400).json({ error: "Valor deve ser um número positivo" });
   }
   if (isNaN(numDoc) || parseInt(numDoc) <= 0) {
-    return res.status(400).json({ error: "Número do documento deve ser positivo" });
+    return res
+      .status(400)
+      .json({ error: "Número do documento deve ser positivo" });
   }
   next();
 }
@@ -125,12 +130,14 @@ app.use("/private", express.static(path.join(__dirname, "private")));
 // ============================================
 
 // Registo público condicionado por flag .env
-if (process.env.ENABLE_PUBLIC_REGISTRATION === 'true') {
+if (process.env.ENABLE_PUBLIC_REGISTRATION === "true") {
   app.post("/api/registar-utilizador", async (req, res) => {
     const { username, senha, adminPassword } = req.body;
 
     if (!username || !senha || !adminPassword) {
-      return res.status(400).json({ error: "Todos os campos são obrigatórios." });
+      return res
+        .status(400)
+        .json({ error: "Todos os campos são obrigatórios." });
     }
 
     const senhaAdminCorreta = process.env.ADMIN_PASSWORD;
@@ -169,7 +176,9 @@ if (process.env.ENABLE_PUBLIC_REGISTRATION === 'true') {
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password)
-    return res.status(400).json({ error: "Username e password são obrigatórios" });
+    return res
+      .status(400)
+      .json({ error: "Username e password são obrigatórios" });
 
   try {
     const result = await pool.query(
@@ -262,11 +271,16 @@ app.post("/api/novo-utilizador", verificarAdmin, async (req, res) => {
 app.delete("/api/utilizadores/:username", verificarAdmin, async (req, res) => {
   const { username } = req.params;
   if (username === "admin") {
-    return res.status(403).json({ error: "Não é possível apagar o utilizador admin." });
+    return res
+      .status(403)
+      .json({ error: "Não é possível apagar o utilizador admin." });
   }
 
   try {
-    const result = await pool.query("DELETE FROM utilizadores WHERE username = $1", [username]);
+    const result = await pool.query(
+      "DELETE FROM utilizadores WHERE username = $1",
+      [username]
+    );
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Utilizador não encontrado" });
     }
@@ -282,7 +296,8 @@ app.put("/api/utilizadores/:username", verificarAdmin, async (req, res) => {
   const { username } = req.params;
   const { novaSenha } = req.body;
 
-  if (!novaSenha) return res.status(400).json({ error: "Nova senha é obrigatória" });
+  if (!novaSenha)
+    return res.status(400).json({ error: "Nova senha é obrigatória" });
 
   try {
     const senhaHash = await bcrypt.hash(novaSenha, 10);
@@ -350,7 +365,12 @@ app.get("/api/registos/intervalo", async (req, res) => {
       params.push(inicio, fim);
     } else if ((inicio && !fim) || (!inicio && fim)) {
       // Se apenas uma das datas for fornecida, pedir ambos (evita confusão)
-      return res.status(400).json({ error: "Ambas as datas (inicio e fim) devem ser fornecidas para filtrar por intervalo." });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Ambas as datas (inicio e fim) devem ser fornecidas para filtrar por intervalo.",
+        });
     }
 
     // Filtros dinâmicos
@@ -536,7 +556,6 @@ app.get("/api/fechos/:id", verificarToken, async (req, res) => {
   }
 });
 
-
 // Calcula e devolve saldos do dia, respeitando “fecho”
 app.get("/api/saldos-hoje", async (req, res) => {
   const username = req.user.username;
@@ -572,7 +591,9 @@ app.get("/api/saldos-hoje", async (req, res) => {
         [username]
       );
 
-      let dinheiro = 0, multibanco = 0, transferencia = 0;
+      let dinheiro = 0,
+        multibanco = 0,
+        transferencia = 0;
       for (const r of somaRows) {
         const m = (r.pagamento || "").toLowerCase();
         const v = parseFloat(r.total || 0);
@@ -626,7 +647,9 @@ app.get("/api/saldos-hoje", async (req, res) => {
       [username, tsFecho]
     );
 
-    let dinheiro = 0, multibanco = 0, transferencia = 0;
+    let dinheiro = 0,
+      multibanco = 0,
+      transferencia = 0;
     for (const r of somaPos) {
       const m = (r.pagamento || "").toLowerCase();
       const v = parseFloat(r.total || 0);
@@ -674,7 +697,9 @@ app.post("/api/fechar-saldos", async (req, res) => {
       [username]
     );
 
-    let dinheiro = 0, multibanco = 0, transferencia = 0;
+    let dinheiro = 0,
+      multibanco = 0,
+      transferencia = 0;
     for (const r of rows) {
       const tot = parseFloat(r.total) || 0;
       const p = (r.pagamento || "").toLowerCase();
@@ -706,11 +731,12 @@ app.post("/api/fechar-saldos", async (req, res) => {
       transferenciaPeriodo -= parseFloat(prev.transferencia || 0);
     }
 
-    const totalPeriodo = dinheiroPeriodo + multibancoPeriodo + transferenciaPeriodo;
+    const totalPeriodo =
+      dinheiroPeriodo + multibancoPeriodo + transferenciaPeriodo;
 
     // Inserir o fecho com os valores do PERÍODO (não acumulado)
     const insert = await pool.query(
-      `INSERT INTO saldos_diarios 
+      `INSERT INTO saldos_diarios
        (data, dinheiro, multibanco, transferencia, total, montante_periodo, user_id)
        VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, $6)
        RETURNING *`,
@@ -725,10 +751,18 @@ app.post("/api/fechar-saldos", async (req, res) => {
     );
 
     console.log("✅ Fecho guardado:", insert.rows[0]);
-    res.json({ mensagem: "Saldos fechados com sucesso!", fecho: insert.rows[0] });
+    res.json({
+      mensagem: "Saldos fechados com sucesso!",
+      fecho: insert.rows[0],
+    });
   } catch (err) {
     console.error("💥 ERRO /api/fechar-saldos:", err);
-    res.status(500).json({ erro: "Erro ao fechar saldos.", detalhe: String(err?.message || err) });
+    res
+      .status(500)
+      .json({
+        erro: "Erro ao fechar saldos.",
+        detalhe: String(err?.message || err),
+      });
   }
 });
 
@@ -779,7 +813,12 @@ app.get("/api/fechos/intervalo", verificarAdmin, async (req, res) => {
       sql += ` AND sd.data BETWEEN $${idx++} AND $${idx++}`;
       params.push(inicio, fim);
     } else if ((inicio && !fim) || (!inicio && fim)) {
-      return res.status(400).json({ error: "Ambas as datas (inicio e fim) devem ser fornecidas para filtrar por intervalo." });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Ambas as datas (inicio e fim) devem ser fornecidas para filtrar por intervalo.",
+        });
     }
 
     if (utilizador) {
@@ -810,16 +849,21 @@ app.get("/api/fechos/intervalo", verificarAdmin, async (req, res) => {
 // Apaga um fecho por ID (admin apenas)
 app.delete("/api/fechos/:id", verificarAdmin, async (req, res) => {
   const { id } = req.params;
-  
+
   if (!id || isNaN(id)) return res.status(400).json({ error: "ID inválido" });
 
   // 🛡️ Proteger em produção
   if (process.env.NODE_ENV === "production") {
-    return res.status(403).json({ error: "Não é permitido apagar fechos em produção." });
+    return res
+      .status(403)
+      .json({ error: "Não é permitido apagar fechos em produção." });
   }
 
   try {
-    const result = await pool.query("DELETE FROM saldos_diarios WHERE id = $1", [id]);
+    const result = await pool.query(
+      "DELETE FROM saldos_diarios WHERE id = $1",
+      [id]
+    );
     if (result.rowCount === 0)
       return res.status(404).json({ error: "Fecho não encontrado" });
     res.json({ success: true });
@@ -897,18 +941,32 @@ app.get("/api/analise", verificarToken, async (req, res) => {
 
     // === 1. Agrupado por data para gráfico ===
     const agrupadoPorData = {};
-    registos.forEach(r => {
-      const dia = (r.data instanceof Date ? r.data : new Date(r.data)).toISOString().slice(0, 10);
-      if (!agrupadoPorData[dia]) {
-        agrupadoPorData[dia] = { total: 0 };
+    registos.forEach((r) => {
+      let dataFormatada = "desconhecida";
+      if (r.data) {
+        const data = new Date(r.data);
+        if (!isNaN(data)) {
+          const ano = data.getFullYear();
+          const mes = String(data.getMonth() + 1).padStart(2, "0");
+          const dia = String(data.getDate()).padStart(2, "0");
+          dataFormatada = `${ano}-${mes}-${dia}`;
+        }
       }
-      agrupadoPorData[dia].total += parseFloat(r.valor || 0);
+
+      if (!agrupadoPorData[dataFormatada]) {
+        agrupadoPorData[dataFormatada] = { total: 0 };
+      }
+
+      agrupadoPorData[dataFormatada].total += parseFloat(r.valor || 0);
     });
 
     // === 2. Resumo por utilizador ===
     const resumoPorUtilizador = {};
-    registos.forEach(r => {
+    registos.forEach((r) => {
       const user = r.utilizador || "Desconhecido";
+      const valor = parseFloat(r.valor || 0);
+      const pagamento = (r.pagamento || "").toLowerCase();
+
       if (!resumoPorUtilizador[user]) {
         resumoPorUtilizador[user] = {
           utilizador: user,
@@ -923,14 +981,10 @@ app.get("/api/analise", verificarToken, async (req, res) => {
         };
       }
 
-      const valor = parseFloat(r.valor || 0);
-      const pagamento = (r.pagamento || "").toLowerCase();
-
-      // Lógica de cálculo simples (podes ajustar depois)
       resumoPorUtilizador[user].vendas_com_iva += valor;
-      resumoPorUtilizador[user].vendas += valor * 0.85; // Supondo 15% IVA
-      resumoPorUtilizador[user].custos += valor * 0.10; // Exemplo
-      resumoPorUtilizador[user].resultado += valor * 0.75; // Exemplo
+      resumoPorUtilizador[user].vendas += valor * 0.85;       // Supondo 15% IVA
+      resumoPorUtilizador[user].custos += valor * 0.10;        // Exemplo
+      resumoPorUtilizador[user].resultado += valor * 0.75;     // Exemplo
       resumoPorUtilizador[user].numero_vendas += 1;
 
       if (pagamento.includes("dinheiro")) {
@@ -981,7 +1035,7 @@ app.get("/dashboard/analise", (req, res) => {
 
 // Handler de erros não tratados (evita crash silencioso)
 app.use((err, req, res, next) => {
-  console.error('❌ Erro não tratado:', err);
+  console.error("❌ Erro não tratado:", err);
   res.status(500).json({ error: "Erro interno do servidor" });
 });
 
@@ -995,12 +1049,12 @@ app.use((req, res) => {
 // ============================================
 app.listen(PORT, () => {
   console.log(`✅ Servidor a correr em http://localhost:${PORT}`);
-  console.log(`🔐 JWT_SECRET configurado: ${JWT_SECRET ? 'Sim' : 'Não'}`);
+  console.log(`🔐 JWT_SECRET configurado: ${JWT_SECRET ? "Sim" : "Não"}`);
 });
 
 // Encerramento gracioso (Docker/k8s, etc.)
-process.on('SIGTERM', () => {
-  console.log('🔄 Encerrando servidor...');
+process.on("SIGTERM", () => {
+  console.log("🔄 Encerrando servidor...");
   pool.end();
   process.exit(0);
 });
