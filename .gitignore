@@ -8,7 +8,7 @@ build/
 
 # Ambiente
 .env
-.env.* 
+.env.*
 
 # Sistema
 .DS_Store
@@ -29,5 +29,5 @@ MELHORIAS_IMPLEMENTADAS.md
 API.md
 estrutura_base_dados_pos.md
 
-#deploy 
-.Deploy/
+#deploy
+**/deploy/
