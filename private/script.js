@@ -179,6 +179,11 @@ async function registar() {
       ? document.getElementById("op-tpa").value.trim()
       : null;
 
+      if (pagamento === "Multibanco" && (!opTPA || opTPA.length === 0)) {
+  alert("Por favor, preencha o campo OP TPA");
+  return;
+}
+
   if (!isNaN(valor) && valor > 0 && valor <= 10000) {
     // Gera o rótulo da operação automaticamente
     const operacao = "Operação " + contadorOperacao;
