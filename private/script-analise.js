@@ -210,6 +210,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnExportarPDF) {
     btnExportarPDF.addEventListener("click", exportarPDFResumo);
   }
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      if (confirm("Deseja Sair ?")) {
+        fazerLogout();
+      }
+    });
+  }
 });
 
 async function exportarPDFResumo() {
@@ -316,3 +324,11 @@ async function exportarPDFResumo() {
 
   doc.save(`totais_utilizador_${new Date().toISOString().split("T")[0]}.pdf`);
 }
+
+ // Logout do utilizador
+ // ====================================
+ function fazerLogout() {
+   localStorage.removeItem("token");
+   window.location.href = "/login.html";
+ }
+
