@@ -678,7 +678,6 @@ app.post("/api/fechar-saldos", async (req, res) => {
   console.log("🧾 [/api/fechar-saldos] user =", username);
 
   try {
-    // Obter o user_id
     const userQuery = await pool.query(
       "SELECT id FROM utilizadores WHERE username = $1",
       [username]
@@ -688,62 +687,53 @@ app.post("/api/fechar-saldos", async (req, res) => {
     }
     const userId = userQuery.rows[0].id;
 
-    // Soma atual por método
-    const { rows } = await pool.query(
-      `SELECT pagamento, SUM(valor) AS total
-         FROM registos
-        WHERE data = CURRENT_DATE AND utilizador = $1
-        GROUP BY pagamento`,
-      [username]
-    );
-
-    let dinheiro = 0,
-      multibanco = 0,
-      transferencia = 0;
-    for (const r of rows) {
-      const tot = parseFloat(r.total) || 0;
-      const p = (r.pagamento || "").toLowerCase();
-      if (p.includes("dinheiro")) dinheiro += tot;
-      else if (p.includes("multibanco")) multibanco += tot;
-      else if (p.includes("transferência")) transferencia += tot;
-    }
-
-    // Valores do total atual (antes de subtrair o fecho anterior)
-    let dinheiroPeriodo = dinheiro;
-    let multibancoPeriodo = multibanco;
-    let transferenciaPeriodo = transferencia;
-
-    // Buscar último fecho (de qualquer data)
-    const { rows: ultimoFecho } = await pool.query(
-      `SELECT dinheiro, multibanco, transferencia
-         FROM saldos_diarios
-        WHERE user_id = $1
-        ORDER BY created_at DESC
-        LIMIT 1`,
+    // Obter último fecho DE HOJE
+    const { rows: ultimoFechoHoje } = await pool.query(
+      `SELECT created_at FROM saldos_diarios
+        WHERE user_id = $1 AND data = CURRENT_DATE
+        ORDER BY created_at DESC LIMIT 1`,
       [userId]
     );
 
-    // Subtrair valores do último fecho para obter só o período
-    if (ultimoFecho.length > 0) {
-      const prev = ultimoFecho[0];
-      dinheiroPeriodo -= parseFloat(prev.dinheiro || 0);
-      multibancoPeriodo -= parseFloat(prev.multibanco || 0);
-      transferenciaPeriodo -= parseFloat(prev.transferencia || 0);
+    let condicaoTempo = "";
+    const params = [username];
+
+    if (ultimoFechoHoje.length > 0) {
+      condicaoTempo = "AND created_at > $2";
+      params.push(ultimoFechoHoje[0].created_at);
     }
 
-    const totalPeriodo =
-      dinheiroPeriodo + multibancoPeriodo + transferenciaPeriodo;
+    // Somar apenas registos após último fecho (ou tudo, se for o primeiro)
+    const querySoma = `
+      SELECT pagamento, SUM(valor) AS total
+      FROM registos
+      WHERE data = CURRENT_DATE AND utilizador = $1
+      ${condicaoTempo}
+      GROUP BY pagamento
+    `;
+    const { rows: somaRows } = await pool.query(querySoma, params);
 
-    // Inserir o fecho com os valores do PERÍODO (não acumulado)
+    let dinheiro = 0, multibanco = 0, transferencia = 0;
+    for (const r of somaRows) {
+      const tipo = (r.pagamento || "").toLowerCase();
+      const valor = parseFloat(r.total || 0);
+      if (tipo.includes("dinheiro")) dinheiro += valor;
+      else if (tipo.includes("multibanco")) multibanco += valor;
+      else if (tipo.includes("transfer")) transferencia += valor;
+    }
+
+    const totalPeriodo = dinheiro + multibanco + transferencia;
+
+    // Inserir fecho
     const insert = await pool.query(
       `INSERT INTO saldos_diarios
-       (data, dinheiro, multibanco, transferencia, total, montante_periodo, user_id)
-       VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, $6)
-       RETURNING *`,
+        (data, dinheiro, multibanco, transferencia, total, montante_periodo, user_id)
+        VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, $6)
+        RETURNING *`,
       [
-        dinheiroPeriodo,
-        multibancoPeriodo,
-        transferenciaPeriodo,
+        dinheiro,
+        multibanco,
+        transferencia,
         totalPeriodo,
         totalPeriodo,
         userId,
@@ -751,18 +741,10 @@ app.post("/api/fechar-saldos", async (req, res) => {
     );
 
     console.log("✅ Fecho guardado:", insert.rows[0]);
-    res.json({
-      mensagem: "Saldos fechados com sucesso!",
-      fecho: insert.rows[0],
-    });
+    res.json({ mensagem: "Saldos fechados com sucesso!", fecho: insert.rows[0] });
   } catch (err) {
     console.error("💥 ERRO /api/fechar-saldos:", err);
-    res
-      .status(500)
-      .json({
-        erro: "Erro ao fechar saldos.",
-        detalhe: String(err?.message || err),
-      });
+    res.status(500).json({ erro: "Erro ao fechar saldos.", detalhe: String(err?.message || err) });
   }
 });
 
