@@ -5,11 +5,11 @@ CREATE TABLE IF NOT EXISTS utilizadores (
   admin BOOLEAN DEFAULT FALSE
 );
 
--- ⚠️ Cria o utilizador "admin" com password "admin" encriptada com bcrypt
+-- Cria o utilizador "admin" com a password "admin" (hash correta)
 INSERT INTO utilizadores (username, senha, admin)
 VALUES (
   'admin',
-  '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZ2duB3XtKQMn1UeN8jDWZg.S2a9xS', -- ← hash da senha "admin"
+  '$2b$10$uX8kMa/NX5WfGmBaErXddOVkQKUob7Dx7GhDCzAr1ksvhQvmj2Ely', -- hash da palavra "admin"
   TRUE
 )
 ON CONFLICT (username) DO NOTHING;
