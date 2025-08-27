@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    container_name: pos_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: martins
+      POSTGRES_PASSWORD: app.bdm
+      POSTGRES_DB: pos_db_s11u
+    ports:
+      - "5432:5432"
+    volumes:
+      - pos_data:/var/lib/postgresql/data
+    networks:
+      - pos_net
+
+  backend:
+    build: .
+    container_name: pos_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_USER: martins
+      DB_PASSWORD: app.bdm
+      DB_NAME: pos_db_s11u
+      DB_HOST: db
+      DB_PORT: 5432
+      JWT_SECRET: minha_chave_secreta_super_segura
+    depends_on:
+      - db
+    networks:
+      - pos_net
+
+volumes:
+  pos_data:
+
+networks:
+  pos_net:
