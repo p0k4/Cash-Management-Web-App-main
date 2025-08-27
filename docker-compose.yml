@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - pos_data:/var/lib/postgresql/data
+      - ./init-user.sql:/docker-entrypoint-initdb.d/init-user.sql
     networks:
       - pos_net
 
