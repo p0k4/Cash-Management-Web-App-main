@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS utilizadores (
 INSERT INTO utilizadores (username, senha, admin)
 VALUES (
   'admin',
-  '$2b$10$uX8kMa/NX5WfGmBaErXddOVkQKUob7Dx7GhDCzAr1ksvhQvmj2Ely', -- hash da palavra "admin"
+  '$2b$10$8urCAbmC7py4LifxGWDevOM6wR2o9GFw/5abw21lTfkaayLI9eeu2', -- hash da palavra "admin"
   TRUE
 )
 ON CONFLICT (username) DO NOTHING;
