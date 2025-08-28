@@ -988,6 +988,43 @@ app.get("/api/analise", verificarToken, async (req, res) => {
     res.status(500).json({ error: "Erro ao gerar análise." });
   }
 });
+
+app.put("/api/alterar-senha", verificarToken, async (req, res) => {
+  const { senhaAtual, novaSenha } = req.body;
+  const username = req.user.username;
+
+  if (!senhaAtual || !novaSenha) {
+    return res.status(400).json({ error: "Senha atual e nova senha são obrigatórias." });
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT senha FROM utilizadores WHERE username = $1",
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Utilizador não encontrado." });
+    }
+
+    const senhaCorreta = await bcrypt.compare(senhaAtual, result.rows[0].senha);
+    if (!senhaCorreta) {
+      return res.status(401).json({ error: "Senha atual incorreta." });
+    }
+
+    const novaHash = await bcrypt.hash(novaSenha, 10);
+    await pool.query(
+      "UPDATE utilizadores SET senha = $1 WHERE username = $2",
+      [novaHash, username]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Erro ao alterar senha:", err);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+});
+
 // ============================================
 // 🧭 Rotas de páginas privadas (HTML)
 // ============================================

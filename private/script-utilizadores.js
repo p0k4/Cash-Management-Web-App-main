@@ -24,8 +24,8 @@ async function carregarUtilizadores() {
 
       // Define função (Administrador ou Utilizador comum)
       const role = u.username === "admin" ? "Administrador" : "Utilizador";
-      const roleBadge = u.username === "admin" 
-        ? `<span class="badge badge-admin">${role}</span>` 
+      const roleBadge = u.username === "admin"
+        ? `<span class="badge badge-admin">${role}</span>`
         : `<span class="badge badge-user">${role}</span>`;
 
       // Linha HTML com botões de ação
@@ -83,29 +83,14 @@ document.addEventListener("DOMContentLoaded", carregarUtilizadores);
 // ====================================
 // Editar senha de um utilizador
 // ====================================
-document.addEventListener("click", async (e) => {
+document.addEventListener("click", (e) => {
   const editBtn = e.target.closest(".btn-editar");
   if (editBtn) {
     const username = editBtn.dataset.user;
-    const novaSenha = prompt(`Nova senha para "${username}":`);
-    if (novaSenha) {
-      // Pedido PUT à API para atualizar senha
-      const res = await fetch(`/api/utilizadores/${username}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token")
-        },
-        body: JSON.stringify({ novaSenha })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("Senha atualizada com sucesso!");
-      } else {
-        alert(data.error || "Erro ao atualizar senha.");
-      }
-    }
+    // Grava o utilizador que vamos editar (para usar na página de alteração)
+    localStorage.setItem("utilizadorParaEditarSenha", username);
+    // Redireciona para a página alterar-senha.html
+    window.location.href = "/private/alterar-senha.html";
   }
 });
 
