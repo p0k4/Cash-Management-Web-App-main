@@ -28,6 +28,7 @@ CONFIGURACAO_SEGURA.md
 MELHORIAS_IMPLEMENTADAS.md
 API.md
 estrutura_base_dados_pos.md
+hash.sh
 
 #deploy
 **/deploy/
