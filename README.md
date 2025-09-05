@@ -1,6 +1,6 @@
 # 💰 Cash Management Web App
 
-A full-featured **Cash Management Web Application** built with **HTML, CSS, JavaScript, Node.js, Express, and PostgreSQL**, designed to handle daily cash operations, track payments, and generate detailed reports.  
+A full-featured **Cash Management Web Application** built with **HTML, CSS, JavaScript, Node.js, Express, and PostgreSQL**, designed to handle daily cash operations, track payments, and generate detailed reports.
 The system includes authentication with JWT, role-based user management, daily balance closure, and export options for CSV/PDF.
 
 ---
@@ -48,7 +48,7 @@ The system includes authentication with JWT, role-based user management, daily b
 - Maintains original formatting for OP TPA.
 
 ### 🧾 Closures (Fechos)
-  
+
 -	View all daily cash closures made by users.
 -	Each entry includes:
 -	Date and time of closure
@@ -89,7 +89,13 @@ The system includes authentication with JWT, role-based user management, daily b
 
 ### 📊 Dashboard
 
+![Dashboard](./docs/images/graf.png)
+
+
+### 🖥️ POS
+
 ![Dashboard](./docs/images/dashboard.png)
+
 
 ### 📋 Transactions Table
 
@@ -174,7 +180,7 @@ cd cash-management-web-app
 npm install
 ```
 
-**3. Configure environment variables**  
+**3. Configure environment variables**
 Create a `.env` file with:
 
 ```plaintext
